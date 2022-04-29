@@ -1,0 +1,63 @@
+source
+                    DBL
+0   A       000     8
+1   B       001     9
+2   ALU     010     a
+3   MEM     011     b
+4   ST      100     c
+5   LIT     101     d
+6   ---     110     e
+7   ---     111     f
+
+dest
+
+0   A
+1   B
+2   ML
+3   MH
+4   SL
+5   SH
+6   MEM
+7   ST
+8   ALU_OP
+9
+a
+b
+c
+d
+e   J_COND
+f   J
+
+ALU Ops
+0  "add",
+1  "sub",
+2  "neg",
+3  "shl",
+4  "NOP",
+5  "inc",
+6  "adc",
+7  "sbc",
+8  "not A",
+9  "and",
+a  "or",
+b  "xor",
+c  "zero",
+d  "NOP",
+e  "NOP",
+f  "NOP"
+
+Comparison
+= "sub" | (cmp_op << 4)
+
+   > < =
+11 0 0 1 eq
+21 0 1 0 lt
+31 0 1 1 le
+41 1 0 0 g
+51 1 0 1 ge
+61 1 1 0 ne
+
+
+memmap
+0x8000 - 0x8008 - input
+0xc000 - 0xc008 - output
