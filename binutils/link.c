@@ -237,22 +237,31 @@ void linker_link() {
   int offset;
   uint16_t addr;
   uint16_t id;
-
+  uint16_t half_word;
 
   for(i = 0; i < sects_sz; i++) {
     struct section_list_entry * node;
     node = sects[i]->list;
     while(node) {
       if(node->used) {
-        for(j = 0; j<node->section->label_mask_pos; j+=4) {
+        for(j = 0; j<node->section->label_mask_pos; j+=8) {
           addr = *(uint16_t *)(&node->section->label_mask[j]);
           offset = *(uint16_t *)(&node->section->label_mask[j+2]);
-          id = ((uint8_t)node->section->data[addr]) | ((uint8_t)node->section->data[addr+1] << 8);
+          id = *(uint16_t *)(&node->section->label_mask[j+4]);
+          half_word = *(uint16_t *)(&node->section->label_mask[j+6]);
+          //id = ((uint8_t)node->section->data[addr]) | ((uint8_t)node->section->data[addr+1] << 8);
 
           e = find_located_label(id, node->section, node->origin);
           if(e) {
-            node->section->data[addr] = low((e->position + offset));
-            node->section->data[addr+1] = high((e->position + offset));
+            if(!half_word) {
+              node->section->data[addr] = low((e->position + offset));
+              node->section->data[addr+1] = high((e->position + offset));
+            } else if(half_word == 1) {
+              node->section->data[addr] = low((e->position + offset));
+            } else if(half_word == 2) {
+              node->section->data[addr] = high((e->position + offset));
+            }
+
           } else {
             exit(1);
           }

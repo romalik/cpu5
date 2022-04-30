@@ -106,7 +106,7 @@ void gen_instruction() {
         break;
     }
   } else {
-    panic("Bad destination\n");
+    panic("Bad destination");
   }
 
   get_next_token();
@@ -132,7 +132,7 @@ void gen_instruction() {
     }
 
   } else {
-    panic("Bad source\n");
+    panic("Bad source");
   }
 
 }
@@ -206,12 +206,28 @@ void assemble() {
     } else if(token[0] == '$') {
       //label
       uint16_t label_id;
-      label_id = mark_label_use(&token[1], current_section->data_pos, current_section);
+      int half_word = 0;
+      int label_start = 1;
 
-      assert(expect_arg_size == 2);
+      if(strlen(token) > 4) {
+        if(token[1] == '(') {
+          if(token[2] == 'l') half_word = 1;
+          if(token[2] == 'h') half_word = 2;
+          label_start = 4;
+        }
+      }
 
-      emit(low(label_id));
-      emit(high(label_id));
+      label_id = mark_label_use(&token[label_start], current_section->data_pos, current_section, half_word);
+
+      if(half_word) {
+        if(expect_arg_size != 1) { panic("Wrong label size"); }
+      } else {
+        if(expect_arg_size != 2) { panic("Wrong label size"); }
+      }
+
+      emit(0); // placeholder for label
+      if(!half_word) emit(0);
+
       expect_arg_size = 0;
       expect_arg_n--;
 

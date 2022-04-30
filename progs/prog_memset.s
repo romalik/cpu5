@@ -34,7 +34,7 @@ a   <- dlit $fb
 b   <- mem
 op  <- lit add
 st  <- alu
-a   <- dlit $fb
+b   <- lit $(h)fb
 a   <- lit 0
 op  <- lit adc
 st  <- alu

@@ -123,7 +123,7 @@ int calculate_offset_sum(char * str) {
   }
 }
 
-uint16_t mark_label_use(char * label, uint16_t addr, struct section * current_section) {
+uint16_t mark_label_use(char * label, uint16_t addr, struct section * current_section, int half_word) {
   struct label_entry * e;
   uint16_t * mask_ptr;
   int offset = 0;
@@ -150,9 +150,18 @@ uint16_t mark_label_use(char * label, uint16_t addr, struct section * current_se
   *mask_ptr = addr;
 
   mask_ptr++;  
+
   *mask_ptr = offset;
 
-  current_section->label_mask_pos += 4;
+  mask_ptr++;  
+
+  *mask_ptr = e->id;
+
+  mask_ptr++;  
+
+  *mask_ptr = half_word;
+
+  current_section->label_mask_pos += 8;
 
   return e->id;
 }
