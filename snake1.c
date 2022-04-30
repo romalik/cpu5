@@ -3,7 +3,6 @@
 #include <fcntl.h> 
 #include <unistd.h>
 
-char fb[8];
 
 /* platform */
 int mygetch() {
@@ -39,31 +38,68 @@ int mygetch() {
 
 
 
+char fb[8];
+char c_x[10];
+char c_y[10];
+char cur_len = 3;
+
+char f_x = 2;
+char f_y = 2;
+char x,y;
+char t;
+char t2;
+char i;
+
+char shifts[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+
+
+
 void update_fb() {
-    unsigned char iterator = 0;
-    fb[0] = 0;
-    fb[1] = 0;
-    fb[2] = 0;
-    fb[3] = 0;
-    fb[4] = 0;
-    fb[5] = 0;
-    fb[6] = 0;
-    fb[7] = 0;
+    i = 0;
+/*
+ml  <- dlit $i
+a   <- lit 0
+mem <- a
+*/
+loop_fb_clear:
 
-    while(1) {
-        unsigned char x;
-        unsigned char y;
-        unsigned char c_self;
-        x = self[iterator];
-        iterator++;
-        y = self[iterator];
-        iterator++;
+    *(fb + i) = 0;
+/*
+ml  <- dlit $i
+a   <- dlit $fb
+b   <- mem
+op  <- lit add
+st  <- alu
+a   <- dlit $fb
+a   <- lit 0
+op  <- adc
+st  <- alu
 
-        fb[y] = fb[y] | (1 << x);
-        if(iterator >= current_length)
-            break;
-    }
+a   <- lit 0
 
+mh  <- st
+ml  <- st
+mem <- a
+*/
+
+
+    i++;
+    if(i<8) goto loop_fb_clear;
+
+    i = 0;
+loop_fb_snake:
+    x = *(c_x + i);
+    y = *(c_y + i);
+
+    t = *(shifts + x);
+
+    t2 = *(fb + y);
+    t2 = t2 | t;
+
+    *(fb + y) = t2;
+    
+    i++;
+    if(i<cur_len) goto loop_fb_snake;
 
 }
 
