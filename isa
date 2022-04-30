@@ -6,8 +6,16 @@ source
 3   MEM     011     b
 4   ST      100     c
 5   LIT     101     d
-6   ---     110     e
-7   ---     111     f
+6   ZM      110     e
+7   (OFF)   111     f
+8   (ML)
+9   (MH)
+a   (ZL)
+b   (ZH)
+c  DST
+d  DLIT
+e   (SL)
+f   (SH)
 
 dest
 
@@ -20,10 +28,10 @@ dest
 6   MEM
 7   ST
 8   ALU_OP
-9
-a
-b
-c
+9   OFF
+a   ZL
+b   ZH
+c   ZM
 d
 e   J_COND
 f   J
