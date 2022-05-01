@@ -109,8 +109,8 @@ ml  <- dlit $t
 mem <- a
 
     ;    t2 = cur_len - 1;
-
-op  <- lit dec
+b   <- lit 1
+op  <- lit sub
 a   <- alu
 ml  <- dlit $t2
 mem <- a
@@ -143,14 +143,16 @@ zm  <- a
     ;    t--;
 ml  <- dlit $t
 a   <- mem
-op  <- lit dec
+b   <- lit 1
+op  <- lit sub
 mem <- alu
 
 
     ;    t2--;
 ml  <- dlit $t2
 a   <- mem
-op  <- lit dec
+b   <- lit 1
+op  <- lit sub
 mem <- alu
 
 
@@ -162,7 +164,7 @@ b   <- lit 0
 op  <- lit gt
 a   <- alu
 a   <- dlit $move_loop
-
+j_c
 
     ;    x = c_x[0];
 ml  <- dlit $c_x
@@ -205,7 +207,8 @@ a   <- dlit $move_3
 j_c
 ml  <- dlit $y
 a   <- mem
-op  <- lit dec
+b   <- lit 1
+op  <- lit sub
 mem <- alu
 a   <- dlit $end_step
 
@@ -223,7 +226,8 @@ a   <- dlit $move_4
 j_c
 ml  <- dlit $x
 a   <- mem
-op  <- lit dec
+b   <- lit 1
+op  <- lit sub
 mem <- alu
 a   <- dlit $end_step
 
@@ -451,7 +455,7 @@ a   <- mem
 b   <- lit 8
 op  <- lit lt
 a   <- alu
-a   <- loop_fb_clear
+a   <- dlit $loop_fb_clear
 j_c
 
     ;    i = 0;
@@ -506,6 +510,7 @@ ml  <- dlit $t2
 a   <- mem
 op  <- lit or
 mem <- alu
+
 
     ;    *(fb + y) = t2;
 zl  <- dlit $fb
@@ -582,7 +587,7 @@ j
 
 draw:
 
-move:
+
 st  <- b
 st  <- a
 
@@ -596,7 +601,9 @@ draw_loop:
 
     ;*(0xc000 + i) = *(fb + i);
 zl  <- dlit $fb
-off <- dlit $i
+ml  <- dlit $i
+a   <- mem
+off <- a
 a   <- zm
 
 zl  <- dlit 0xc000
@@ -609,11 +616,11 @@ op  <- lit inc
 mem <- alu
 
 
-    ;if(i < 8) goto draw_loop; 
+    ;if(i != 8) goto draw_loop; 
 ml  <- dlit $i
 a   <- mem
 b   <- lit 8
-op  <- lit lt
+op  <- lit ne
 a   <- alu
 a   <- dlit $draw_loop
 j_c
@@ -632,6 +639,31 @@ j
     ;int main() {
 main:
 
+ml  <- dlit $c_x
+a   <- lit 4
+mem <- a
+ml  <- dlit $c_x+1
+a   <- lit 4
+mem <- a
+ml  <- dlit $c_x+2
+a   <- lit 4
+mem <- a
+
+ml  <- dlit $c_y
+a   <- lit 4
+mem <- a
+ml  <- dlit $c_y+1
+a   <- lit 5
+mem <- a
+ml  <- dlit $c_y+2
+a   <- lit 6
+mem <- a
+
+
+
+
+
+
 ;    c_x[0] = 4;
 ;    c_y[0] = 4;
 ;
@@ -649,13 +681,13 @@ main:
 main_loop:
 
     ;        check_control();
-a   <- dlit $check_control
-j
+;a   <- dlit $check_control
+;j
 
 
     ;        move();
-a   <- dlit $move
-j
+;a   <- dlit $move
+;j
 
     ;        update_fb();
 a   <- dlit $update_fb
@@ -669,14 +701,20 @@ j
 a   <- dlit $draw
 j
 
+
+;;;;;;;;;;;;;;;;;;;;;;
+a   <- dlit $move
+j
+;;;;;;;;;;;;;;;;;;;;;;
+
     ;        delay();
     ;
     ;        undraw_food();
 ;a   <- dlit $undraw_food
 ;j
     ;        draw();
-a   <- dlit $draw
-j
+;a   <- dlit $draw
+;j
 
     ;        delay();
 a   <- dlit $main_loop
@@ -693,28 +731,32 @@ j
 
     ;unsigned char fb[8];
 fb: 
-.skip 8
+.byte 0x51
+.byte 0xa2
+.byte 0x53
+.byte 0xa4
+.byte 0x55
+.byte 0xa6
+.byte 0x57
+.byte 0xa8
+
 
     ;unsigned char c_x[40];
 c_x:
-.byte 4
-.byte 3
-.byte 2
 .skip 40
 
+
     ;unsigned char c_y[40];
-c_y;
-.byte 4
-.byte 4
-.byte 4
+c_y:
 .skip 40
+
 
     ;unsigned char cur_len = 3;
 cur_len: .byte 3
 
 
     ;unsigned char cur_dir = 0; //right up left down
-cur_dir: .byte 0
+cur_dir: .byte 1
 
     ;unsigned char f_x = 2;
 f_x: .byte 2
@@ -722,9 +764,16 @@ f_x: .byte 2
     ;unsigned char f_y = 2;
 f_y: .byte 2
 
+
+.word 0xaa55
+.word 0xaa55
+
     ;unsigned char x,y;
 x: .byte 0
 y: .byte 0
+
+.word 0xaa55
+.word 0xaa55
 
     ;unsigned char t;
 t: .byte 0
