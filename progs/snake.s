@@ -30,7 +30,7 @@ a   <- alu
 a   <- dlit $ctl_1
 j_c
 ml  <- dlit $cur_dir
-a   <- lit 0
+a   <- lit 2
 mem <- a
 a   <- dlit $ctl_end
 j
@@ -64,7 +64,7 @@ a   <- alu
 a   <- dlit $ctl_3
 j_c
 ml  <- dlit $cur_dir
-a   <- lit 2
+a   <- lit 0
 mem <- a
 a   <- dlit $ctl_end
 j
@@ -313,74 +313,6 @@ mem <- alu
 
 
 
-    ;    f_x = f_x | 0xf0;
-ml  <- dlit $f_x
-a   <- mem
-b   <- lit 0xf0
-op  <- lit or
-mem <- alu
-
-
-    ;    f_y = f_y | 0xf0;
-ml  <- dlit $f_y
-a   <- mem
-b   <- lit 0xf0
-op  <- lit or
-mem <- alu
-
-
-
-
-    ;end_food:
-end_food:
-
-
-    ;    t = fb[y];
-zl  <- dlit $fb
-ml  <- dlit $y
-off <- mem
-ml  <- dlit $t
-a   <- mem
-zm  <- a
-
-
-    ;    t2 = shifts[x];
-zl  <- dlit $shifts
-ml  <- dlit $x
-off <- mem
-ml  <- dlit $t2
-a   <- mem
-zm  <- a
-
-
-
-    ;    if((t & t2) != 0) {
-ml  <- dlit $t
-a   <- mem
-ml  <- dlit $t2
-b   <- mem
-op  <- lit and
-a   <- alu
-b   <- lit 0
-op  <- lit ne
-a   <- alu
-a   <- dlit 0x0000
-j_c
-    ;        exit(1);
-    ;    } 
-
-
-
-    ;    if((f_x & 0x10) == 0) goto end_move;
-ml  <- dlit $f_x
-a   <- mem
-b   <- lit 0x10
-op  <- lit eq
-a   <- alu
-a   <- dlit $end_move
-j_c
-
-
 
     ;    f_x += 10;
     ;    f_x = f_x & 0x07;
@@ -392,7 +324,7 @@ op  <- lit add
 a   <- alu
 
 b   <- lit 0x07
-op  <- lit add
+op  <- lit and
 mem <- alu
 
 
@@ -407,8 +339,50 @@ op  <- lit add
 a   <- alu
 
 b   <- lit 0x07
-op  <- lit add
+op  <- lit and
 mem <- alu
+
+
+
+
+    ;end_food:
+end_food:
+
+
+    ;    t = fb[y];
+zl  <- dlit $fb
+ml  <- dlit $y
+off <- mem
+ml  <- dlit $t
+a   <- zm
+mem <- a
+
+
+    ;    t2 = shifts[x];
+zl  <- dlit $shifts
+ml  <- dlit $x
+off <- mem
+ml  <- dlit $t2
+a   <- zm
+mem <- a
+
+
+
+    ;    if((t & t2) != 0) {
+ml  <- dlit $t
+a   <- mem
+ml  <- dlit $t2
+b   <- mem
+op  <- lit and
+a   <- alu
+b   <- lit 0
+op  <- lit ne
+a   <- alu
+a   <- dlit $main
+j_c
+    ;        exit(1);
+    ;    } 
+
 
     ;end_move:
 end_move:
@@ -545,27 +519,95 @@ j
 
 
 
-;
-;void draw_food() {
-;    t = *(fb + f_y);
-;    t2 = *(shifts + f_x);
-;
-;    t = t | t2;
-;
-;    *(fb + f_y) = t;
-;
-;}
-;
-;void undraw_food() {
-;    t = *(fb + f_y);
-;    t2 = *(shifts + f_x);
-;
-;    t2 = ~t2;
-;
-;    t = t & t2;
-;
-;    *(fb + f_y) = t;
-;}
+    ;void draw_food() {
+draw_food:
+st  <- b
+st  <- a
+
+    ;    t = *(fb + f_y);
+zl  <- dlit $fb
+ml  <- dlit $f_y
+off <- mem
+ml  <- dlit $t
+a   <- zm
+mem <- a
+
+
+    ;    t2 = *(shifts + f_x);
+zl  <- dlit $shifts
+ml  <- dlit $f_x
+off <- mem
+ml  <- dlit $t2
+a   <- zm
+mem <- a
+
+    ;    t = t | t2;
+ml  <- dlit $t2
+b   <- mem
+ml  <- dlit $t
+a   <- mem
+op  <- lit or
+mem <- alu
+
+    ;    *(fb + f_y) = t;
+zl  <- dlit $fb
+ml  <- dlit $f_y
+off <- mem
+ml  <- dlit $t
+a   <- mem
+zm  <- a
+
+a   <- dst
+j
+    ;
+    ;}
+
+
+    ;void undraw_food() {
+undraw_food:
+st  <- b
+st  <- a
+
+
+    ;    t = *(fb + f_y);
+zl  <- dlit $fb
+ml  <- dlit $f_y
+off <- mem
+ml  <- dlit $t
+a   <- zm
+mem <- a
+
+    ;    t2 = *(shifts + f_x);
+    ;    t2 = ~t2;
+zl  <- dlit $shifts
+ml  <- dlit $f_x
+off <- mem
+ml  <- dlit $t2
+a   <- zm
+op  <- lit not
+mem <- alu
+
+
+    ;    t = t & t2;
+ml  <- dlit $t2
+b   <- mem
+ml  <- dlit $t
+a   <- mem
+op  <- lit and
+mem <- alu
+
+    ;    *(fb + f_y) = t;
+zl  <- dlit $fb
+ml  <- dlit $f_y
+off <- mem
+ml  <- dlit $t
+a   <- mem
+zm  <- a
+
+a   <- dst
+j
+
+    ;}
 ;
 ;
 ;void draw() {
@@ -659,8 +701,16 @@ ml  <- dlit $c_y+2
 a   <- lit 6
 mem <- a
 
+ml  <- dlit $cur_dir
+a   <- lit 1
+mem <- a
 
+ml  <- dlit $cur_len
+a   <- lit 3
+mem <- a
 
+a   <- dlit $update_fb
+j
 
 
 
@@ -681,40 +731,36 @@ mem <- a
 main_loop:
 
     ;        check_control();
-;a   <- dlit $check_control
-;j
+a   <- dlit $check_control
+j
 
 
     ;        move();
-;a   <- dlit $move
-;j
+a   <- dlit $move
+j
 
     ;        update_fb();
 a   <- dlit $update_fb
 j
     ;        draw_food();
 
-;a   <- dlit $draw_food
-;j
+a   <- dlit $draw_food
+j
 
     ;        draw();
 a   <- dlit $draw
 j
 
 
-;;;;;;;;;;;;;;;;;;;;;;
-a   <- dlit $move
-j
-;;;;;;;;;;;;;;;;;;;;;;
 
     ;        delay();
     ;
     ;        undraw_food();
-;a   <- dlit $undraw_food
-;j
+a   <- dlit $undraw_food
+j
     ;        draw();
-;a   <- dlit $draw
-;j
+a   <- dlit $draw
+j
 
     ;        delay();
 a   <- dlit $main_loop
