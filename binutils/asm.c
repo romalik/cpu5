@@ -263,6 +263,14 @@ void gen_instruction() {
     generate_ldd();
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
+  } else if(!strcmp(token, "hlt")) {
+    emit(0x03);
+  } else if(!strcmp(token, "ei")) {
+    emit(0x02);
+  } else if(!strcmp(token, "di")) {
+    emit(0x01);
+  } else if(!strcmp(token, "iret")) {
+    emit(0x1f);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {

@@ -15,14 +15,27 @@ __entry:
 .const IN_1 0x4401
 .const IN_2 0x4402
 
+.const INT_VEC_0 0xFF00
+
+
+ld a, 0
+mov off, a
+
+
+ldd m, INT_VEC_0
+;ld a, 0x1f ; IRET
+ld a, 0x03 ; HLT
+mov [m], a 
+
+ld a, 0
 mov r5, a
 
 
 
-ld a, 0x00
-mov off, a
-
 loop:
+
+ei
+
 
 ldd m, IN_1
 mov a, [m]
@@ -129,14 +142,18 @@ mov a, b
 mov [m], a
 
 
-; zero
-mov a, r1
-mov b, a
-mov a, r0
 
-zero
+; counter
+
+mov a, r5
+mov b, a
+ld a, 1
+
+add
 
 mov b, a
+mov r5, a
+
 
 ldd m, OUT_7
 mov a, b

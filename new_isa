@@ -6,8 +6,8 @@ Action (4)
                      0000    0001    0010    0011    0100    0101    0110    0111
 c0_0 dbus            b_o     sh_o    sl_o    mh_o    ml_o    off_o   xh_o    xl_o
 c0_1 abus            !pc_a!  s_a     alu_d   mf_a    aluf_d  f_o     ir_a    x_a
-c1_0 in              b_i     sh_i    sl_i    mh_i    ml_i    off_i   xh_i    xl_i
-c1_1 I/D             ir_i    sl--    sl++    ml--    f_i     ml++    pc++    pc_switch
+c1_0 in              b_i     sh_i    sl_i    ei      ml_i    off_i   xh_i    xl_i
+c1_1 I/D             ir_i    sl--    sl++    s_rst   f_i     mh_i    pc++    pc_switch
 
 seq_rst
  ================ Chip 1 =============
@@ -15,11 +15,10 @@ A_i
 A_o
 MREAD
 MWRITE
+sel_a
+incvec_o/di
 xxxxx
 xxxxx
-xxxxx
-xxxxx
-
  ================  END   =============
 
   A     B
@@ -131,8 +130,18 @@ xxx end
 
 ? INT = A->(11111) ?
 
+INTERRUPT VECTORS:
 
-MREG: 0xFFE0 - 0xFFFF
+INT_0 :     0xFF00
+INT_1 :     0xFF10
+INT_2 :     0xFF20
+INT_3 :     0xFF30
+
+
+ISR STACK:  0xFFF0 - 0xFFFF
+MREG     :  0xFFC0 - 0xFFDF    
+ISR REGS :  0xFFBC - 0xFFBF
+
 
 Memory map
 
@@ -151,3 +160,38 @@ I/O: 0x4000 - 0x5FFF
 0x4000 - 0x43ff   - PORT OUTPUT (8)
 0x4400 - 0x45ff   - PORT INPUT (8)
 
+Interrupts:
+
+
+    0   pc_switch  (comparison overriden by A12 in mcode)
+    1   sl_o sel_a mwrite (sel_a will set addr to isr regs + 0x01)
+    2   sh_o sel_a mwrite (sel_a will set addr to isr regs + 0x02)
+    3   a_o  sel_a mwrite (sel_a will set addr to isr regs + 0x00)
+    4   s_rst
+    5   s--
+    6   a_i xl_o
+    7   a_o s_a mwrite   (pc l will be at 0xffff)
+    8   a_i xh_o 
+    9   s--
+    A   a_o s_a mwrite   (pc h will be at 0xfffe)
+    B   xl_i incvec_o / di
+    C   a_i sh_o
+    D   a_o xl_h
+    E   pc_switch
+    F   seq_rst s--
+
+reti:
+    0   fetch
+    1   pc_switch (comparison overriden by 0x0f in instruction)
+    2   s++
+    3   a_i s_a mread
+    4   a_o xh_i
+    5   s++
+    6   a_i s_a mread
+    7   a_o xl_i
+    8   a_i  sel_a mread
+    9   sh_i sel_a mread
+    A   sl_i sel_a mread
+    B   pc_switch
+    C   ei
+    D   seq_rst

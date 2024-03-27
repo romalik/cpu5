@@ -21,8 +21,8 @@ section control_word
 9   H       a_o
 10  H       mread
 11  H       mwrite
-12  H       not_used_1
-13  H       not_used_2
+12  H       sel_a
+13  H       iv_o
 14  H       not_used_3
 15  H       not_used_4
 
@@ -71,7 +71,7 @@ sh_i    c1_0 s0
 #0010
 sl_i    c1_0 s1
 #0011
-mh_i    c1_0 s0 s1
+ei      c1_0 s0 s1
 #0100
 ml_i    c1_0 s2
 #0101
@@ -88,11 +88,11 @@ sl--    c1_1 s0
 #0010
 sl++    c1_1 s1
 #0011
-ml--    c1_1 s0 s1
+s_rst   c1_1 s0 s1
 #0100
 f_i     c1_1 s2
 #0101
-ml++    c1_1 s0 s2
+mh_i    c1_1 s0 s2
 #0110
 pc++    c1_1 s1 s2
 #0111
@@ -112,7 +112,34 @@ section code
 0       ***     *****   0000    c0_1 c1_1 mread # + select=0000 (ir_i pc_a)
 
                                                             #NOP        nop
--       000     *****   0001    pc++ seq_rst
+-       000     00000   0001    pc++ seq_rst
+
+                                                            #DI        di
+-       000     00001   0001    iv_o        # (disable)
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #ei         ei
+-       000     00010   0001    ei          
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #hlt         hlt
+-       000     00011   0001    seq_rst          
+
+                                                            #IRET       iret
+-       000     11111   0001    pc_switch   # (comparison overriden by 0x0f in instruction)
+-       ---     -----   0010    sl++
+-       ---     -----   0011    a_i s_a mread
+-       ---     -----   0100    a_o xh_i
+-       ---     -----   0101    sl++
+-       ---     -----   0110    a_i s_a mread
+-       ---     -----   0111    a_o xl_i
+-       ---     -----   1000    a_i  sel_a mread
+-       ---     -----   1001    sh_i sel_a mread
+-       ---     -----   1010    sl_i sel_a mread
+-       ---     -----   1011    pc_switch
+-       ---     -----   1100    ei
+-       ---     -----   1101    seq_rst
+
 
 ######################## Section 001 A -> [X] ######################### opcode: 0x2X
                                                             #A->B       mov b, a
@@ -287,7 +314,28 @@ section code
 
 ######################## INTERRUPTS        #########################
 
-1       ***     *****   ****    not_used_1 not_used_2 not_used_3 not_used_4
+1       ***     *****   0000    pc_switch
+-       ***     *****   0001    sl_o sel_a mwrite   # (sel_a will set addr to isr regs + 0x01)
+-       ***     *****   0010    sh_o sel_a mwrite   # (sel_a will set addr to isr regs + 0x02)
+-       ***     *****   0011    a_o  sel_a mwrite   # (sel_a will set addr to isr regs + 0x00)
+-       ***     *****   0100    s_rst
+-       ***     *****   0101    sl--                 # (SP = 0xffff)
+-       ***     *****   0110    a_i xl_o
+-       ***     *****   0111    a_o s_a mwrite      # (pc l will be at 0xffff)
+-       ***     *****   1000    a_i xh_o
+-       ***     *****   1001    sl--                 # (SP = 0xfffe)
+-       ***     *****   1010    a_o s_a mwrite      # (pc h will be at 0xfffe)
+-       ***     *****   1011    xl_i iv_o           # (+ disable interrupts)
+-       ***     *****   1100    a_i sh_o            # (get 0xff)
+-       ***     *****   1101    a_o xh_i            # X = 0xFF00 | int_vec
+-       ***     *****   1110    pc_switch
+-       ***     *****   1111    seq_rst sl--
+
+
+
+
+
+
 
 
 
