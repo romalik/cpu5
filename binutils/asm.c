@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "sections.h"
 #include "labels.h"
+#include "constants.h"
 #include "util.h"
 #include "token.h"
 #include "keywords.h"
@@ -18,6 +19,8 @@
 struct section * sections[MAX_SECTIONS];
 
 struct section * current_section = NULL;
+
+struct constant_entry * constants[MAX_CONSTANTS];
 
 int n_sections = 0;
 
@@ -83,58 +86,190 @@ char expect_arg_n = 0;
 char expect_arg_size = 0;
 
 
-void gen_instruction() {
-  char keyword_id;
-  char arg_id;
+void generate_nop() {
+  emit(0x00);
+}
+
+void generate_mov() {
+  uint8_t dest = 0;
+  uint8_t src = 0;
+  uint8_t is_mreg = 0;
   uint8_t opcode = 0;
+  get_next_token();
+  dest = find_keyword(regs, token);
+  
+  if(dest == 0xff) {
+    if(token[0] == 'r') {
+      dest = strtol(token+1,0,0);
+      if(dest > 31) {
+        panic("Bad mreg");
+      }
+      dest = dest | 0x80;
+      is_mreg = 1;
+    }
+  }
+  if(dest == 0xff) {
+    panic("Bad dest register");
+  }
+
+  get_next_token();
+  src = find_keyword(regs, token);
+  
+  if(src == 0xff) {
+    if(token[0] == 'r') {
+      if(is_mreg) {
+        panic("Mov two mreg");
+      }
+      src = strtol(token+1,0,0);
+      if(src > 31) {
+        panic("Bad mreg");
+      }
+      src = src | 0x80;
+      is_mreg = 1;
+    }
+  }
+
+  if(src == 0xff) {
+    panic("Bad src register");
+  }
+
+  if(dest != 0x0f) {
+    if(src != 0x0f) {
+      panic("Dest or src register must be A");
+    }
+  }
+
+  if(dest == src) {
+    panic("Register dest equals src");
+  }
+
+  if(is_mreg) {
+    if(src == 0x0f) { // A->r??
+      opcode = 0x60 | (dest&0x1f);
+    }
+    if(dest == 0x0f) { // A<-r??
+      opcode = 0x80 | (src&0x1f);
+    }
+  } else {
+    if(src == 0x0f) { // A->??
+      opcode = 0x20 | dest;
+    }
+    if(dest == 0x0f) { // A<-??
+      opcode = 0x40 | src;
+    }
+  }
+  emit(opcode);
+}
+
+void generate_push() {
+  uint8_t reg = 0;
+  get_next_token();
+  reg = find_keyword(regs, token);
+
+  if(reg != 0x0f) {
+    panic("Try push other than A reg");
+  }
+
+  emit(0x29);
+}
+
+void generate_pop() {
+  uint8_t reg = 0;
+  get_next_token();
+  reg = find_keyword(regs, token);
+
+  if(reg != 0x0f) {
+    panic("Try pop other than A reg");
+  }
+
+  emit(0x4f); // S++
+  emit(0x49); // A <- (S)
+}
+
+void generate_ld() {
+  uint8_t reg = 0;
+  get_next_token();
+  reg = find_keyword(regs, token);
+
+  if(reg != 0x0f) {
+    panic("Try ld other than A reg");
+  }
+  emit(0x4C);
+  expect_arg_n = 1;
+  expect_arg_size = 1;
+}
+
+void generate_ldd() {
+  uint8_t reg = 0;
+  get_next_token();
+  if(token[0] == 's') {
+    reg = 0;
+  } else if(token[0] == 'm') {
+    reg = 1;
+  } else if(token[0] == 'x') {
+    reg = 2;
+  } else {
+    panic("Bad ldd destination");
+  }
+  emit(0xE0 | reg);
+  expect_arg_n = 1;
+  expect_arg_size = 2;
+}
+
+void generate_cmp() {
+  emit(0xD1); //CMP SUB
+}
+
+void generate_alu(uint8_t arg) {
+  emit(0xC0 | arg);
+}
+
+void generate_jmp() {
+  uint8_t arg = 0;
+  if(!strcmp(token, "jmp")) {
+    arg = 0x0f;
+  } else if(!strcmp(token, "jc")) {
+    arg = 0x01;
+  } else if(!strcmp(token, "jnc")) {
+    arg = 0x04;
+  } else if(!strcmp(token, "jz")) {
+    arg = 0x02;
+  } else if(!strcmp(token, "jnz")) {
+    arg = 0x08;
+  } else {
+    panic("Bad jump");
+  }
+
+  emit(0xA0 | arg);
+}
+
+void gen_instruction() {
+  uint8_t arg = 0;
 
   expect_arg_n = 0;
   expect_arg_size = 0;
 
-
-  keyword_id = find_keyword(keyword_dest, token);
-  if(keyword_id < 16) {
-    opcode = keyword_id;
-    switch(keyword_id) {
-      case 0xe: /* J_COND */
-      case 0xf: /* J */
-
-        emit(opcode);
-        return;
-      
-      default:
-        break;
-    }
+  if(!strcmp(token, "nop")) {
+    generate_nop();
+  } else if(!strcmp(token, "mov")) {
+    generate_mov();
+  } else if(!strcmp(token, "push")) {
+    generate_push();
+  } else if(!strcmp(token, "pop")) {
+    generate_pop();
+  } else if(!strcmp(token, "ld")) {
+    generate_ld();
+  } else if(!strcmp(token, "ldd")) {
+    generate_ldd();
+  } else if(!strcmp(token, "cmp")) {
+    generate_cmp();
+  } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
+    generate_alu(arg);
+  } else if((arg = find_keyword(jumps, token)) != 0xFF) {
+    generate_jmp();
   } else {
-    panic("Bad destination");
+    panic("Bad token");
   }
-
-  get_next_token();
- 
-  if(!strcmp(token, "<-")) get_next_token();
- 
-  keyword_id = find_keyword(keyword_src, token);
-  if(keyword_id < 16) {
-    opcode = opcode | (keyword_id << 4);
-    emit(opcode);
-
-    switch(keyword_id) {
-      case 0x5: /* LIT */
-        expect_arg_n = 1;
-        expect_arg_size = 1;
-        break;
-      case 0xd: /* DLIT */
-        expect_arg_n = 1;
-        expect_arg_size = 2;
-        break;      
-      default:
-        break;
-    }
-
-  } else {
-    panic("Bad source");
-  }
-
 }
 
 void assemble() {
@@ -186,6 +321,15 @@ void assemble() {
         get_next_token();
         select_section(token);
 
+      } else if(!strcmp(&token[1], "const")) {
+        struct constant_entry * e = NULL;
+        get_next_token();
+        e = find_constant(token, constants, 1);
+        if(!e) {
+          panic("Constant list overflow");
+        }        
+        get_next_token();
+        e->value = strtol(token,0,0);
       } else if(!strcmp(&token[1], "export")) {
         get_next_token();
         mark_label_export(token, current_section);
@@ -256,34 +400,22 @@ void assemble() {
         panic("Unexpected literal!");
       }
       expect_arg_n--;
-    } else if((kw_id = find_keyword(alu_args, token)) < 16) {
-      //alu operation
-      if(expect_arg_size == 2) {
-        panic("Unexpected alu op!");
-      }
-      if(expect_arg_size == 1) {
-        emit(low(kw_id));
-      }
-      if(!expect_arg_size) {
-        panic("Unexpected alu op!");
-      }
-      expect_arg_n--;
-    } else if((kw_id = find_keyword(alu_conds, token)) < 16) {
-      //alu operation condition
-      if(expect_arg_size == 2) {
-        panic("Unexpected alu cond!");
-      }
-      if(expect_arg_size == 1) {
-        emit(low(alu_cond_codes[kw_id]));
-      }
-      if(!expect_arg_size) {
-        panic("Unexpected alu cond!");
-      }
-      expect_arg_n--;
-    } else  {
-      if(expect_arg_n) {
+    } else if(expect_arg_n) {
+      struct constant_entry * e = NULL;
+      e = find_constant(token, constants, 0);
+      if(e) {
+        if(expect_arg_size == 2) {
+          emit(low(e->value));
+          emit(high(e->value));
+        }
+        if(expect_arg_size == 1) {
+          emit(low(e->value));
+        }
+      } else {
         panic("Arguments expected");
       }
+      expect_arg_n--;
+    } else {
       gen_instruction();
     }
 
@@ -307,6 +439,9 @@ int main(int argc, char ** argv) {
     printf("Usage: %s infile outfile\n", argv[0]);
     exit(1);
   }
+
+
+  memset(constants, 0, MAX_CONSTANTS * sizeof(struct constant_entry *));
 
   infile_name = argv[1];
   outfile_name = argv[2];

@@ -1,0 +1,294 @@
+section config
+
+address_width 13
+control_width 16
+
+end
+
+section control_word
+
+#n  active  name
+0   H       s0
+1   H       s1
+2   H       s2
+3   H       c0_0
+4   H       c0_1
+5   H       c1_0
+6   H       c1_1
+7   H       seq_rst
+
+8   H       a_i
+9   H       a_o
+10  H       mread
+11  H       mwrite
+12  H       not_used_1
+13  H       not_used_2
+14  H       not_used_3
+15  H       not_used_4
+
+end
+
+section alias
+
+#0000
+b_o     c0_0 #0000
+#0001
+sh_o    c0_0 s0
+#0010
+sl_o    c0_0 s1
+#0011
+mh_o    c0_0 s0 s1
+#0100
+ml_o    c0_0 s2
+#0101
+off_o   c0_0 s0 s2
+#0110
+xh_o    c0_0 s1 s2
+#0111
+xl_o    c0_0 s0 s1 s2
+
+#0000
+pc_a    c0_1 #0000
+#0001
+s_a     c0_1 s0
+#0010
+alu_d   c0_1 s1
+#0011
+mf_a    c0_1 s0 s1
+#0100
+aluf_d  c0_1 s2
+#0101
+f_o     c0_1 s0 s2
+#0110
+ir_a    c0_1 s1 s2
+#0111
+x_a     c0_1 s0 s1 s2
+
+#0000
+b_i     c1_0 #0000
+#0001
+sh_i    c1_0 s0
+#0010
+sl_i    c1_0 s1
+#0011
+mh_i    c1_0 s0 s1
+#0100
+ml_i    c1_0 s2
+#0101
+off_i   c1_0 s0 s2
+#0110
+xh_i    c1_0 s1 s2
+#0111
+xl_i    c1_0 s0 s1 s2
+
+#0000
+ir_i    c1_1 #0000
+#0001
+sl--    c1_1 s0
+#0010
+sl++    c1_1 s1
+#0011
+ml--    c1_1 s0 s1
+#0100
+f_i     c1_1 s2
+#0101
+ml++    c1_1 s0 s2
+#0110
+pc++    c1_1 s1 s2
+#0111
+pc_switch c1_1 s0 s1 s2
+
+
+
+end
+
+section code
+
+#int    sect    arg     seq     command
+
+######################## Section FETCH        #########################
+
+                                                            #fetch
+0       ***     *****   0000    c0_1 c1_1 mread # + select=0000 (ir_i pc_a)
+
+                                                            #NOP        nop
+-       000     *****   0001    pc++ seq_rst
+
+######################## Section 001 A -> [X] ######################### opcode: 0x2X
+                                                            #A->B       mov b, a
+-       001     00000   0001    b_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->SL      mov sl, a
+-       ---     00001   0001    sl_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->SH      mov sh, a
+-       ---     00010   0001    sh_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->ML      mov ml, a
+-       ---     00011   0001    ml_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->MH      mov mh, a
+-       ---     00100   0001    mh_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->OFF     mov off, a
+-       ---     00101   0001    off_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->XL      mov xl, a
+-       ---     00110   0001    xl_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->XH      mov xh, a
+-       ---     00111   0001    xh_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->(M+OFF) mov [m], a
+-       ---     01000   0001    mf_a a_o mwrite
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->(S--)   push a
+-       ---     01001   0001    s_a a_o mwrite
+-       ---     -----   0010    sl--
+-       ---     -----   0011    pc++ seq_rst
+
+                                                            #A->F       mov f, a
+-       ---     01010   0001    f_i a_o
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A->(X)     mov [x], a
+-       ---     01011   0001    x_a a_o mwrite
+-       ---     -----   0010    pc++ seq_rst
+
+######################## Section 010 A <- [X] ######################### opcode: 0x4X
+                                                            #A<-B       mov a, b
+-       010     00000   0001    b_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-SL      mov a, sl
+-       ---     00001   0001    sl_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-SH      mov a, sh
+-       ---     00010   0001    sh_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-ML      mov a, ml
+-       ---     00011   0001    ml_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-MH      mov a, mh
+-       ---     00100   0001    mh_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-OFF     mov a, off
+-       ---     00101   0001    off_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-XL      mov a, xl
+-       ---     00110   0001    xl_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-XH      mov a, xh
+-       ---     00111   0001    xh_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-(M+OFF) mov a, [m]
+-       ---     01000   0001    mf_a mread a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-(S)     pop a !!!!
+-       ---     01001   0001    s_a mread a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-F       mov a, f
+-       ---     01010   0001    f_o a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-(X)     mov a, [x]
+-       ---     01011   0001    x_a mread a_i
+-       ---     -----   0010    pc++ seq_rst
+
+                                                            #A<-LIT     ld a
+-       ---     01100   0001    pc++
+-       ---     -----   0010    pc_a mread a_i
+-       ---     -----   0011    pc++ seq_rst
+
+
+
+######################## 010 01111 S++      ######################### opcode: 0x4F
+                                                            #S++        pop a !!!!!
+-       010     01111   0001    sl++
+-       ---     -----   0010    pc++ seq_rst
+
+
+######################## 011 A->(MREG)      ######################### opcode: 0x6X
+                                                            #A->(MREG)  mov r0..31, a
+-       011     *****   0001    ir_a a_o mwrite
+-       ---     *****   0010    pc++ seq_rst
+
+
+######################## 100 A<-(MREG)      ######################### opcode: 0x8X
+                                                            #A<-(MREG)  mov a, r0..31
+-       100     *****   0001    ir_a a_i mread
+-       ---     *****   0010    pc++ seq_rst
+
+
+######################## 101 JUMP           ######################### opcode: 0xAX
+                                                            #JUMP       jc, jnc, jz, jnz, jmp
+-       101     *****   0001    pc++
+-       ---     *****   0010    pc_switch seq_rst
+
+
+######################## 110 ALU           ######################### opcode: 0xCX
+                                                            #ALU        add, sub, .....
+-       110     0****   0001    alu_d a_i
+-       ---     0****   0010    s2 c0_1 c1_1     #select aluf_d and f_i
+-       ---     0****   0011    pc++ seq_rst
+
+                                                            #CMP        cmp (write sub opcode), test?
+-       110     1****   0001    s2 c0_1 c1_1     #select aluf_d and f_i
+-       ---     1****   0010    pc++ seq_rst
+
+######################## 111 DLIT           ######################### opcode: 0xEX
+                                                            #DLIT S     ldd s
+-       111     00000   0001    pc++
+-       ---     -----   0010    pc_a mread a_i
+-       ---     -----   0011    a_o sl_i
+-       ---     -----   0100    pc++
+-       ---     -----   0101    pc_a mread a_i
+-       ---     -----   0110    a_o sh_i
+-       ---     -----   0111    pc++ seq_rst
+
+                                                            #DLIT M     ldd m
+-       111     00001   0001    pc++
+-       ---     -----   0010    pc_a mread a_i
+-       ---     -----   0011    a_o ml_i
+-       ---     -----   0100    pc++
+-       ---     -----   0101    pc_a mread a_i
+-       ---     -----   0110    a_o mh_i
+-       ---     -----   0111    pc++ seq_rst
+
+                                                            #DLIT X     ldd x
+-       111     00010   0001    pc++
+-       ---     -----   0010    pc_a mread a_i
+-       ---     -----   0011    a_o xl_i
+-       ---     -----   0100    pc++
+-       ---     -----   0101    pc_a mread a_i
+-       ---     -----   0110    a_o xh_i
+-       ---     -----   0111    pc++ seq_rst
+
+
+
+
+######################## INTERRUPTS        #########################
+
+1       ***     *****   ****    not_used_1 not_used_2 not_used_3 not_used_4
+
+
+
+end

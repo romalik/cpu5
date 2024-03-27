@@ -12,8 +12,8 @@ all: cpu5as cpu5ld
 #crt_end.o: crt_end.s
 #	./cpu5as crt_end.s crt_end.o
 
-cpu5as: asm.c labels.c token.c util.c sections.c
-	$(CC) -o cpu5as asm.c labels.c token.c util.c sections.c
+cpu5as: asm.c labels.c token.c util.c sections.c constants.c
+	$(CC) -o cpu5as asm.c labels.c token.c util.c sections.c constants.c
 
 cpu5ld: link.c util.c labels.c sections.c
 	$(CC) -o cpu5ld link.c util.c labels.c sections.c

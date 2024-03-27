@@ -1,0 +1,153 @@
+Control:
+
+ ================ Chip 0 =============
+Select (3)
+Action (4)
+                     0000    0001    0010    0011    0100    0101    0110    0111
+c0_0 dbus            b_o     sh_o    sl_o    mh_o    ml_o    off_o   xh_o    xl_o
+c0_1 abus            !pc_a!  s_a     alu_d   mf_a    aluf_d  f_o     ir_a    x_a
+c1_0 in              b_i     sh_i    sl_i    mh_i    ml_i    off_i   xh_i    xl_i
+c1_1 I/D             ir_i    sl--    sl++    ml--    f_i     ml++    pc++    pc_switch
+
+seq_rst
+ ================ Chip 1 =============
+A_i
+A_o
+MREAD
+MWRITE
+xxxxx
+xxxxx
+xxxxx
+xxxxx
+
+ ================  END   =============
+
+  A     B
+  |     |
+[buf] [buf] ---- trig on fetch
+  |     |
+   \   /
+    ALU
+     |
+     Q  --[alu_d]---> dbus
+     QF --[aluf_d]--> dbus
+
+
+  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0
+[------cmd------] [-----------arg------------]
+
+
+xxx fetch *
+        select=0000 ABUS MREAD c1_1
+
+
+
+xxx end
+        select=0110 c1_1
+        seq_rst
+
+000 NOP
+
+
+001 A->
+    0   B
+        select=0000 IN A_o
+    1   SL
+        select=0010 IN A_o
+    2   SH
+        select=0001 IN A_o
+    3   ML
+    4   MH
+    5   OFF
+    6   XL
+    7   XH
+
+    8   (M+OFF)         *
+        select=0101 ABUS MWRITE A_o
+    9   (S++)             *
+        select=0001 ABUS MWRITE A_o
+        select=0010 I/D
+    10  F
+010 A<-
+    0   B
+        select=0000 DBUS A_i
+    1   SL
+    2   SH
+    3   ML
+    4   MH
+    5   OFF
+    6   XL
+    7   XH
+
+
+    8   (M+OFF)         *
+        select=0101 ABUS MREAD A_i
+    9   (S)             *
+        select=0001 ABUS MREAD A_i
+
+    10   LIT             * (align 2, will gen fault on fetch)
+
+        select=0110 I/D
+        select=0000 ABUS MREAD A_i
+    11  F
+
+010 01111  --S
+        select=0001 I/D
+
+
+011 A->(MREG)           *
+    arg = 0-31
+        select=0110 ABUS MWRITE A_o
+
+100 A<-(MREG)           *
+    arg = 0-31
+        select=0110 ABUS MREAD A_i
+
+101 JC
+
+110 ALU
+    0 : store
+        select=0010(alu_d)      c0_1 A_i
+        select=0100(aluf_d/f_i) c0_1 c1_1
+
+    1 : cmp
+        select=0100(aluf_d/f_i) c0_1 c1_1
+
+
+111 DLIT                * (align 4)
+    0   S
+        pc++
+        pc_a ABUS MREAD A_i
+        A_o SL_i
+        pc++
+        pc_a ABUS MREAD A_i
+        A_o SH_i
+
+    1   M
+    2   X
+
+
+
+
+? INT = A->(11111) ?
+
+
+MREG: 0xFFE0 - 0xFFFF
+
+Memory map
+
+0x0000 - 0x1FFF   - ROM
+0x2000 - 0x3FFF   - ROM
+0x4000 - 0x5FFF   - I/O
+0x6000 - 0x7FFF   - TLB
+0x8000 - 0x9FFF   - RAM
+0xA000 - 0xBFFF   - RAM
+0xC000 - 0xDFFF   - RAM
+0xE000 - 0xFFFF   - RAM (+MREG)
+
+
+I/O: 0x4000 - 0x5FFF
+
+0x4000 - 0x43ff   - PORT OUTPUT (8)
+0x4400 - 0x45ff   - PORT INPUT (8)
+

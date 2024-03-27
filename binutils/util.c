@@ -20,7 +20,7 @@ char find_keyword(char * kw[], char * str) {
       return i;
     }
   }
-  return 16;
+  return 0xff;
 }
 
 

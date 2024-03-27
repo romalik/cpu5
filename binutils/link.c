@@ -505,7 +505,7 @@ int main(int argc, char ** argv) {
   }
   fclose(f_out);
 
-  printf("size %s: %d\n", output_fname, total_size);
+  printf("size %s: %zu\n", output_fname, total_size);
   return 0;
 
 }

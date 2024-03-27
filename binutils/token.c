@@ -88,7 +88,7 @@ char get_next_token() {
     }
 
 
-    if(isspace(c) || c == '\n') {
+    if(isspace(c) || c == '\n' || c == ',') {
       if(c == '\n') current_line++;
       if(len == 0) {
         continue;
