@@ -219,12 +219,12 @@
       <elementName>Clock</elementName>
       <elementAttributes>
         <entry>
-          <string>Frequency</string>
-          <int>2147483647</int>
-        </entry>
-        <entry>
           <string>runRealTime</string>
           <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Frequency</string>
+          <int>500</int>
         </entry>
       </elementAttributes>
       <pos x="940" y="1220"/>
@@ -522,12 +522,12 @@
       <elementName>Button</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>UP</string>
-        </entry>
-        <entry>
           <string>mapToKey</string>
           <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>UP</string>
         </entry>
       </elementAttributes>
       <pos x="300" y="1340"/>
@@ -693,10 +693,6 @@
       <elementName>Splitter</elementName>
       <elementAttributes>
         <entry>
-          <string>Input Splitting</string>
-          <string>8</string>
-        </entry>
-        <entry>
           <string>mirror</string>
           <boolean>true</boolean>
         </entry>
@@ -705,12 +701,16 @@
           <int>2</int>
         </entry>
         <entry>
-          <string>Output Splitting</string>
-          <string>1*8</string>
-        </entry>
-        <entry>
           <string>rotation</string>
           <rotation rotation="1"/>
+        </entry>
+        <entry>
+          <string>Input Splitting</string>
+          <string>8</string>
+        </entry>
+        <entry>
+          <string>Output Splitting</string>
+          <string>1*8</string>
         </entry>
       </elementAttributes>
       <pos x="4340" y="580"/>

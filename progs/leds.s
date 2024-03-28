@@ -17,14 +17,32 @@ __entry:
 
 .const INT_VEC_0 0xFF00
 
+ei
 
 ld a, 0
 mov off, a
+mov r8, a
 
-
-ldd m, INT_VEC_0
+;ldd m, INT_VEC_0
 ;ld a, 0x1f ; IRET
-ld a, 0x03 ; HLT
+;ld a, 0x03 ; HLT
+;mov [m], a 
+
+
+ldd m, 0xff00
+ld a, 0x88 ; mov a, r8
+mov [m], a 
+
+ldd m, 0xff01
+ld a, 0xC5 ; inc
+mov [m], a 
+
+ldd m, 0xff02
+ld a, 0x68 ; mov r8, a
+mov [m], a 
+
+ldd m, 0xff03
+ld a, 0x1f ; iret
 mov [m], a 
 
 ld a, 0
@@ -128,17 +146,10 @@ ldd m, OUT_5
 mov a, b
 mov [m], a
 
-; xor
-mov a, r1
-mov b, a
-mov a, r0
-
-xor
-
-mov b, a
+; r8
 
 ldd m, OUT_6
-mov a, b
+mov a, r8
 mov [m], a
 
 

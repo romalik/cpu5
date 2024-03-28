@@ -108,11 +108,11 @@ section code
 
 ######################## Section FETCH        #########################
 
-                                                            #fetch
-0       ***     *****   0000    c0_1 c1_1 mread # + select=0000 (ir_i pc_a)
+                                                            #fetch + latch irq
+*       ***     *****   0000    c0_1 c1_1 mread # + select=0000 (ir_i pc_a)
 
                                                             #NOP        nop
--       000     00000   0001    pc++ seq_rst
+0       000     00000   0001    pc++ seq_rst
 
                                                             #DI        di
 -       000     00001   0001    iv_o        # (disable)
@@ -314,22 +314,21 @@ section code
 
 ######################## INTERRUPTS        #########################
 
-1       ***     *****   0000    pc_switch
--       ***     *****   0001    sl_o sel_a mwrite   # (sel_a will set addr to isr regs + 0x01)
--       ***     *****   0010    sh_o sel_a mwrite   # (sel_a will set addr to isr regs + 0x02)
--       ***     *****   0011    a_o  sel_a mwrite   # (sel_a will set addr to isr regs + 0x00)
--       ***     *****   0100    s_rst
--       ***     *****   0101    sl--                 # (SP = 0xffff)
+1       ***     *****   0001    pc_switch
+-       ***     *****   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01)
+-       ***     *****   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
+-       ***     *****   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x00)
+-       ***     *****   0101    sl--                      # (SP = 0xffff)
 -       ***     *****   0110    a_i xl_o
--       ***     *****   0111    a_o s_a mwrite      # (pc l will be at 0xffff)
+-       ***     *****   0111    a_o s_a mwrite            # (pc l will be at 0xffff)
 -       ***     *****   1000    a_i xh_o
--       ***     *****   1001    sl--                 # (SP = 0xfffe)
--       ***     *****   1010    a_o s_a mwrite      # (pc h will be at 0xfffe)
--       ***     *****   1011    xl_i iv_o           # (+ disable interrupts)
--       ***     *****   1100    a_i sh_o            # (get 0xff)
--       ***     *****   1101    a_o xh_i            # X = 0xFF00 | int_vec
--       ***     *****   1110    pc_switch
--       ***     *****   1111    seq_rst sl--
+-       ***     *****   1001    sl--                      # (SP = 0xfffe)
+-       ***     *****   1010    a_o s_a mwrite            # (pc h will be at 0xfffe)
+-       ***     *****   1011    xl_i iv_o                 # (+ disable interrupts)
+-       ***     *****   1100    a_i sh_o                  # (get 0xff)
+-       ***     *****   1101    a_o xh_i                  # X = 0xFF00 | int_vec
+-       ***     *****   1110    sl--
+-       ***     *****   1111    seq_rst pc_switch
 
 
 
