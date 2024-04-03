@@ -102,6 +102,12 @@ pc_switch c1_1 s0 s1 s2
 
 end
 
+section default
+
+not_used_4
+
+end
+
 section code
 
 #int    sect    arg     seq     command
@@ -111,8 +117,8 @@ section code
                                                             #fetch + latch irq
 *       ***     *****   0000    c0_1 c1_1 mread # + select=0000 (ir_i pc_a)
 
-                                                            #NOP        nop
-0       000     00000   0001    pc++ seq_rst
+                                                            #HLT        hlt
+0       000     00000   0001    seq_rst
 
                                                             #DI        di
 -       000     00001   0001    iv_o        # (disable)
@@ -122,8 +128,8 @@ section code
 -       000     00010   0001    ei          
 -       ---     -----   0010    pc++ seq_rst
 
-                                                            #hlt         hlt
--       000     00011   0001    seq_rst          
+                                                            #nop         nop
+-       000     00011   0001    pc++ seq_rst          
 
                                                             #[x]->[m]    cpy 
 -       000     00100   0001    x_a a_i mread          
@@ -141,7 +147,7 @@ section code
 -       ---     -----   0101    sl++
 -       ---     -----   0110    a_i s_a mread
 -       ---     -----   0111    a_o xl_i
--       ---     -----   1000    a_i  sel_a mread
+-       ---     -----   1000    a_i  sel_a mread s_rst  # s_rst because A was saved at +0x03
 -       ---     -----   1001    sh_i sel_a mread
 -       ---     -----   1010    sl_i sel_a mread
 -       ---     -----   1011    pc_switch
@@ -325,7 +331,7 @@ section code
 -       111     11111   0001    pc_switch
 -       ---     -----   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01)
 -       ---     -----   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
--       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x00)
+-       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) !!!!! WILL WRITE TO + 0x03 because of s_rst
 -       ---     -----   0101    sl--                      # (SP = 0xffff)
 -       ---     -----   0110    a_i xl_o
 -       ---     -----   0111    a_o s_a mwrite            # (pc l will be at 0xffff)

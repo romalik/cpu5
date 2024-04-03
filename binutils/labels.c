@@ -21,7 +21,9 @@ void print_labels(uint8_t * label_vec) {
   printf("Labels:\nID\tpos\tpres\texport\tname\n");
 
   while(*(e->name)) {
-    print_label(e);
+    if(e->present) {
+      print_label(e);
+    }
     e++;
   }
 

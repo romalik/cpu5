@@ -105,6 +105,7 @@ public:
 std::map<std::string, ControlLine> control_lines;
 std::map<std::string, int> config;
 std::map<std::string, std::vector<std::string>> alias;
+std::vector<std::string> unused_control_word;
 
 typedef std::pair<std::string, std::vector<std::string>> MInstrLine;
 std::vector<MInstrLine> m_instr_lines;
@@ -116,7 +117,22 @@ void parse_error(int str_num) {
   exit(1);
 }
 
-bool parse_microinstruction(const std::vector<std::string>& words, MInstrLine & m_instr) {
+bool parse_words(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end, std::vector<std::string> & target) {
+  for(auto it = begin; it != end; ++it) {
+    std::string id = *it;
+    if(alias.find(id) != alias.end()) {
+      target.insert(target.end(), alias[id].begin(), alias[id].end());
+    } else if(control_lines.find(id) != control_lines.end()) {
+      target.push_back(id);
+    } else {
+      printf("Unknown control line %s\n", id.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
+bool parse_microinstruction(std::vector<std::string>& words, MInstrLine & m_instr) {
   std::string address_str;
   if(!config["address_width"]) {
     printf("Address width not set\n");
@@ -134,18 +150,8 @@ bool parse_microinstruction(const std::vector<std::string>& words, MInstrLine & 
   }
 
   m_instr.first = address_str;
-  for(size_t i = cnt; i<words.size(); i++) {
-    std::string id = words[i];
-    if(alias.find(id) != alias.end()) {
-      m_instr.second.insert(m_instr.second.end(), alias[id].begin(), alias[id].end());
-    } else if(control_lines.find(words[i]) != control_lines.end()) {
-      m_instr.second.push_back(words[i]);
-    } else {
-      printf("Unknown control line %s\n", words[i].c_str());
-      return false;
-    }
-  }
-  return true;
+  
+  return parse_words(words.begin()+cnt, words.end(), m_instr.second);;
 
 }
 
@@ -194,6 +200,12 @@ void parse_file(const std::string & path) {
           parse_error(line_cnt);
         }
         config[words[0]] = std::stoi(words[1]);
+
+      } else if(current_section == "default") {
+        if(words.size() < 1) {
+          parse_error(line_cnt);
+        }
+        unused_control_word = words;
 
       } else if(current_section == "control_word") {
         if(words.size() < 3) {
@@ -290,6 +302,24 @@ std::vector<uint64_t> get_address_vector(const std::string & address_mask) {
 }
 
 
+uint64_t get_word_for_instr(uint64_t default_word, const std::vector<std::string> & instr) {
+  uint64_t word = default_word;
+  for(const auto & cl : instr) {
+    if(control_lines.find(cl) == control_lines.end()) {
+      printf("Unknown control line %s\n", cl.c_str());
+      exit(1);
+    }
+    ControlLine & c_line = control_lines[cl];
+
+    if(c_line.active_level) {
+      word |= (1ULL << c_line.position);
+    } else {
+      word &= ~(1ULL << c_line.position);
+    }
+  }
+  return word;
+}
+
 void compile() {
   uint64_t default_word = get_default_word();
 
@@ -302,20 +332,7 @@ void compile() {
 
   for(const auto & instr : m_instr_lines) {
     auto adr_vec = get_address_vector(instr.first);
-    uint64_t word = default_word;
-    for(const auto & cl : instr.second) {
-      if(control_lines.find(cl) == control_lines.end()) {
-        printf("Unknown control line %s\n", cl.c_str());
-        exit(1);
-      }
-      ControlLine & c_line = control_lines[cl];
-
-      if(c_line.active_level) {
-        word |= (1ULL << c_line.position);
-      } else {
-        word &= ~(1ULL << c_line.position);
-      }
-    }
+    uint64_t word = get_word_for_instr(default_word, instr.second);
 
     for(const auto & adr : adr_vec) {
       if(visited_mask[adr]) {
@@ -326,6 +343,20 @@ void compile() {
       visited_mask[adr] = 1;
     }
   }
+  std::vector<std::string> parsed_unused_words;
+  if(!parse_words(unused_control_word.begin(), unused_control_word.end(), parsed_unused_words)) {
+    return;
+  }
+
+  size_t unused_cnt = 0;
+  uint64_t unused_word = get_word_for_instr(default_word, parsed_unused_words);
+  for(uint64_t addr = 0; addr < (1ULL << config["address_width"]); addr++) {
+    if(visited_mask[addr] != 1) {
+      image[addr] = unused_word;
+      unused_cnt++;
+    }
+  }
+
 }
 
 

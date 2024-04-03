@@ -447,6 +447,7 @@ int main(int argc, char ** argv) {
   int file_ct = 0;
   size_t total_size = 0;
   int output_hex = 0;
+  int dump_labels = 0;
   uint16_t bss_offset = 0;
   uint16_t obj_size;
   uint16_t label_vec_size;
@@ -461,6 +462,8 @@ int main(int argc, char ** argv) {
         i++;
       } else if(!strcmp(&argv[i][1], "h")) {
         output_hex = 1;
+      } else if(!strcmp(&argv[i][1], "v")) {
+        dump_labels = 1;
       } else if(!strcmp(&argv[i][1], "bss")) {
         bss_offset = strtol(argv[i+1],0,0);
         i++;
@@ -492,17 +495,19 @@ int main(int argc, char ** argv) {
     print_labels(label_vecs[i]);
   }
 */
-/*
-  for(i = 0; i < sects_sz; i++) {
-    struct section_list_entry * node;
-    printf("sect %s in\n", sects[i]->name);
-    node = sects[i]->list;
-    while(node) {
-      printf("\t%s from %s\n", node->section->name, node->origin->name);
-      node = node->next;
-    }    
+
+  if(dump_labels) {
+    for(i = 0; i < sects_sz; i++) {
+      struct section_list_entry * node;
+      printf("sect %s in\n", sects[i]->name);
+      node = sects[i]->list;
+      while(node) {
+        printf("\t%s from %s\n", node->section->name, node->origin->name);
+        print_labels(node->section->label_vec);
+        node = node->next;
+      }    
+    }
   }
-*/
   linker_link();
 
 

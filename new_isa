@@ -214,9 +214,29 @@ p2 : all writes + alu_latch                             no wait needed (?)
 p3 : seq_rst                                            
 
 Phases tbd:
-p0 : control_word pull down + deferred seq_rst          wait for seq rom
-p1 : control_word out + addr_out                        wait for mem and TLB
-p2 : mem_read                                           wait for mem on bus
-p3 : all writes + alu_latch + defer seq_rst             no wait needed (?)
+p0 : control_word pull down + deferred seq_rst + alu_latch   wait for seq rom
+p1 : control_word out + addr_out                             wait for mem and TLB
+p2 : mem_read                                                wait for mem on bus
+p3 : all writes + alu_latch + defer seq_rst                  no wait needed (?)
 
+
+0000 control word pull down
+0001 control word pull down
+0010 control word pull down + alu_latch
+0011 control word pull down + alu_latch
+
+0100 control word out + addr_out
+0101 control word out + addr_out
+0110 control word out + addr_out
+0111 control word out + addr_out
+
+1000 mem_read + addr_out
+1001 mem_read + addr_out
+1010 mem_read + addr_out
+1011 mem_read + addr_out
+
+1100 writes + addr_out + mem_read
+1101 writes + addr_out + mem_read
+1110 writes + addr_out + mem_read
+1111 seq_rst
 

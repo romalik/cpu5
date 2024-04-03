@@ -27,7 +27,11 @@ __entry:
 .const SERIAL_BUFFER_LEN 0xff
 
 
-hlt
+
+
+
+
+
 
 ld a, 0
 mov off, a
@@ -50,6 +54,7 @@ mov r5,a
 
 ldd x, $memcpy
 jmp
+
 
 
 ld a, 0x30
@@ -78,15 +83,22 @@ jmp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ISR 0
 isr_0:
+mov a, f
+push a
 
 mov a, r8
 inc
 mov r8, a
 
 pop a
+mov f, a
+
+
+pop a
 mov xh, a
 pop a
 mov xl, a
+
 iret
 
 
@@ -100,9 +112,6 @@ push a
 mov a, f
 push a
 
-ldd m, OUT_1
-ld a, 0x55
-mov [m],a
 
 ldd m, $serial_buffer
 ldd x, $serial_buffer_wr_ptr
@@ -172,10 +181,9 @@ read_serial:
 mov a, xl
 push a
 mov a, xh
+;;;;; ISR RETURN HERE ---- failed
 push a
 
-;;debug
-ldd x, OUT_2
 
 ; set available = 0
 ld a,0
@@ -185,17 +193,11 @@ mov b,a
 ldd m, $serial_buffer_size
 mov a,[m]
 
-;;debug
-mov [x], a
 
 sub
 ldd x, $read_serial_end
 jz
 
-;; debug keepalive
-ldd x, OUT_7
-mov a, r5
-mov [x], a
 
 
 ; set available = 1
@@ -415,11 +417,11 @@ no_reset:
 ;jz 
 
 
-;ldd x, $read_serial
-;jmp
+ldd x, $read_serial
+jmp
 
-ld a,0
-mov r0,a
+;ld a,0
+;mov r0,a
 
 ldd m, OUT_0
 mov a, r0
@@ -469,7 +471,7 @@ isr_3_jmp:
 .section bss
 .align 0xff
 serial_buffer:
-.skip 128
+.skip 0x100
 serial_buffer_rd_ptr:
 .skip 1
 serial_buffer_wr_ptr:

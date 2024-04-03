@@ -87,7 +87,7 @@ char expect_arg_size = 0;
 
 
 void generate_nop() {
-  emit(0x00);
+  emit(0x03);
 }
 
 void generate_mov() {
@@ -268,7 +268,7 @@ void gen_instruction() {
   } else if(!strcmp(token, "cpy")) {
     emit(0x04);
   } else if(!strcmp(token, "hlt")) {
-    emit(0x03);
+    emit(0x00);
   } else if(!strcmp(token, "ei")) {
     emit(0x02);
   } else if(!strcmp(token, "di")) {
