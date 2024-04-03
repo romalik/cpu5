@@ -263,6 +263,10 @@ void gen_instruction() {
     generate_ldd();
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
+  } else if(!strcmp(token, "swp")) {
+    emit(0x05);
+  } else if(!strcmp(token, "cpy")) {
+    emit(0x04);
   } else if(!strcmp(token, "hlt")) {
     emit(0x03);
   } else if(!strcmp(token, "ei")) {
@@ -324,6 +328,13 @@ void assemble() {
       } else if(!strcmp(&token[1], "skip")) {
         get_next_token();
         current_section->data_pos += strtol(token,0,0);
+
+      } else if(!strcmp(&token[1], "align")) {
+        uint16_t align = 0;
+        get_next_token();
+        align = strtol(token,0,0);
+
+        current_section->data_pos += (align - (current_section->data_pos % align)) % align;
 
       } else if(!strcmp(&token[1], "section")) {
         get_next_token();

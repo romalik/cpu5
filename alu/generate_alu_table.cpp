@@ -6,22 +6,22 @@
 #include <vector>
 
 std::vector<std::string> ops = {
-  "add",
-  "sub",
-  "neg",
-  "shl",
-  "NOP",
-  "inc",
-  "adc",
-  "sbc",
-  "not A",
-  "and",
-  "or",
-  "xor",
-  "zero",
-  "NOP",
-  "NOP",
-  "NOP"
+  "add",    //0
+  "sub",    //1
+  "neg",    //2 
+  "shl",    //3 
+  "shlc",   //4
+  "inc",    //5
+  "adc",    //6
+  "sbc",    //7
+  "not A",  //8
+  "and",    //9
+  "or",     //a
+  "xor",    //b
+  "zero",   //c
+  "test_a", //d
+  "shr",    //e
+  "shrc"    //f
 };
 
 
@@ -89,6 +89,9 @@ void test(const std::vector<uint8_t> & image_first, const std::vector<uint8_t> &
       case 0x3 : // shl
       expected = A << 1;
       break;
+      case 0x4 : // shlc
+      expected = A << 1;
+      break;
       case 0x5 : // A++
       expected = A + 1;
       break;
@@ -113,6 +116,15 @@ void test(const std::vector<uint8_t> & image_first, const std::vector<uint8_t> &
       break;
       case 0xc : // Zero
       expected = 0;
+      break;
+      case 0xd : // shr
+      expected = A;
+      break;
+      case 0xe : // shr
+      expected = A>>1;
+      break;
+      case 0xf : // shrc
+      expected = A>>1;
       break;
       default :
       expected = 0;
@@ -153,6 +165,8 @@ uint8_t alu_value_for_input(uint16_t addr, int is_first_chip) {
   uint8_t cmd       =   (addr & 0b0111100000000) >> 8;
   uint8_t carry_in  =   (addr & 0b1000000000000) >> 12;
 
+  uint8_t tmp = 0;
+
 
   uint8_t F = 0;
   uint8_t Z = 0;
@@ -160,7 +174,7 @@ uint8_t alu_value_for_input(uint16_t addr, int is_first_chip) {
 
 
   switch(cmd) {
-    //arithmetical
+
 
     case 0x0 : // add
     F = A + B;
@@ -191,6 +205,12 @@ uint8_t alu_value_for_input(uint16_t addr, int is_first_chip) {
 
     break;
 
+    case 0x4 : // shlc
+    F = A << 1;
+    F += carry_in;
+
+    break;
+
     case 0x5 : // A++
     if(is_first_chip) {
       F = A + 1;
@@ -208,7 +228,6 @@ uint8_t alu_value_for_input(uint16_t addr, int is_first_chip) {
     break;
 
 
-    //logical, no carry
 
     case 0x8 : // ~A
     F = ~A;
@@ -229,6 +248,31 @@ uint8_t alu_value_for_input(uint16_t addr, int is_first_chip) {
     case 0xc : // Zero
     F = 0;
     break;
+
+    case 0xd : // test_a
+    F = A;
+    break;
+
+    case 0xe : // shr
+    if(A & 0x01) tmp = 1;
+    F = A >> 1;
+    if(is_first_chip && carry_in) {
+      F |= 0x8;
+    }
+    if(tmp) F |= 0x10;
+
+    break;
+
+    case 0xf : // shrc
+    if(A & 0x01) tmp = 1;
+    F = A >> 1;
+    if(carry_in) {
+      F |= 0x8;
+    }
+    if(tmp) F |= 0x10;
+
+    break;
+
 
     default :
     F = 0;

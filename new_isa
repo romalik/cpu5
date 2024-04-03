@@ -158,7 +158,15 @@ Memory map
 I/O: 0x4000 - 0x5FFF
 
 0x4000 - 0x43ff   - PORT OUTPUT (8)
-0x4400 - 0x45ff   - PORT INPUT (8)
+0x4400 - 0x47ff   - PORT INPUT (8)
+0x4800            - RESET PAGING
+0x4801            - SET PAGING
+0x4802            - TLB Index
+0x4803            - Serial
+
+TLB: 0x6000 - 0x7FFF
+0x6000 - 0x6FFF   - TLB
+0x7000 - 0x7FFF   - TLB Flags
 
 Interrupts:
 
@@ -195,3 +203,20 @@ reti:
     B   pc_switch
     C   ei
     D   seq_rst
+
+
+
+
+Phases now:
+p0 : control_word pull down                             wait for seq rom
+p1 : control_word out + m_read + addr_out + all reads   wait for mem
+p2 : all writes + alu_latch                             no wait needed (?)
+p3 : seq_rst                                            
+
+Phases tbd:
+p0 : control_word pull down + deferred seq_rst          wait for seq rom
+p1 : control_word out + addr_out                        wait for mem and TLB
+p2 : mem_read                                           wait for mem on bus
+p3 : all writes + alu_latch + defer seq_rst             no wait needed (?)
+
+

@@ -145,13 +145,20 @@ void build_section_lists() {
 }
 
 
-void linker_offset_labels() {
+void linker_offset_labels(uint16_t bss_offset) {
   int i, j;
   uint16_t c_off = 0;
   struct label_entry * e;
 
   for(i = 0; i < sects_sz; i++) {
     struct section_list_entry * node;
+
+    if(strstr(sects[i]->name, "bss")) {
+      if(c_off < bss_offset) {
+        c_off = bss_offset;
+      }
+    }
+
     node = sects[i]->list;
     while(node) {
       if(node->used) {
@@ -276,6 +283,9 @@ int sect_comparator(const void * _a, const void * _b) {
   const struct section_dict * a = *(const struct section_dict **)_a;
   const struct section_dict * b = *(const struct section_dict **)_b;
 
+  int a_is_bss = 0;
+  int b_is_bss = 0;
+
   //place .section start_section first
   if(!strcmp(a->name, "start_section")) {
     return -1;
@@ -286,12 +296,30 @@ int sect_comparator(const void * _a, const void * _b) {
   }
 
 
+  if(strstr(a->name, "bss")) {
+    a_is_bss = 1;
+  }
+
+  if(strstr(b->name, "bss")) {
+    b_is_bss = 1;
+  }
+
+
   //place executable sections first
   if(a->executable && !b->executable) {
     return -1;
   }
   if(!a->executable && b->executable) {
     return 1;
+  }
+
+
+  //place bss sections last
+  if(a_is_bss && !b_is_bss) {
+    return 1;
+  }
+  if(!a_is_bss && b_is_bss) {
+    return -1;
   }
 
 
@@ -419,6 +447,7 @@ int main(int argc, char ** argv) {
   int file_ct = 0;
   size_t total_size = 0;
   int output_hex = 0;
+  uint16_t bss_offset = 0;
   uint16_t obj_size;
   uint16_t label_vec_size;
   uint16_t label_mask_size;
@@ -432,6 +461,9 @@ int main(int argc, char ** argv) {
         i++;
       } else if(!strcmp(&argv[i][1], "h")) {
         output_hex = 1;
+      } else if(!strcmp(&argv[i][1], "bss")) {
+        bss_offset = strtol(argv[i+1],0,0);
+        i++;
       }
     } else {
       load_file(argv[i]);
@@ -451,7 +483,7 @@ int main(int argc, char ** argv) {
 
   sort_sects();
 
-  linker_offset_labels();
+  linker_offset_labels(bss_offset);
 
 /*
   printf("off:\n");
@@ -487,7 +519,7 @@ int main(int argc, char ** argv) {
     struct section_list_entry * node;
     node = sects[i]->list;
     while(node) {
-      if(node->used) {
+      if(node->used && !strstr(sects[i]->name,"bss")) {
         if(output_hex) {
           for(j = 0; j<node->section->data_pos; j++) {
             if(!(j&0xf)) {

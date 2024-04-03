@@ -125,6 +125,14 @@ section code
                                                             #hlt         hlt
 -       000     00011   0001    seq_rst          
 
+                                                            #[x]->[m]    cpy 
+-       000     00100   0001    x_a a_i mread          
+-       000     00100   0010    mf_a a_o mwrite          
+-       000     00100   0011    pc++ seq_rst
+
+                                                            #[x]<->[m]   swp
+-       000     00101   0001    seq_rst          
+
                                                             #IRET       iret
 -       000     11111   0001    pc_switch   # (comparison overriden by 0x0f in instruction)
 -       ---     -----   0010    sl++
@@ -314,21 +322,21 @@ section code
 
 ######################## INTERRUPTS        #########################
 
-1       ***     *****   0001    pc_switch
--       ***     *****   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01)
--       ***     *****   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
--       ***     *****   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x00)
--       ***     *****   0101    sl--                      # (SP = 0xffff)
--       ***     *****   0110    a_i xl_o
--       ***     *****   0111    a_o s_a mwrite            # (pc l will be at 0xffff)
--       ***     *****   1000    a_i xh_o
--       ***     *****   1001    sl--                      # (SP = 0xfffe)
--       ***     *****   1010    a_o s_a mwrite            # (pc h will be at 0xfffe)
--       ***     *****   1011    xl_i iv_o                 # (+ disable interrupts)
--       ***     *****   1100    a_i sh_o                  # (get 0xff)
--       ***     *****   1101    a_o xh_i                  # X = 0xFF00 | int_vec
--       ***     *****   1110    sl--
--       ***     *****   1111    seq_rst pc_switch
+-       111     11111   0001    pc_switch
+-       ---     -----   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01)
+-       ---     -----   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
+-       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x00)
+-       ---     -----   0101    sl--                      # (SP = 0xffff)
+-       ---     -----   0110    a_i xl_o
+-       ---     -----   0111    a_o s_a mwrite            # (pc l will be at 0xffff)
+-       ---     -----   1000    a_i xh_o
+-       ---     -----   1001    sl--                      # (SP = 0xfffe)
+-       ---     -----   1010    a_o s_a mwrite            # (pc h will be at 0xfffe)
+-       ---     -----   1011    xl_i iv_o                 # (+ disable interrupts)
+-       ---     -----   1100    a_i sh_o                  # (get 0xff)
+-       ---     -----   1101    a_o xh_i                  # X = 0xFF00 | int_vec
+-       ---     -----   1110    sl--
+-       ---     -----   1111    seq_rst pc_switch
 
 
 
