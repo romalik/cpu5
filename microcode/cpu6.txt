@@ -139,6 +139,12 @@ section code
                                                             #[x]<->[m]   swp
 -       000     00101   0001    seq_rst          
 
+                                                            #x++         x++
+-       000     00110   0001    pc_switch          
+-       000     -----   0010    pc++          
+-       000     -----   0011    pc_switch          
+-       000     -----   0100    pc++ seq_rst
+
                                                             #IRET       iret
 -       000     11111   0001    pc_switch   # (comparison overriden by 0x0f in instruction)
 -       ---     -----   0010    sl++
@@ -242,9 +248,10 @@ section code
 -       ---     01000   0001    mf_a mread a_i
 -       ---     -----   0010    pc++ seq_rst
 
-                                                            #A<-(S)     pop a !!!!
--       ---     01001   0001    s_a mread a_i
--       ---     -----   0010    pc++ seq_rst
+                                                            #A<-(++S)     pop a
+-       ---     01001   0001    sl++
+-       ---     -----   0010    s_a mread a_i
+-       ---     -----   0011    pc++ seq_rst
 
                                                             #A<-F       mov a, f
 -       ---     01010   0001    f_o a_i

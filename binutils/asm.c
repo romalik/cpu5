@@ -182,7 +182,6 @@ void generate_pop() {
     panic("Try pop other than A reg");
   }
 
-  emit(0x4f); // S++
   emit(0x49); // A <- (S)
 }
 
@@ -263,6 +262,8 @@ void gen_instruction() {
     generate_ldd();
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
+  } else if(!strcmp(token, "x++")) {
+    emit(0x06);
   } else if(!strcmp(token, "swp")) {
     emit(0x05);
   } else if(!strcmp(token, "cpy")) {
