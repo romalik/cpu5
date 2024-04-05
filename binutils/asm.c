@@ -223,22 +223,7 @@ void generate_alu(uint8_t arg) {
   emit(0xC0 | arg);
 }
 
-void generate_jmp() {
-  uint8_t arg = 0;
-  if(!strcmp(token, "jmp")) {
-    arg = 0x0f;
-  } else if(!strcmp(token, "jc")) {
-    arg = 0x01;
-  } else if(!strcmp(token, "jnc")) {
-    arg = 0x04;
-  } else if(!strcmp(token, "jz")) {
-    arg = 0x02;
-  } else if(!strcmp(token, "jnz")) {
-    arg = 0x08;
-  } else {
-    panic("Bad jump");
-  }
-
+void generate_jmp(uint8_t arg) {
   emit(0xA0 | arg);
 }
 
@@ -279,7 +264,7 @@ void gen_instruction() {
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {
-    generate_jmp();
+    generate_jmp(arg);
   } else {
     panic("Bad token");
   }

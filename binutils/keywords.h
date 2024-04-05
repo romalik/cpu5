@@ -44,23 +44,38 @@ char * alu_args[16] = {
 
 };
 
+
+/*
+0 0 000    JNE(JNZ)        ZF = 0	
+1 0 001    JAE(JNB/JNC)    CF = 0
+2 0 010    JG(JNLE)        ZF = 0 and SF = OF	
+3 0 011    JA(JNBE)        CF = 0 and ZF = 0
+4 0 100    JGE(JNL)        SF = OF	
+8 1 000    JE(JZ)          ZF = 1	
+9 1 001    JB(JNAE/JC)	   CF = 1
+A 1 010    JLE(JNG)        ZF = 1 or SF != OF
+B 1 011    JBE(JNA)        CF = 1 or ZF = 1
+C 1 100    JL(JNGE)        SF != OF	
+
+F 1 111    JMP
+*/
 char * jumps[16] = {
-  "jmp",
-  "jz",
-  "jnz",
-  "jc",
-  "jnc",
-  "jeq",
-  "jlt",
-  "jle",
-  "jgt",
-  "jge",
-  "jne",
-  "---",
-  "---",
-  "---",
-  "---",
-  "---"
+/*0*/  "jnz",
+/*1*/  "jnc",
+/*2*/  "jg",
+/*3*/  "ja",
+/*4*/  "jge",
+/*5*/  "---",
+/*6*/  "---",
+/*7*/  "---",
+/*8*/  "jz",
+/*9*/  "jc",
+/*A*/  "jle",
+/*B*/  "jbe",
+/*C*/  "jl",
+/*D*/  "---",
+/*E*/  "---",
+/*F*/  "jmp"
 };
 
 
