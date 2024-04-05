@@ -36,107 +36,16 @@ xxxxx
 [------cmd------] [-----------arg------------]
 
 
-xxx fetch *
-        select=0000 ABUS MREAD c1_1
-
-
-
-xxx end
-        select=0110 c1_1
-        seq_rst
-
-000 NOP
-
-
-001 A->
-    0   B
-        select=0000 IN A_o
-    1   SL
-        select=0010 IN A_o
-    2   SH
-        select=0001 IN A_o
-    3   ML
-    4   MH
-    5   OFF
-    6   XL
-    7   XH
-
-    8   (M+OFF)         *
-        select=0101 ABUS MWRITE A_o
-    9   (S++)             *
-        select=0001 ABUS MWRITE A_o
-        select=0010 I/D
-    10  F
-010 A<-
-    0   B
-        select=0000 DBUS A_i
-    1   SL
-    2   SH
-    3   ML
-    4   MH
-    5   OFF
-    6   XL
-    7   XH
-
-
-    8   (M+OFF)         *
-        select=0101 ABUS MREAD A_i
-    9   (S)             *
-        select=0001 ABUS MREAD A_i
-
-    10   LIT             * (align 2, will gen fault on fetch)
-
-        select=0110 I/D
-        select=0000 ABUS MREAD A_i
-    11  F
-
-010 01111  --S
-        select=0001 I/D
-
-
-011 A->(MREG)           *
-    arg = 0-31
-        select=0110 ABUS MWRITE A_o
-
-100 A<-(MREG)           *
-    arg = 0-31
-        select=0110 ABUS MREAD A_i
-
-101 JC
-
-110 ALU
-    0 : store
-        select=0010(alu_d)      c0_1 A_i
-        select=0100(aluf_d/f_i) c0_1 c1_1
-
-    1 : cmp
-        select=0100(aluf_d/f_i) c0_1 c1_1
-
-
-111 DLIT                * (align 4)
-    0   S
-        pc++
-        pc_a ABUS MREAD A_i
-        A_o SL_i
-        pc++
-        pc_a ABUS MREAD A_i
-        A_o SH_i
-
-    1   M
-    2   X
-
-
-
-
-? INT = A->(11111) ?
-
 INTERRUPT VECTORS:
 
 INT_0 :     0xFF00
 INT_1 :     0xFF10
 INT_2 :     0xFF20
 INT_3 :     0xFF30
-
+SYSCALL:    0xFF40  - signal formed when no interrupts are pending, but 0xFF instr is encountered. !!NEED TO MANUALLY INCREASE PC!!
+INT_5 :     0xFF50
+INT_6 :     0xFF60
+INT_7 :     0xFF70
 
 ISR STACK:  0xFFF0 - 0xFFFF
 MREG     :  0xFFC0 - 0xFFDF    
@@ -168,58 +77,10 @@ TLB: 0x6000 - 0x7FFF
 0x6000 - 0x6FFF   - TLB
 0x7000 - 0x7FFF   - TLB Flags
 
-Interrupts:
-
-
-    0   pc_switch  (comparison overriden by A12 in mcode)
-    1   sl_o sel_a mwrite (sel_a will set addr to isr regs + 0x01)
-    2   sh_o sel_a mwrite (sel_a will set addr to isr regs + 0x02)
-    3   a_o  sel_a mwrite (sel_a will set addr to isr regs + 0x00)
-    4   s_rst
-    5   s--
-    6   a_i xl_o
-    7   a_o s_a mwrite   (pc l will be at 0xffff)
-    8   a_i xh_o 
-    9   s--
-    A   a_o s_a mwrite   (pc h will be at 0xfffe)
-    B   xl_i incvec_o / di
-    C   a_i sh_o
-    D   a_o xl_h
-    E   pc_switch
-    F   seq_rst s--
-
-reti:
-    0   fetch
-    1   pc_switch (comparison overriden by 0x0f in instruction)
-    2   s++
-    3   a_i s_a mread
-    4   a_o xh_i
-    5   s++
-    6   a_i s_a mread
-    7   a_o xl_i
-    8   a_i  sel_a mread
-    9   sh_i sel_a mread
-    A   sl_i sel_a mread
-    B   pc_switch
-    C   ei
-    D   seq_rst
 
 
 
-
-Phases now:
-p0 : control_word pull down                             wait for seq rom
-p1 : control_word out + m_read + addr_out + all reads   wait for mem
-p2 : all writes + alu_latch                             no wait needed (?)
-p3 : seq_rst                                            
-
-Phases tbd:
-p0 : control_word pull down + deferred seq_rst + alu_latch   wait for seq rom
-p1 : control_word out + addr_out                             wait for mem and TLB
-p2 : mem_read                                                wait for mem on bus
-p3 : all writes + alu_latch + defer seq_rst                  no wait needed (?)
-
-
+Phases:
 0000 control word pull down
 0001 control word pull down
 0010 control word pull down + alu_latch
@@ -239,4 +100,6 @@ p3 : all writes + alu_latch + defer seq_rst                  no wait needed (?)
 1101 writes + addr_out + mem_read
 1110 writes + addr_out + mem_read
 1111 seq_rst
+
+Instruction set:
 
