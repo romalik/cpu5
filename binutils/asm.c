@@ -90,74 +90,71 @@ void generate_nop() {
   emit(0x03);
 }
 
+// type 0 - reg, 1 - mreg, 2 - m+imm
+void parse_mov_arg(char * token, uint8_t * value, uint8_t * type) {
+  int reg = find_keyword(regs, token);
+  int v = 0;
+  if(reg == 0xff) {
+    if(token[0] == 'r') {
+      v = strtol(token+1,0,0);
+      if(v > 31 || v < 0) {
+        panic("Bad mreg");
+      }
+      *value = v;
+      *type = 1;
+    } else if(token[0] == '[' && token[1] == 'm') {
+      v = strtol(token+2,0,0);
+      if(v < -16 || v > 15) {
+        panic("Too big imm offset");
+      }
+      *value = (uint8_t)v;
+      *type = 2;
+    } else {
+      panic("Bad arg for mov");
+    }
+  } else {
+    *value = reg;
+    *type = 0;
+  }
+}
+
 void generate_mov() {
   uint8_t dest = 0;
   uint8_t src = 0;
-  uint8_t is_mreg = 0;
+  uint8_t dest_type = 0; 
+  uint8_t src_type = 0; //0 - reg, 1 - mreg, 2 - m+imm
   uint8_t opcode = 0;
-  get_next_token();
-  dest = find_keyword(regs, token);
-  
-  if(dest == 0xff) {
-    if(token[0] == 'r') {
-      dest = strtol(token+1,0,0);
-      if(dest > 31) {
-        panic("Bad mreg");
-      }
-      dest = dest | 0x80;
-      is_mreg = 1;
-    }
-  }
-  if(dest == 0xff) {
-    panic("Bad dest register");
-  }
 
   get_next_token();
-  src = find_keyword(regs, token);
+  parse_mov_arg(token, &dest, &dest_type);
+
+  get_next_token();
+  parse_mov_arg(token, &src, &src_type);
   
-  if(src == 0xff) {
-    if(token[0] == 'r') {
-      if(is_mreg) {
-        panic("Mov two mreg");
-      }
-      src = strtol(token+1,0,0);
-      if(src > 31) {
-        panic("Bad mreg");
-      }
-      src = src | 0x80;
-      is_mreg = 1;
-    }
-  }
-
-  if(src == 0xff) {
-    panic("Bad src register");
-  }
-
-  if(dest != 0x0f) {
-    if(src != 0x0f) {
-      panic("Dest or src register must be A");
-    }
-  }
-
-  if(dest == src) {
-    panic("Register dest equals src");
-  }
-
-  if(is_mreg) {
-    if(src == 0x0f) { // A->r??
-      opcode = 0x60 | (dest&0x1f);
-    }
-    if(dest == 0x0f) { // A<-r??
+  if(dest_type == 0 && dest == 0x0f) { // A<-...
+    if(src_type == 0) { //A<-reg
+      opcode = 0xE0 | src;
+    } else if(src_type == 1) { //A<-mreg
       opcode = 0x80 | (src&0x1f);
+    } else if(src_type == 2) { //A<-m+imm
+      opcode = 0x40 | (src&0x1f);
+    } else {
+      panic("Bad mov arg type");
+    }
+  } else if(src_type == 0 && src == 0x0f) { // A->...
+    if(dest_type == 0) { //A->reg
+      opcode = 0xD0 | dest;
+    } else if(dest_type == 1) { //A->mreg
+      opcode = 0x60 | (dest&0x1f);
+    } else if(dest_type == 2) { //A->m+imm
+      opcode = 0x20 | (dest&0x1f);
+    } else {
+      panic("Bad mov arg type");
     }
   } else {
-    if(src == 0x0f) { // A->??
-      opcode = 0x20 | dest;
-    }
-    if(dest == 0x0f) { // A<-??
-      opcode = 0x40 | src;
-    }
+    panic("Bad move instruction\n");
   }
+
   emit(opcode);
 }
 
@@ -170,7 +167,7 @@ void generate_push() {
     panic("Try push other than A reg");
   }
 
-  emit(0x29);
+  emit(0xD9);
 }
 
 void generate_pop() {
@@ -182,7 +179,7 @@ void generate_pop() {
     panic("Try pop other than A reg");
   }
 
-  emit(0x49); // A <- (S)
+  emit(0xE9); // A <- (S)
 }
 
 void generate_ld() {
@@ -193,24 +190,22 @@ void generate_ld() {
   if(reg != 0x0f) {
     panic("Try ld other than A reg");
   }
-  emit(0x4C);
+  emit(0xEC);
   expect_arg_n = 1;
   expect_arg_size = 1;
 }
 
 void generate_ldd() {
-  uint8_t reg = 0;
   get_next_token();
   if(token[0] == 's') {
-    reg = 0;
+    emit(0xDC);
   } else if(token[0] == 'm') {
-    reg = 1;
+    emit(0xDD);
   } else if(token[0] == 'x') {
-    reg = 2;
+    emit(0xDE);
   } else {
     panic("Bad ldd destination");
   }
-  emit(0xE0 | reg);
   expect_arg_n = 1;
   expect_arg_size = 2;
 }
@@ -260,7 +255,7 @@ void gen_instruction() {
   } else if(!strcmp(token, "di")) {
     emit(0x01);
   } else if(!strcmp(token, "iret")) {
-    emit(0x1f);
+    emit(0x0f);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {

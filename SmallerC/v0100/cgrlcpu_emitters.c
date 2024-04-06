@@ -16,11 +16,23 @@ void emit_tokNumInt(Node * node) {
     printf2("mov r%d,a\n", node->target_register+1);
 }
 
+
+/*
+
+tokEQ
+tokNEQ
+tokLEQ
+tokGEQ
+tokULEQ
+tokUGEQ
+
+*/
 void emit_alu_op(Node * node) {
     char * first_op;
     char * second_op;
 
     char size = 2;
+    char is_cmp = 0;
 
     if(node->value == 1) { // value can be 0 for some ops - assume size 2
         size = 1;
@@ -42,8 +54,20 @@ void emit_alu_op(Node * node) {
         first_op = "xor";
         second_op = "xor";
     } else {
-        emit_not_impl(node);
-        return;
+
+        switch(node->token) {
+        case tokEQ:
+        case tokNEQ:
+        case tokLEQ:
+        case tokGEQ:
+        case tokULEQ:
+        case tokUGEQ:
+            is_cmp = 1;
+            break;
+        default: 
+            emit_not_impl(node);
+            return;
+        }
     }
 
 
@@ -55,22 +79,85 @@ void emit_alu_op(Node * node) {
     int rbl = node->kids->next->target_register;
     int rbh = node->kids->next->target_register + 1;
 
-    printf2("mov a, r%d\n", rbl);
-    printf2("mov b, a\n");
-    printf2("mov a, r%d\n", ral);
-
-    printf2("%s\n", first_op);
-    printf2("mov r%d, a\n", rcl);
-
-    if(size == 2) {
-        printf2("mov a, r%d\n", rbh);
+    if(!is_cmp) { //alu operations
+        printf2("mov a, r%d\n", rbl);
         printf2("mov b, a\n");
-        printf2("mov a, r%d\n", rah);
+        printf2("mov a, r%d\n", ral);
 
-        printf2("%s\n", second_op);
+        printf2("%s\n", first_op);
+        printf2("mov r%d, a\n", rcl);
+
+        if(size == 2) {
+            printf2("mov a, r%d\n", rbh);
+            printf2("mov b, a\n");
+            printf2("mov a, r%d\n", rah);
+
+            printf2("%s\n", second_op);
+            printf2("mov r%d, a\n", rch);
+        }
+    } else {
+        printf2("ld a, 0\n");
+        printf2("mov r%d, a\n", rcl);
         printf2("mov r%d, a\n", rch);
-    }
+        if(size == 2) {
+            printf2("mov a, r%d\n", rbh);
+            printf2("mov b, a\n");
+            printf2("mov a, r%d\n", rah);
 
+            printf2("sub\n");
+            switch(node->token) {
+            case tokEQ:
+            case tokNEQ:
+            case tokLEQ:
+            case tokGEQ:
+            case tokULEQ:
+            case tokUGEQ:
+                is_cmp = 1;
+                break;
+            default: 
+                error("");
+                return;
+            }
+        }
+
+        printf2("mov a, r%d\n", rbl);
+        printf2("mov b, a\n");
+        printf2("mov a, r%d\n", ral);
+
+        printf2("sub\n");
+
+        printf2("--- ;; load x l_out\n")
+
+        switch(node->token) {
+        case tokEQ:
+            printf2("jnz\n");
+            printf2("ld a,1\n");
+            printf2("mov r%d, a\n", rcl);        
+            break;
+        case tokNEQ:
+            printf2("jz\n");
+            printf2("ld a,1\n");
+            printf2("mov r%d, a\n", rcl);        
+            break;
+        case tokLEQ:
+        case tokGEQ:
+        case tokULEQ:
+            printf2("jnz\n");
+            printf2("ld a,1\n");
+            printf2("mov r%d, a\n", rcl);        
+            break;
+
+        case tokUGEQ:
+            is_cmp = 1;
+            break;
+        default: 
+            error("");
+            return;
+        }
+
+        printf2("--- ;; l_out:\n")
+
+    }
 }
 
 void emit_tokReturn(Node * node) {
@@ -185,17 +272,9 @@ void emit_tokLocalOfs(Node * node) {
 }
 
 void emit_inc_x() {
-        printf2(" ; emit_inc_x()\n");
-        printf2(" ; possible optimization with pc_switch and pc++\n");
-        printf2("mov a, xl\n");
-        printf2("inc\n");
-        printf2("mov xl, a\n");
-        printf2("ld a, 0\n");
-        printf2("mov b,a\n");
-        printf2("mov a,xh\n");
-        printf2("adc\n");
-        printf2("mov xh,a\n");
-        printf2(" ;;;;;;;;;;;;;;\n");
+    printf2(" ; emit_inc_x()\n");
+    printf2("x++\n");
+
 }
 
 void emit_tokUnaryStar(Node * node) {
@@ -352,7 +431,7 @@ void opt_assignSizes(Node ** node, Node ** head) {
 
 void opt_suppressDereferences(Node ** node, Node ** head) {
     if((*node)->token == '=') {        
-        if((*node)->kids->token == tokIdent || (*node)->kids->token == tokLocalOfs) {
+        if((*node)->kids->token == tokIdent || (*node)->kids->token == tokLocalOfs) { // XXX add tokNumInt for constant addrs
             (*node)->kids->suppress_emit = 1;
         }
     }

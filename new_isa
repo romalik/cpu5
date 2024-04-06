@@ -4,9 +4,9 @@ Control:
 Select (3)
 Action (4)
                      0000    0001    0010    0011    0100    0101    0110    0111
-c0_0 dbus            b_o     sh_o    sl_o    mh_o    ml_o    off_o   xh_o    xl_o
-c0_1 abus            !pc_a!  s_a     alu_d   mf_a    aluf_d  f_o     ir_a    x_a
-c1_0 in              b_i     sh_i    sl_i    ei      ml_i    off_i   xh_i    xl_i
+c0_0 dbus            b_o     sh_o    sl_o    mh_o    ml_o    ?off_o  xh_o    xl_o
+c0_1 abus            !pc_a!  s_a     alu_d   ?mf_a   aluf_d  f_o     ir_a    x_a
+c1_0 in              b_i     sh_i    sl_i    ei      ml_i    ?off_i  xh_i    xl_i
 c1_1 I/D             ir_i    sl--    sl++    s_rst   f_i     mh_i    pc++    pc_switch
 
 seq_rst
@@ -17,7 +17,7 @@ MREAD
 MWRITE
 sel_a
 incvec_o/di
-xxxxx
+use_imm_off
 xxxxx
  ================  END   =============
 
@@ -111,8 +111,8 @@ jumps:
 1 001    JB(JNAE/JC)	 CF = 1
 0 001    JAE(JNB/JNC)    CF = 0
 
-1 010    JG(JNLE)        ZF = 0 and SF = OF	
-0 010    JLE(JNG)        ZF = 1 or SF != OF	
+1 010    JLE(JNG)        ZF = 1 or SF != OF	
+0 010    JG(JNLE)        ZF = 0 and SF = OF	
 
 1 011    JBE(JNA)        CF = 1 or ZF = 1
 0 011    JA(JNBE)        CF = 0 and ZF = 0

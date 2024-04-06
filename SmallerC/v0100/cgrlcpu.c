@@ -211,10 +211,10 @@ void gen_op_info() {
   add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_not_impl);
   add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_not_impl);
   add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_not_impl);
-  add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_not_impl);
-  add_token_info(tokNEQ        ,  "tokNEQ"          ,  2, -1, emit_not_impl);
-  add_token_info(tokLEQ        ,  "tokLEQ"          ,  2, -1, emit_not_impl);
-  add_token_info(tokGEQ        ,  "tokGEQ"          ,  2, -1, emit_not_impl);
+  add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_alu_op  );
+  add_token_info(tokNEQ        ,  "tokNEQ"          ,  2, -1, emit_alu_op  );
+  add_token_info(tokLEQ        ,  "tokLEQ"          ,  2, -1, emit_alu_op  );
+  add_token_info(tokGEQ        ,  "tokGEQ"          ,  2, -1, emit_alu_op  );
   add_token_info(tokInc        ,  "tokInc"          ,  1, -1, emit_not_impl);
   add_token_info(tokDec        ,  "tokDec"          ,  1, -1, emit_not_impl);
   add_token_info(tokArrow      ,  "tokArrow"        , -1, -1, emit_not_impl);
@@ -231,16 +231,16 @@ void gen_op_info() {
   add_token_info(tokCont       ,  "tokCont"         , -1, -1, emit_not_impl);
   add_token_info(tokBreak      ,  "tokBreak"        , -1, -1, emit_not_impl);
   add_token_info(tokSizeof     ,  "tokSizeof"       , -1, -1, emit_not_impl);
-  add_token_info(tokAssignMul  ,  "tokAssignMul"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignDiv  ,  "tokAssignDiv"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignMod  ,  "tokAssignMod"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignAdd  ,  "tokAssignAdd"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignSub  ,  "tokAssignSub"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignLSh  ,  "tokAssignLSh"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignRSh  ,  "tokAssignRSh"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignAnd  ,  "tokAssignAnd"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignXor  ,  "tokAssignXor"    ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignOr   ,  "tokAssignOr"     ,  2, -1, emit_not_impl);
+  add_token_info(tokAssignMul  ,  "tokAssignMul"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignDiv  ,  "tokAssignDiv"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignMod  ,  "tokAssignMod"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignAdd  ,  "tokAssignAdd"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignSub  ,  "tokAssignSub"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignLSh  ,  "tokAssignLSh"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignRSh  ,  "tokAssignRSh"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignAnd  ,  "tokAssignAnd"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignXor  ,  "tokAssignXor"    ,  2, -1, emit_not_impl); //convert to assign + op
+  add_token_info(tokAssignOr   ,  "tokAssignOr"     ,  2, -1, emit_not_impl); //convert to assign + op
   add_token_info(tokFloat      ,  "tokFloat"        , -1, -1, emit_not_impl);
   add_token_info(tokDouble     ,  "tokDouble"       , -1, -1, emit_not_impl);
   add_token_info(tokLong       ,  "tokLong"         , -1, -1, emit_not_impl);
@@ -286,10 +286,10 @@ void gen_op_info() {
   add_token_info(tokPostSub    ,  "tokPostSub"      ,  2, -1, emit_not_impl);
   add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_not_impl);
   add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_not_impl);
-  add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_not_impl);
-  add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_not_impl);
+  add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_alu_op  );
+  add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_alu_op  );
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
-  add_token_info(tokShortCirc  ,  "tokShortCirc"    , -1, -1, emit_not_impl);
+  add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_not_impl);
   add_token_info(tokSChar      ,  "tokSChar"        , -1, -1, emit_not_impl);
   add_token_info(tokUChar      ,  "tokUChar"        , -1, -1, emit_not_impl);
   add_token_info(tokUShort     ,  "tokUShort"       , -1, -1, emit_not_impl);
@@ -865,9 +865,9 @@ STATIC void GenJumpUncond(int label)
 
 STATIC void GenLabel(char *Label, int Static)
 {
-  printf2("_%s:\n", Label);
+  printf2("%s:\n", Label);
   if (!Static && GenExterns) {
-    printf2(".export _%s\n", Label);
+    printf2(".export %s\n", Label);
   }
 }
 

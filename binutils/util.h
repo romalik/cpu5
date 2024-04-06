@@ -6,7 +6,7 @@
 void panic_full(char * msg, char * c_file, int c_line, int current_line, char * token);
 
 
-char find_keyword(char * kw[], char * str);
+int find_keyword(char * kw[], char * str);
 
 
 #define low(x) ((uint8_t)(x&0xff))

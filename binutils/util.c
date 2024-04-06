@@ -13,7 +13,7 @@ void panic_full(char * msg, char * c_file, int c_line, int current_line, char * 
 #define panic(msg) panic_full((msg), __FILE__, __LINE__)
 
 
-char find_keyword(char * kw[], char * str) {
+int find_keyword(char * kw[], char * str) {
   char i;
   for(i = 0; i<16; i++) {
     if(!strcmp(kw[i], str)) {

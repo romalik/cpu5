@@ -27,7 +27,17 @@ __entry:
 .const SERIAL_BUFFER_LEN 0xff
 
 
+ldd m,0x8000
 
+ld a,0xff
+mov [m+5],a
+
+
+ldd m,0x800A
+ld a,0
+mov a,[m-5]
+mov [m-10],a
+hlt
 
 
 ld a, 0
@@ -49,7 +59,10 @@ mov r4,a
 ld a, 0
 mov r5,a
 
+
+
 ldd x, $memcpy
+
 jmp
 
 
@@ -69,6 +82,10 @@ mov r5,a
 
 ldd x, $memcpy
 jmp
+
+
+
+
 
 ldd x, $init_serial_buffer
 jmp
@@ -283,7 +300,10 @@ mov xl, a
 mov a, r3
 mov xh, a
 
+
 cpy
+
+;===============
 
 ; increment dest
 mov a, r0
@@ -318,11 +338,15 @@ inc
 mov r7, a
 memcpy_L3:
 
+;================
+
+
 ldd x, $memcpy_loop
 jmp
 
 memcpy_end:
 ; return
+
 pop a
 mov xh, a
 pop a
@@ -446,20 +470,20 @@ jmp
 .section data
 
 isr_0_jmp:
-.byte 0x46 ; mov a, xl
-.byte 0x29 ; push a
-.byte 0x47 ; mov a, xh
-.byte 0x29 ; push a
-.byte 0xe2 ; ldd x, $isr_0 ;;low, high
+.byte 0xe6 ; mov a, xl
+.byte 0xd9 ; push a
+.byte 0xe7 ; mov a, xh
+.byte 0xd9 ; push a
+.byte 0xde ; ldd x, $isr_0 ;;low, high
 .word $isr_0
 .byte 0xaf ; jmp
 
 isr_3_jmp:
-.byte 0x46 ; mov a, xl
-.byte 0x29 ; push a
-.byte 0x47 ; mov a, xh
-.byte 0x29 ; push a
-.byte 0xe2 ; ldd x, $isr_0 ;;low, high
+.byte 0xe6 ; mov a, xl
+.byte 0xd9 ; push a
+.byte 0xe7 ; mov a, xh
+.byte 0xd9 ; push a
+.byte 0xde ; ldd x, $isr_0 ;;low, high
 .word $isr_3
 .byte 0xaf ; jmp
 

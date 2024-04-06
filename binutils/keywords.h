@@ -38,7 +38,7 @@ char * alu_args[16] = {
   "or",   //a
   "xor",  //b
   "zero", //c
-  "test_a", //"test_a",//d <<<DOESNT WORK
+  "test", //"test_a",//d <<<DOESNT WORK
   "shr",  //e
   "shrc"  //f
 
