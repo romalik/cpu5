@@ -41,7 +41,7 @@ mh_o    c0_0 s0 s1
 #0100
 ml_o    c0_0 s2
 #0101
-off_o   c0_0 s0 s2
+alu_l   c0_0 s0 s2
 #0110
 xh_o    c0_0 s1 s2
 #0111
@@ -140,7 +140,7 @@ section code
 -       ----    0101    0001    seq_rst          
 
                                                             #x++         x++
--       ----    0110    0001    pc_switch          
+-       ----    0111    0001    pc_switch                   #will work because 111 in cmp_op
 -       ----    ----    0010    pc++          
 -       ----    ----    0011    pc_switch          
 -       ----    ----    0100    pc++ seq_rst
@@ -192,13 +192,24 @@ section code
 
 
 
-######################## 101 ALU THREE-ADDRESS  ##################### opcode: 0xBX
-                                                            #ALU        add, sub, .....
+######################## 101 ALU THREE-ADDRESS  ##################### opcode: 0xBX R_A R_B R_D
+                                                            #ALU        add r_d, r_a, r_b  sub .... .....
 -       1011    ****    0001    pc++
--       ----    ****    0010    s2 c0_1 c1_1     #select aluf_d and f_i
+-       ----    ****    0010    pc_a off_i mread    #can combine - pc_a and off_i are on same select
+-       ----    ****    0011    mf_a a_i mread      #read r_a
+-       ----    ****    0100    pc++
+-       ----    ****    0101    pc_a off_i mread     
+-       ----    ****    0110    mf_a b_i mread      #can combine - mf_a and b_i are on same select, read r_b
+-       ----    ****    0111    pc++
+-       ----    ****    1000    alu_l
+-       ----    ****    1001    pc_a off_i          #load target addr
 
--       ----    ****    0011    s2 c0_1 c1_1     #select aluf_d and f_i
--       ----    ****    0100    pc++ seq_rst
+-       ----    ****    1010    alu_d a_i           #do alu
+-       ----    ****    1011    s2 aluf_d f_i       #select aluf_d and f_i, can combine
+
+-       ----    ****    1100    mf_a a_o mwrite
+
+-       ----    ****    1101    pc++ seq_rst
 
 ######################## 110 ALU           ######################### opcode: 0xCX
                                                             #ALU        add, sub, .....
@@ -228,9 +239,6 @@ section code
 -       ----    0100    0001    mh_i a_o
 -       ----    ----    0010    pc++ seq_rst
 
-                                                            #A->OFF     mov off, a
--       ----    0101    0001    off_i a_o
--       ----    ----    0010    pc++ seq_rst
 
                                                             #A->XL      mov xl, a
 -       ----    0110    0001    xl_i a_o
@@ -238,10 +246,6 @@ section code
 
                                                             #A->XH      mov xh, a
 -       ----    0111    0001    xh_i a_o
--       ----    ----    0010    pc++ seq_rst
-
-                                                            #A->(M+OFF) mov [m], a
--       ----    1000    0001    mf_a a_o mwrite
 -       ----    ----    0010    pc++ seq_rst
 
                                                             #A->(S--)   push a
@@ -305,10 +309,6 @@ section code
 -       ----    0100    0001    mh_o a_i
 -       ----    ----    0010    pc++ seq_rst
 
-                                                            #A<-OFF     mov a, off
--       ----    0101    0001    off_o a_i
--       ----    ----    0010    pc++ seq_rst
-
                                                             #A<-XL      mov a, xl
 -       ----    0110    0001    xl_o a_i
 -       ----    ----    0010    pc++ seq_rst
@@ -317,9 +317,6 @@ section code
 -       ----    0111    0001    xh_o a_i
 -       ----    ----    0010    pc++ seq_rst
 
-                                                            #A<-(M+OFF) mov a, [m]
--       ----    1000    0001    mf_a mread a_i
--       ----    ----    0010    pc++ seq_rst
 
                                                             #A<-(++S)     pop a
 -       ----    1001    0001    sl++

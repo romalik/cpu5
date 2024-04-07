@@ -218,6 +218,12 @@ void generate_alu(uint8_t arg) {
   emit(0xC0 | arg);
 }
 
+void generate_t_alu(uint8_t arg) {
+  emit(0xB0 | arg);
+  //uint8_t 
+}
+
+
 void generate_jmp(uint8_t arg) {
   emit(0xA0 | arg);
 }
@@ -243,11 +249,8 @@ void gen_instruction() {
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
   } else if(!strcmp(token, "x++")) {
-    emit(0x06);
-  } else if(!strcmp(token, "swp")) {
-    emit(0x05);
-  } else if(!strcmp(token, "cpy")) {
-    emit(0x04);
+    emit(0x07);
+
   } else if(!strcmp(token, "hlt")) {
     emit(0x00);
   } else if(!strcmp(token, "ei")) {
@@ -260,6 +263,8 @@ void gen_instruction() {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {
     generate_jmp(arg);
+  } else if((arg = find_keyword(alu_args, token+1)) != 0xFF) {
+    generate_t_alu(arg);
   } else {
     panic("Bad token");
   }

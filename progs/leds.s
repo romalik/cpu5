@@ -27,10 +27,10 @@ __entry:
 .const SERIAL_BUFFER_LEN 0xff
 
 
-ld a, 0
-mov off, a
-
 ldd s, 0xfeff
+
+
+
 
 
 ld a, 0x00
@@ -49,7 +49,6 @@ mov r5,a
 
 
 ldd x, $memcpy
-
 jmp
 
 
@@ -114,13 +113,25 @@ mov a, f
 push a
 
 
-ldd m, $serial_buffer
-ldd x, $serial_buffer_wr_ptr
-mov a,[x]
-mov ml,a
 
 ldd x, SERIAL
-cpy
+mov a,[x]
+mov b,a
+
+ldd x, $serial_buffer_wr_ptr
+mov a,[x]
+mov r10,a
+
+x++
+mov a,[x]
+mov xh,a
+
+mov a,r10
+mov xl,a
+
+mov a,b
+mov [x],a
+
 
 
 ldd x, $serial_buffer_size
@@ -154,15 +165,23 @@ push a
 mov a, xh
 push a
 
-ldd m, $serial_buffer_rd_ptr
+ldd x, $serial_buffer_rd_ptr
+ld a,$(l)serial_buffer
+mov [x],a
+x++
+ld a,$(h)serial_buffer
+mov [x],a
+
+ldd x, $serial_buffer_wr_ptr
+ld a,$(l)serial_buffer
+mov [x],a
+x++
+ld a,$(h)serial_buffer
+mov [x],a
+
+ldd x, $serial_buffer_size
 ld a,0
-mov [m],a
-ldd m, $serial_buffer_wr_ptr
-ld a,0
-mov [m],a
-ldd m, $serial_buffer_size
-ld a,0
-mov [m],a
+mov [x],a
 
 
 ; return
@@ -188,13 +207,12 @@ push a
 ; set available = 0
 ld a,0
 mov r0,a
-mov b,a
+
 ; check buf size
-ldd m, $serial_buffer_size
-mov a,[m]
+ldd x, $serial_buffer_size
+mov a,[x]
+test
 
-
-sub
 ldd x, $read_serial_end
 jz
 
@@ -206,19 +224,25 @@ mov r0,a
 
 ; decrement size
 mov b,a
-mov a,[m]
+ldd x, $serial_buffer_size
+mov a,[x]
 sub
-mov [m],a
+mov [x],a
 
 ; load value from buf
-ldd m, $serial_buffer
 ldd x, $serial_buffer_rd_ptr
 mov a,[x]
-mov ml,a
-mov a,[m]
+mov r10,a
+x++
+mov a,[x]
+mov xh,a
+mov a,r10
+mov xl,a
+mov a,[x]
 mov r1,a
 
 ; increment rd_ptr
+ldd x, $serial_buffer_rd_ptr
 mov a,[x]
 inc
 mov [x],a
@@ -277,18 +301,23 @@ jz
 
 
 memcpy_do_copy:
-mov a, r0
-mov ml, a
-mov a, r1
-mov mh, a
-
 mov a, r2
 mov xl, a
 mov a, r3
 mov xh, a
 
+mov a,[x]
+mov b,a
 
-cpy
+
+mov a, r0
+mov xl, a
+mov a, r1
+mov xh, a
+
+mov a,b
+
+mov [x],a
 
 ;===============
 
@@ -480,8 +509,8 @@ isr_3_jmp:
 serial_buffer:
 .skip 0x100
 serial_buffer_rd_ptr:
-.skip 1
+.skip 2
 serial_buffer_wr_ptr:
-.skip 1
+.skip 2
 serial_buffer_size:
 .skip 1
