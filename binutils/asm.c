@@ -220,7 +220,23 @@ void generate_alu(uint8_t arg) {
 
 void generate_t_alu(uint8_t arg) {
   emit(0xB0 | arg);
-  //uint8_t 
+  uint8_t ra, rb, rd;
+  uint8_t ra_type, rb_type, rd_type;
+
+  get_next_token();
+  parse_mov_arg(token, &rd, &rd_type);
+  get_next_token();
+  parse_mov_arg(token, &ra, &ra_type);
+  get_next_token();
+  parse_mov_arg(token, &rb, &rb_type);
+
+  if(rd_type != 1 || ra_type != 1 || rb_type != 1) {
+    panic("Bad arg for three-address alu\n");
+  }
+
+  emit(ra);
+  emit(rb);
+  emit(rd);
 }
 
 
@@ -250,7 +266,6 @@ void gen_instruction() {
     generate_cmp();
   } else if(!strcmp(token, "x++")) {
     emit(0x07);
-
   } else if(!strcmp(token, "hlt")) {
     emit(0x00);
   } else if(!strcmp(token, "ei")) {
