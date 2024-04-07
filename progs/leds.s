@@ -30,14 +30,6 @@ __entry:
 ldd s, 0xfeff
 
 
-
-ld a, 3
-mov r4,a
-ld a, 4
-mov r5,a
-tadd r7,r4,r5
-hlt
-
 ld a, 0x00
 mov r0,a
 ld a, 0xFF

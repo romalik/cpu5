@@ -87,6 +87,8 @@ char expect_arg_size = 0;
 
 
 void generate_nop() {
+  count("nop");
+
   emit(0x03);
 }
 
@@ -134,20 +136,27 @@ void generate_mov() {
   if(dest_type == 0 && dest == 0x0f) { // A<-...
     if(src_type == 0) { //A<-reg
       opcode = 0xE0 | src;
+      count("mov");
     } else if(src_type == 1) { //A<-mreg
       opcode = 0x80 | (src&0x1f);
+      count("mov_mr");
     } else if(src_type == 2) { //A<-m+imm
       opcode = 0x40 | (src&0x1f);
+      count("mov_imm");
     } else {
       panic("Bad mov arg type");
     }
+
   } else if(src_type == 0 && src == 0x0f) { // A->...
     if(dest_type == 0) { //A->reg
       opcode = 0xD0 | dest;
+      count("mov");
     } else if(dest_type == 1) { //A->mreg
       opcode = 0x60 | (dest&0x1f);
+      count("mov_mr");
     } else if(dest_type == 2) { //A->m+imm
       opcode = 0x20 | (dest&0x1f);
+      count("mov_imm");
     } else {
       panic("Bad mov arg type");
     }
@@ -161,38 +170,64 @@ void generate_mov() {
 void generate_push() {
   uint8_t reg = 0;
   get_next_token();
-  reg = find_keyword(regs, token);
+  if(!strcmp(token, "xm")) {
+    emit(0xF0);
+    count("push_xm");
+  } else {
+    reg = find_keyword(regs, token);
 
-  if(reg != 0x0f) {
-    panic("Try push other than A reg");
+    if(reg != 0x0f) {
+      panic("Try push other than A reg");
+    }
+    count("push");
+
+    emit(0xD9);
   }
-
-  emit(0xD9);
 }
 
 void generate_pop() {
   uint8_t reg = 0;
   get_next_token();
-  reg = find_keyword(regs, token);
+  if(!strcmp(token, "mx")) {
+    emit(0xF1);
+    count("pop_mx");
+  } else {
+    reg = find_keyword(regs, token);
 
-  if(reg != 0x0f) {
-    panic("Try pop other than A reg");
+    if(reg != 0x0f) {
+      panic("Try pop other than A reg");
+    }
+
+    count("pop");
+
+    emit(0xE9);
   }
-
-  emit(0xE9); // A <- (S)
 }
 
 void generate_ld() {
-  uint8_t reg = 0;
+  uint8_t dest = 0;
+  uint8_t dest_type;
   get_next_token();
-  reg = find_keyword(regs, token);
+  parse_mov_arg(token, &dest, &dest_type);
 
-  if(reg != 0x0f) {
-    panic("Try ld other than A reg");
+  if(dest_type == 0) {
+    if(dest != 0x0f) {
+      panic("Try ld other than A reg");
+    }
+
+    count("ld_a");
+    emit(0xEC);
+    expect_arg_n = 1;
+    expect_arg_size = 1;
+
+  } else if(dest_type == 1) { // ld r#, #
+    count("ld_r");
+    emit(0xDF);
+    emit(dest);
+    expect_arg_n = 1;
+    expect_arg_size = 1;
   }
-  emit(0xEC);
-  expect_arg_n = 1;
-  expect_arg_size = 1;
+
 }
 
 void generate_ldd() {
@@ -206,19 +241,25 @@ void generate_ldd() {
   } else {
     panic("Bad ldd destination");
   }
+
+  count("ldd");
+
   expect_arg_n = 1;
   expect_arg_size = 2;
 }
 
 void generate_cmp() {
-  emit(0xD1); //CMP SUB
+  panic("cmp?");emit(0xD1); //CMP SUB
 }
 
 void generate_alu(uint8_t arg) {
   emit(0xC0 | arg);
+  count("alu");
 }
 
 void generate_t_alu(uint8_t arg) {
+  count("alu_t");
+
   emit(0xB0 | arg);
   uint8_t ra, rb, rd;
   uint8_t ra_type, rb_type, rd_type;
@@ -241,6 +282,7 @@ void generate_t_alu(uint8_t arg) {
 
 
 void generate_jmp(uint8_t arg) {
+  count("jmp");
   emit(0xA0 | arg);
 }
 
@@ -265,15 +307,23 @@ void gen_instruction() {
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
   } else if(!strcmp(token, "x++")) {
+    count("x++");
     emit(0x07);
   } else if(!strcmp(token, "hlt")) {
+    count("hlt");
     emit(0x00);
   } else if(!strcmp(token, "ei")) {
+    count("ei");
     emit(0x02);
   } else if(!strcmp(token, "di")) {
+    count("di");
     emit(0x01);
   } else if(!strcmp(token, "iret")) {
+    count("iret");
     emit(0x0f);
+  } else if(!strcmp(token, "lbp")) {
+    count("lbp");
+    emit(0xef);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {
@@ -472,6 +522,7 @@ int main(int argc, char ** argv) {
 
 
   assemble();
+  print_counts();
 /*
   for(i = 0; i<n_sections; i++) {
     printf("section %s: %d bytes\n", sections[i]->name, sections[i]->data_pos);

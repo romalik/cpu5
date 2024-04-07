@@ -107,6 +107,39 @@ Fix for local offsets: (@+x) = [m+x+1]
 
 */
 
+unsigned char low(int v) { return v&0xff; }
+unsigned char high(int v) { return (v>>8)&0xff; }
+
+char * adjust_sp_procedure = 
+" ; adjust sp by %d\n"
+"ld a, %d\n"
+"mov b,a\n"
+"mov a,sl\n"
+"%s\n"
+"mov sl,a\n"
+"ld a, %d\n"
+"mov b,a\n"
+"mov a,sh\n"
+"%s\n"
+"mov sh,a\n"
+;
+
+
+void adjust_sp(int n) {
+  
+    char * op = "add";
+    char * op2 = "adc";
+    if(n < 0) {
+        n = -n;
+        op = "sub";
+        op2 = "sbc";
+    }
+
+
+  printf2(adjust_sp_procedure, n, low(n), op, high(n), op);
+
+}
+
 
 Node * node_create(unsigned char token, int value) {
   Node * node = (Node *)malloc(sizeof(Node));
@@ -121,6 +154,25 @@ Node * node_create(unsigned char token, int value) {
   node->kids = NULL;
   node->next = NULL;
   return node;
+}
+
+Node * node_copy(Node * node) {
+  Node * new_node = node_create(0,0);
+  new_node->suppress_emit = node->suppress_emit;
+  new_node->target_register = node->target_register;
+  new_node->token = node->token;
+  new_node->value = node->value;
+  return new_node;
+}
+
+Node * node_copy_subtree(Node * node) {
+  Node * new_node = node_copy(node);
+  Node * kid = node->kids;
+  while(kid) {
+    node_add_kid_to_end(new_node, node_copy(kid));
+    kid = kid->next;
+  }
+  return new_node;
 }
 
 void node_free(Node * node) {
@@ -210,8 +262,8 @@ void gen_op_info() {
   add_token_info(tokNumInt     ,  "tokNumInt"       ,  0,  2, emit_tokNumInt);
   add_token_info(tokNumUint    ,  "tokNumUint"      ,  0,  2, emit_tokNumInt);
   add_token_info(tokLitStr     ,  "tokLitStr"       , -1, -1, emit_not_impl);
-  add_token_info(tokLShift     ,  "tokLShift"       ,  2, -1, emit_not_impl);
-  add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_not_impl);
+  add_token_info(tokLShift     ,  "tokLShift"       ,  2, -1, emit_tokShift);
+  add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_tokShift);
   add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_tokLogAndOr);
   add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_tokLogAndOr);
   add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_alu_op  );
@@ -227,8 +279,8 @@ void gen_op_info() {
   add_token_info(tokChar       ,  "tokChar"         , -1, -1, emit_not_impl);
   add_token_info(tokInt        ,  "tokInt"          , -1, -1, emit_not_impl);
   add_token_info(tokReturn     ,  "tokReturn"       ,  1, -1, emit_tokReturn);
-  add_token_info(tokGoto       ,  "tokGoto"         ,  1, -1, emit_not_impl);
-  add_token_info(tokIf         ,  "tokIf"           ,  1, -1, emit_not_impl);
+  add_token_info(tokGoto       ,  "tokGoto"         ,  1, -1, emit_tokGoto);
+  add_token_info(tokIf         ,  "tokIf"           ,  1, -1, emit_tokIf   );
   add_token_info(tokElse       ,  "tokElse"         ,  1, -1, emit_not_impl);
   add_token_info(tokWhile      ,  "tokWhile"        , -1, -1, emit_not_impl);
   add_token_info(tokCont       ,  "tokCont"         , -1, -1, emit_not_impl);
@@ -271,18 +323,18 @@ void gen_op_info() {
   add_token_info(tok_Complex   ,  "tok_Complex"     , -1, -1, emit_not_impl);
   add_token_info(tok_Imagin    ,  "tok_Imagin"      , -1, -1, emit_not_impl);
   add_token_info(tok_Asm       ,  "tok_Asm"         , -1, -1, emit_not_impl);
-  add_token_info(tokURShift    ,  "tokURShift"      ,  2, -1, emit_not_impl);
+  add_token_info(tokURShift    ,  "tokURShift"      ,  2, -1, emit_tokShift);
   add_token_info(tokUDiv       ,  "tokUDiv"         ,  1, -1, emit_not_impl);
   add_token_info(tokUMod       ,  "tokUMod"         ,  1, -1, emit_not_impl);
   add_token_info(tokAssignURSh ,  "tokAssignURSh"   ,  2, -1, emit_not_impl);
   add_token_info(tokAssignUDiv ,  "tokAssignUDiv"   ,  2, -1, emit_not_impl);
   add_token_info(tokAssignUMod ,  "tokAssignUMod"   ,  2, -1, emit_not_impl);
   add_token_info(tokComma      ,  "tokComma"        ,  2, -1, emit_tokComma);
-  add_token_info(tokIfNot      ,  "tokIfNot"        ,  1, -1, emit_not_impl);
+  add_token_info(tokIfNot      ,  "tokIfNot"        ,  1, -1, emit_tokIf   );
   add_token_info(tokUnaryAnd   ,  "tokUnaryAnd"     ,  1, -1, emit_not_impl);
   add_token_info(tokUnaryStar  ,  "tokUnaryStar"    ,  1, -1, emit_tokUnaryStar);
   add_token_info(tokUnaryPlus  ,  "tokUnaryPlus"    ,  1, -1, emit_not_impl);
-  add_token_info(tokUnaryMinus ,  "tokUnaryMinus"   ,  1, -1, emit_not_impl);
+  add_token_info(tokUnaryMinus ,  "tokUnaryMinus"   ,  1, -1, emit_tokUnaryAlu);
   add_token_info(tokPostInc    ,  "tokPostInc"      ,  1, -1, emit_not_impl);
   add_token_info(tokPostDec    ,  "tokPostDec"      ,  1, -1, emit_not_impl);
   add_token_info(tokPostAdd    ,  "tokPostAdd"      ,  2, -1, emit_not_impl);
@@ -306,25 +358,25 @@ void gen_op_info() {
   add_token_info(tokNumFloat   ,  "tokNumFloat"     , -1, -1, emit_not_impl);
   add_token_info(tokNumCharWide,  "tokNumCharWide"  , -1, -1, emit_not_impl);
   add_token_info(tokLitStrWide ,  "tokLitStrWide"   , -1, -1, emit_not_impl);
-  add_token_info('+',             "'+'"             ,  2, -1, emit_alu_op  );
-  add_token_info('-',             "'-'"             ,  2, -1, emit_alu_op  );
-  add_token_info('~',             "'~'"             ,  1, -1, emit_not_impl);
-  add_token_info('*',             "'*'"             ,  2, -1, emit_not_impl);
-  add_token_info('/',             "'/'"             ,  2, -1, emit_not_impl);
-  add_token_info('%',             "'%'"             ,  2, -1, emit_not_impl);
-  add_token_info('&',             "'&'"             ,  2, -1, emit_alu_op  );
-  add_token_info('|',             "'|'"             ,  2, -1, emit_alu_op  );
-  add_token_info('^',             "'^'"             ,  2, -1, emit_alu_op  );
-  add_token_info('!',             "'!'"             ,  1, -1, emit_not_impl);
-  add_token_info('<',             "'<'"             ,  2, -1, emit_alu_op);
-  add_token_info('>',             "'>'"             ,  2, -1, emit_alu_op);
-  add_token_info('(',             "'('"             ,  0, -1, emit_not_impl);
-  add_token_info(')',             "')'"             ,  1, -1, emit_tokCall ); //fn call
+  add_token_info('+',             "tokAdd"          ,  2, -1, emit_alu_op  );
+  add_token_info('-',             "tokSub"          ,  2, -1, emit_alu_op  );
+  add_token_info('~',             "tokBNot"         ,  1, -1, emit_tokUnaryAlu);
+  add_token_info('*',             "tokMul"          ,  2, -1, emit_not_impl);
+  add_token_info('/',             "tokDiv"          ,  2, -1, emit_not_impl);
+  add_token_info('%',             "tokMod"          ,  2, -1, emit_not_impl);
+  add_token_info('&',             "tokAnd"          ,  2, -1, emit_alu_op  );
+  add_token_info('|',             "tokOr"           ,  2, -1, emit_alu_op  );
+  add_token_info('^',             "tokXor"          ,  2, -1, emit_alu_op  );
+  add_token_info('!',             "tokNot"          ,  1, -1, emit_not_impl);
+  add_token_info('<',             "tokLess"         ,  2, -1, emit_alu_op);
+  add_token_info('>',             "tokMore"         ,  2, -1, emit_alu_op);
+  add_token_info('(',             "tokStartArgs"    ,  0, -1, emit_not_impl);
+  add_token_info(')',             "tokCall"         ,  1, -1, emit_tokCall ); //fn call
   add_token_info('[',             "'['"             ,  2, -1, emit_not_impl);
   add_token_info(']',             "']'"             ,  2, -1, emit_not_impl);
   add_token_info('{',             "'{'"             ,  2, -1, emit_not_impl);
   add_token_info('}',             "'}'"             ,  2, -1, emit_not_impl);
-  add_token_info('=',             "'='"             ,  2, -1, emit_tokAssign);
+  add_token_info('=',             "tokAssign"       ,  2, -1, emit_tokAssign);
   add_token_info(',',             "','"             , -1, -1, emit_not_impl);
   add_token_info(';',             "';'"             ,  2, -1, emit_not_impl);
   add_token_info(':',             "':'"             ,  2, -1, emit_not_impl);
@@ -412,7 +464,12 @@ void init_optimizers() {
   add_optimizer(opt_callWithIdent);
   add_optimizer(opt_assignSizes);
   add_optimizer(opt_suppressDereferences);
+
+  add_optimizer(opt_replaceTokensWithCalls);
+
   add_optimizer(opt_replacePostOps);
+  add_optimizer(opt_replaceAssignArith);
+  
 }
 
 
@@ -732,36 +789,37 @@ STATIC void GenFin(void) {
   // XXX 32 bit
 }
 
+fpos_t GenPrologPos;
+
 STATIC void GenFxnProlog(void) {
   puts2(" ; prolog");
-  puts2("mov a, xl");
-  puts2("push a");
-  puts2("mov a, xh");
-  puts2("push a");
-  puts2("mov a, ml");
-  puts2("push a");
-  puts2("mov a, mh");
-  puts2("push a");
-  puts2("mov a,sl");
-  puts2("mov ml,a");
-  puts2("mov a,sh");
-  puts2("mov mh,a");
-  puts2(" ; prolog end\n");
+  puts2("push xm");
+
+  puts2("lbp");
+
+  fgetpos(OutFile, &GenPrologPos);
+  for(int i = 0; i<strlen(adjust_sp_procedure) + 25; i++) { // 25 should be enough for 2 ops and 3 figures
+    printf2(" ");
+  }
+  puts2("\n ; prolog end\n");
 }
 
 STATIC void GenFxnEpilog(void) {
   puts2(" ; epilog");
-  puts2("pop a");
-  puts2("mov a, mh");
-  puts2("pop a");
-  puts2("mov a, ml");
-  puts2("pop a");
-  puts2("mov a, xh");
-  puts2("pop a");
-  puts2("mov a, xl");
+  puts2("pop mx");
+
   puts2("jmp");
   puts2(" ; epilog end\n");
   puts2(" ; end of function ");
+
+
+
+  fpos_t pos;
+  fgetpos(OutFile, &pos);
+  fsetpos(OutFile, &GenPrologPos);
+  adjust_sp(-CurFxnMinLocalOfs);
+  fsetpos(OutFile, &pos);
+
 
 }
 
@@ -803,29 +861,17 @@ void GenIntData(int Size, int Val){
 
 
 STATIC void GenJumpIfEqual(int val, int label) {
-  int labelAfter = LabelCnt++;
   printf2(" ; Jump if equals [0x04x] to ", val); GenPrintNumLabel(label);
   printf2("\n ; 16 bit for now, optimize\n");
-  
-  printf2("ldd x, $"), GenPrintNumLabel(labelAfter); puts2("");
 
-  printf2("ld a, %d\n", (val&0xff));
-  printf2("mov b,a\n");
+  printf2("ld r2, %d\n",(val&0xff));
+  printf2("ld r3, %d\n", ((val&0xff00) >> 8));
 
-  printf2("mov a,r0\n");
-  printf2("sub\n");
-  printf2("jnz\n");
-
-  printf2("ld a, %d\n", ((val&0xff00) >> 8));
-  printf2("mov b,a\n");
-
-  printf2("mov a,r1\n");
-  printf2("sub\n");
-  printf2("jnz\n");
-  
-  printf2("ldd x, $"), GenPrintNumLabel(label); puts2("");
-  printf2("jmp\n");
-  GenNumLabel(labelAfter);
+  printf2("tsub r0,r2,r0\n");
+  printf2("tsbc r1,r3,r1\n");
+  printf2("tor r0,r0,r1\n");
+  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
+  printf2("jz\n");
 
 }
 
@@ -833,12 +879,8 @@ STATIC void GenJumpIfNotZero(int label) {
   printf2(" ; Jump if not zero to "); GenPrintNumLabel(label);
   printf2("\n ; 16 bit for now, optimize\n");
   
+  printf2("tor r0,r0,r1\n");
   printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
-
-  printf2("mov a,r1\n");
-  printf2("mov b,a\n");
-  printf2("mov a,r0\n");
-  printf2("or\n");
   printf2("jnz\n");
 
 }
@@ -848,12 +890,8 @@ STATIC void GenJumpIfZero(int label) {
   printf2(" ; Jump if zero to "); GenPrintNumLabel(label);
   printf2("\n ; 16 bit for now, optimize\n");
   
+  printf2("tor r0,r0,r1\n");
   printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
-
-  printf2("mov a,r1\n");
-  printf2("mov b,a\n");
-  printf2("mov a,r0\n");
-  printf2("or\n");
   printf2("jz\n");
   
 }

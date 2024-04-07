@@ -40,3 +40,37 @@ void hexdump(uint8_t * data, uint16_t length) {
 
 
 
+typedef struct map {
+  char key[32];
+  int value;
+  struct map * next;
+} map_t;
+
+
+map_t * kw_map = NULL;
+
+void count(char * key) {
+  map_t ** e = (&kw_map);
+  while((*e)) {
+    if(!strcmp((*e)->key, key)) break;
+    e = &((*e)->next);
+  }
+
+  if((*e)) {
+    (*e)->value++;
+  } else {
+    (*e) = (map_t *)malloc(sizeof(map_t));
+    (*e)->value = 1;
+    strcpy((*e)->key, key);
+    (*e)->next = NULL;
+  }
+}
+
+void print_counts() {
+  map_t * e = kw_map;
+  printf("Count:\n");
+  while(e) {
+    printf("\t%s:\t%d\n", e->key, e->value);
+    e = e->next;
+  }
+}

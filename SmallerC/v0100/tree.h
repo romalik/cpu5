@@ -20,6 +20,8 @@ void node_print(Node * node, int indent);
 void node_print_subtree(Node * node, int indent);
 
 
+Node * node_copy_subtree(Node * node);
+
 char * get_token_name(unsigned char tok);
 int get_n_kids(unsigned char tok);
 
