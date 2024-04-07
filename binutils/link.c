@@ -37,6 +37,11 @@ void load_file(char * path) {
   int i;
   struct object_file * obj;
 
+  if(!f) {
+    fprintf(stderr, "File %s not found\n", path);
+    exit(1);
+  }
+
   obj = object_files[loaded_files] = (struct object_file *)malloc(sizeof(struct object_file));
 
 

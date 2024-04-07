@@ -1,6 +1,5 @@
 .section text
-__entry:
-.export __entry
+
 
 .const OUT_0 0x4000
 .const OUT_1 0x4001
@@ -26,9 +25,8 @@ __entry:
 
 .const SERIAL_BUFFER_LEN 0xff
 
-
-ldd s, 0xfeff
-
+main:
+.export main
 
 ld a, 0x00
 mov r0,a
@@ -73,7 +71,7 @@ jmp
 ldd x, $init_serial_buffer
 jmp
 
-ldd x, $main
+ldd x, $main_loop
 jmp
 
 
@@ -370,7 +368,7 @@ jmp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-main:
+main_loop:
 
 
 ei
