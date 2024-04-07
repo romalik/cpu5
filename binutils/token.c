@@ -107,6 +107,7 @@ void skip_comment() {
   int c;
   while(1) {
     if(b_getc_last == '\n') {
+      current_line++;
       //one word comment
       return;
     }

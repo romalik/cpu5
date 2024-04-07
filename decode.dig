@@ -381,7 +381,7 @@
           <string>b_i</string>
         </entry>
       </elementAttributes>
-      <pos x="3540" y="1900"/>
+      <pos x="3540" y="2020"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -431,7 +431,7 @@
           <string>off_i</string>
         </entry>
       </elementAttributes>
-      <pos x="3540" y="2100"/>
+      <pos x="3540" y="1900"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -898,7 +898,7 @@
           <string>ei</string>
         </entry>
       </elementAttributes>
-      <pos x="3540" y="2020"/>
+      <pos x="3540" y="2100"/>
     </visualElement>
     <visualElement>
       <elementName>Or</elementName>
@@ -937,7 +937,7 @@
     <visualElement>
       <elementName>Not</elementName>
       <elementAttributes/>
-      <pos x="3460" y="2100"/>
+      <pos x="3460" y="2020"/>
     </visualElement>
     <visualElement>
       <elementName>Not</elementName>
@@ -2284,10 +2284,6 @@
     </wire>
     <wire>
       <p1 x="2920" y="2100"/>
-      <p2 x="3460" y="2100"/>
-    </wire>
-    <wire>
-      <p1 x="3500" y="2100"/>
       <p2 x="3540" y="2100"/>
     </wire>
     <wire>
@@ -3543,6 +3539,22 @@
       <p2 x="1680" y="-740"/>
     </wire>
     <wire>
+      <p1 x="3500" y="2020"/>
+      <p2 x="3540" y="2020"/>
+    </wire>
+    <wire>
+      <p1 x="2780" y="2020"/>
+      <p2 x="2800" y="2020"/>
+    </wire>
+    <wire>
+      <p1 x="2920" y="2020"/>
+      <p2 x="3460" y="2020"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="2020"/>
+      <p2 x="960" y="2020"/>
+    </wire>
+    <wire>
       <p1 x="-580" y="740"/>
       <p2 x="20" y="740"/>
     </wire>
@@ -3557,18 +3569,6 @@
     <wire>
       <p1 x="2260" y="740"/>
       <p2 x="2360" y="740"/>
-    </wire>
-    <wire>
-      <p1 x="2780" y="2020"/>
-      <p2 x="2800" y="2020"/>
-    </wire>
-    <wire>
-      <p1 x="2920" y="2020"/>
-      <p2 x="3540" y="2020"/>
-    </wire>
-    <wire>
-      <p1 x="520" y="2020"/>
-      <p2 x="960" y="2020"/>
     </wire>
     <wire>
       <p1 x="1680" y="1000"/>

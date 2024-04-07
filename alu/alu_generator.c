@@ -26,6 +26,7 @@ enum {
     c_inc,
     c_adc,
     c_sbc,
+    /////
     c_not,
     c_and,
     c_or,
@@ -158,7 +159,22 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
             R = 0;
         break;
         case c_test:
-            R = A;
+        //we are in upper half, accept carry on low chip, generate carry on high chip
+        //lower equals 1 if not zero or if carry
+        //higher always zero, sets carry if A not zero
+            if(low) {
+                if(A || carry_in) {
+                    R = 1;
+                } else {
+                    R = 0;
+                }
+            } else { 
+                if(A) {
+                    R = 0x10;
+                } else {
+                    R = 0;
+                }
+            }
         break;
         case c_shr:
             R = A >> 1;
@@ -310,8 +326,8 @@ int test() {
             if(test_one(a,b,c_zero,0,0)) return 1;
             if(test_one(a,b,c_zero,1,0)) return 1;
             // c_test
-            if(test_one(a,b,c_test,0,a)) return 1;
-            if(test_one(a,b,c_test,1,a)) return 1;
+            if(test_one(a,b,c_test,0,(a&0xff)?1:0)) return 1;
+            if(test_one(a,b,c_test,1,(a&0xff)?1:0)) return 1;
             // c_shr
             if(test_one(a,b,c_shr,0,(a&0xff)>>1)) return 1;
             if(test_one(a,b,c_shr,1,(a&0xff)>>1)) return 1;
@@ -332,8 +348,6 @@ int main() {
         chip_low[i]  = gen(i, 1, 0);
         chip_high[i] = gen(i, 0, 0);
     }
-    test_one(5,5,c_sub,0,1);
-
 
     if(test()) {
         printf("Test failed\n");

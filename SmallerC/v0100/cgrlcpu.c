@@ -47,6 +47,9 @@ either expressed or implied, of the FreeBSD Project.
 
 #include "tree.h"
 
+STATIC void GenPrintNumLabel(int label);
+STATIC void GenNumLabel(int Label);
+
 /*
 `GenAddrData'
 `GenDumpChar'
@@ -209,8 +212,8 @@ void gen_op_info() {
   add_token_info(tokLitStr     ,  "tokLitStr"       , -1, -1, emit_not_impl);
   add_token_info(tokLShift     ,  "tokLShift"       ,  2, -1, emit_not_impl);
   add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_not_impl);
-  add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_not_impl);
-  add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_not_impl);
+  add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_tokLogAndOr);
+  add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_tokLogAndOr);
   add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_alu_op  );
   add_token_info(tokNEQ        ,  "tokNEQ"          ,  2, -1, emit_alu_op  );
   add_token_info(tokLEQ        ,  "tokLEQ"          ,  2, -1, emit_alu_op  );
@@ -220,7 +223,7 @@ void gen_op_info() {
   add_token_info(tokArrow      ,  "tokArrow"        , -1, -1, emit_not_impl);
   add_token_info(tokEllipsis   ,  "tokEllipsis"     , -1, -1, emit_not_impl);
   add_token_info(tokIdent      ,  "tokIdent"        ,  0, -1, emit_tokIdent);
-  add_token_info(tokVoid       ,  "tokVoid"         , -1, -1, emit_not_impl);
+  add_token_info(tokVoid       ,  "tokVoid"         ,  1, -1, emit_tokVoid );
   add_token_info(tokChar       ,  "tokChar"         , -1, -1, emit_not_impl);
   add_token_info(tokInt        ,  "tokInt"          , -1, -1, emit_not_impl);
   add_token_info(tokReturn     ,  "tokReturn"       ,  1, -1, emit_tokReturn);
@@ -264,7 +267,7 @@ void gen_op_info() {
   add_token_info(tokSwitch     ,  "tokSwitch"       , -1, -1, emit_not_impl);
   add_token_info(tokCase       ,  "tokCase"         , -1, -1, emit_not_impl);
   add_token_info(tokDefault    ,  "tokDefault"      , -1, -1, emit_not_impl);
-  add_token_info(tok_Bool      ,  "tok_Bool"        , -1, -1, emit_not_impl);
+  add_token_info(tok_Bool      ,  "tok_Bool"        ,  1, -1, emit_tokBool );
   add_token_info(tok_Complex   ,  "tok_Complex"     , -1, -1, emit_not_impl);
   add_token_info(tok_Imagin    ,  "tok_Imagin"      , -1, -1, emit_not_impl);
   add_token_info(tok_Asm       ,  "tok_Asm"         , -1, -1, emit_not_impl);
@@ -274,7 +277,7 @@ void gen_op_info() {
   add_token_info(tokAssignURSh ,  "tokAssignURSh"   ,  2, -1, emit_not_impl);
   add_token_info(tokAssignUDiv ,  "tokAssignUDiv"   ,  2, -1, emit_not_impl);
   add_token_info(tokAssignUMod ,  "tokAssignUMod"   ,  2, -1, emit_not_impl);
-  add_token_info(tokComma      ,  "tokComma"        , -1, -1, emit_not_impl);
+  add_token_info(tokComma      ,  "tokComma"        ,  2, -1, emit_tokComma);
   add_token_info(tokIfNot      ,  "tokIfNot"        ,  1, -1, emit_not_impl);
   add_token_info(tokUnaryAnd   ,  "tokUnaryAnd"     ,  1, -1, emit_not_impl);
   add_token_info(tokUnaryStar  ,  "tokUnaryStar"    ,  1, -1, emit_tokUnaryStar);
@@ -284,12 +287,12 @@ void gen_op_info() {
   add_token_info(tokPostDec    ,  "tokPostDec"      ,  1, -1, emit_not_impl);
   add_token_info(tokPostAdd    ,  "tokPostAdd"      ,  2, -1, emit_not_impl);
   add_token_info(tokPostSub    ,  "tokPostSub"      ,  2, -1, emit_not_impl);
-  add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_not_impl);
-  add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_not_impl);
+  add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_alu_op  );
+  add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_alu_op  );
   add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_alu_op  );
   add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_alu_op  );
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
-  add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_not_impl);
+  add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc);
   add_token_info(tokSChar      ,  "tokSChar"        , -1, -1, emit_not_impl);
   add_token_info(tokUChar      ,  "tokUChar"        , -1, -1, emit_not_impl);
   add_token_info(tokUShort     ,  "tokUShort"       , -1, -1, emit_not_impl);
@@ -313,8 +316,8 @@ void gen_op_info() {
   add_token_info('|',             "'|'"             ,  2, -1, emit_alu_op  );
   add_token_info('^',             "'^'"             ,  2, -1, emit_alu_op  );
   add_token_info('!',             "'!'"             ,  1, -1, emit_not_impl);
-  add_token_info('<',             "'<'"             ,  2, -1, emit_not_impl);
-  add_token_info('>',             "'>'"             ,  2, -1, emit_not_impl);
+  add_token_info('<',             "'<'"             ,  2, -1, emit_alu_op);
+  add_token_info('>',             "'>'"             ,  2, -1, emit_alu_op);
   add_token_info('(',             "'('"             ,  0, -1, emit_not_impl);
   add_token_info(')',             "')'"             ,  1, -1, emit_tokCall ); //fn call
   add_token_info('[',             "'['"             ,  2, -1, emit_not_impl);
@@ -377,7 +380,15 @@ STATIC void GenAssignRegistersToTree(Node * root, int r_idx) {
   while(kid) {
     GenAssignRegistersToTree(kid, r_idx);
     kid = kid->next;
-    r_idx += 2;
+    switch(root->token) {
+      case tokLogAnd:
+      case tokLogOr: //these will bail on first fail, let them all write to self output
+      case tokComma: //discard first result
+        break;
+      default:
+        r_idx += 2;
+        break;
+    }
   }
 
 }
@@ -463,6 +474,11 @@ STATIC Node * GenTree(int sp_idx, int * new_sp_idx) {
   return root;
 }
 
+STATIC void GenPrintNumLabel(int label)
+{
+  printf2("L%d", label);
+}
+
 STATIC
 void GenRecordFxnSize(char* startLabelName, int endLabelNo)
 {
@@ -527,9 +543,9 @@ void GenDumpChar(int ch)
       quot = 0;
       printf2("\"");
     }
-    if (TokenStringLen)
-      printf2(",");
-    printf2("%u", ch & 0xFFu);
+    //if (TokenStringLen)
+    //  printf2(",");
+    printf2("\n.byte %u ; !!! CHECK THIS, QUICK HACK AT cgrlcpu.c+548\n", ch & 0xFFu);
   }
 }
 
@@ -540,12 +556,12 @@ void GenPrintLabel(char* Label)
   if (isdigit(*Label))
     printf2("$L%s", Label);
   else
-    printf2("$_%s", Label);
+    printf2("$%s", Label);
 }
 
 STATIC
 void GenAddrData(int Size, char *Label, int ofs) {
-  puts(" ; GenAddrData");
+  puts2(" ; GenAddrData");
   ofs = truncInt(ofs);
 
   // XXX 32 bit
@@ -656,6 +672,10 @@ STATIC void GenExpr(void) {
 
   root = GenTree(sp-1, NULL);
 
+  printf2(" ; Expr tree before optim: \n");
+  node_print_subtree(root, 0);
+
+
 
   GenRunOptimizers(&root);
 
@@ -665,6 +685,8 @@ STATIC void GenExpr(void) {
   node_print_subtree(root, 0);
 
   printf2("\n");
+
+  
 
   GenEmitTree(root);
 
@@ -779,10 +801,6 @@ void GenIntData(int Size, int Val){
   }
 }
 
-STATIC void GenPrintNumLabel(int label)
-{
-  printf2("L%d", label);
-}
 
 STATIC void GenJumpIfEqual(int val, int label) {
   int labelAfter = LabelCnt++;
@@ -812,46 +830,32 @@ STATIC void GenJumpIfEqual(int val, int label) {
 }
 
 STATIC void GenJumpIfNotZero(int label) {
-  int labelAfter = LabelCnt++;
   printf2(" ; Jump if not zero to "); GenPrintNumLabel(label);
   printf2("\n ; 16 bit for now, optimize\n");
   
-  printf2("ldd x, $"), GenPrintNumLabel(labelAfter); puts2("");
+  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
 
-  printf2("mov a,r0\n");
-  printf2("test_a\n");
-  printf2("jz\n");
-  
   printf2("mov a,r1\n");
-  printf2("test_a\n");
-  printf2("jz\n");
-  
-  printf2("ldd x, $"), GenPrintNumLabel(label); puts2("");
-  printf2("jmp\n");
-  GenNumLabel(labelAfter);
+  printf2("mov b,a\n");
+  printf2("mov a,r0\n");
+  printf2("or\n");
+  printf2("jnz\n");
 
 }
 
 
 STATIC void GenJumpIfZero(int label) {
-  int labelAfter = LabelCnt++;
   printf2(" ; Jump if zero to "); GenPrintNumLabel(label);
   printf2("\n ; 16 bit for now, optimize\n");
   
-  printf2("ldd x, $"), GenPrintNumLabel(labelAfter); puts2("");
+  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
 
-  printf2("mov a,r0\n");
-  printf2("test_a\n");
-  printf2("jnz\n");
-  
   printf2("mov a,r1\n");
-  printf2("test_a\n");
-  printf2("jnz\n");
+  printf2("mov b,a\n");
+  printf2("mov a,r0\n");
+  printf2("or\n");
+  printf2("jz\n");
   
-  printf2("ldd x, $"), GenPrintNumLabel(label); puts2("");
-  printf2("jmp\n");
-  GenNumLabel(labelAfter);
-
 }
 
 

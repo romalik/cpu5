@@ -65,17 +65,17 @@ ir_a    c0_1 s1 s2
 x_a     c0_1 s0 s1 s2
 
 #0000
-b_i     c1_0 #0000
+off_i   c1_0 #0000
 #0001
 sh_i    c1_0 s0
 #0010
 sl_i    c1_0 s1
 #0011
-ei      c1_0 s0 s1
+b_i     c1_0 s0 s1
 #0100
 ml_i    c1_0 s2
 #0101
-off_i   c1_0 s0 s2
+ei      c1_0 s0 s2
 #0110
 xh_i    c1_0 s1 s2
 #0111
@@ -190,6 +190,15 @@ section code
 -       1010    ****    0001    pc++
 -       ----    ****    0010    pc_switch seq_rst
 
+
+
+######################## 101 ALU THREE-ADDRESS  ##################### opcode: 0xBX
+                                                            #ALU        add, sub, .....
+-       1011    ****    0001    pc++
+-       ----    ****    0010    s2 c0_1 c1_1     #select aluf_d and f_i
+
+-       ----    ****    0011    s2 c0_1 c1_1     #select aluf_d and f_i
+-       ----    ****    0100    pc++ seq_rst
 
 ######################## 110 ALU           ######################### opcode: 0xCX
                                                             #ALU        add, sub, .....

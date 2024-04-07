@@ -27,19 +27,6 @@ __entry:
 .const SERIAL_BUFFER_LEN 0xff
 
 
-ldd m,0x8000
-
-ld a,0xff
-mov [m+5],a
-
-
-ldd m,0x800A
-ld a,0
-mov a,[m-5]
-mov [m-10],a
-hlt
-
-
 ld a, 0
 mov off, a
 

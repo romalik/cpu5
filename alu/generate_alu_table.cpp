@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <vector>
 
+DEPRECATED
+
 std::vector<std::string> ops = {
   "add",    //0
   "sub",    //1
