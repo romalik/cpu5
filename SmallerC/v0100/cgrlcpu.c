@@ -184,7 +184,7 @@ void adjust_sp(int n) {
 }
 
 
-Node * node_create(unsigned char token, int value) {
+Node * node_create(unsigned char token, int value, int size) {
   Node * node = (Node *)malloc(sizeof(Node));
   node->token = token;
 
@@ -194,17 +194,20 @@ Node * node_create(unsigned char token, int value) {
 
   node->target_register = -1;
 
+  node->size = size;
+
   node->kids = NULL;
   node->next = NULL;
   return node;
 }
 
 Node * node_copy(Node * node) {
-  Node * new_node = node_create(0,0);
+  Node * new_node = node_create(0,0,0);
   new_node->suppress_emit = node->suppress_emit;
   new_node->target_register = node->target_register;
   new_node->token = node->token;
   new_node->value = node->value;
+  new_node->size = node->size;
   return new_node;
 }
 
@@ -261,7 +264,7 @@ void node_print(Node * node, int indent) {
     printf2(" - ");
   }
   
-  printf2("%03d<%s> \"%d\" REG: r%d %s %s\n", node->token, get_token_name(node->token), node->value, node->target_register, node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
+  printf2("%03d<%s> \"%d\" size() REG: r%d %s %s\n", node->token, get_token_name(node->token), node->size, node->value, node->target_register, node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
 }
 
 void node_print_subtree(Node * node, int indent) {
@@ -452,7 +455,7 @@ STATIC void GenEmitNode(Node * node) {
     printf2("r%02d ", kid->target_register);
     kid = kid->next;
   }
-  printf2(" (%d)\n", node->value);
+  printf2(" value(%d) size (%d)\n", node->value, node->size);
   if(node->suppress_emit) {
     printf2(" ; !!! emit suppressed\n");
   } else {
@@ -547,7 +550,7 @@ STATIC Node * GenTree(int sp_idx, int * new_sp_idx) {
   int tok = stack[sp_idx][0];
   int v = stack[sp_idx][1];
 
-  root = node_create(tok, v);
+  root = node_create(tok, v, 0);
 
   n_kids = get_n_kids(tok);
   if(n_kids == -1) {

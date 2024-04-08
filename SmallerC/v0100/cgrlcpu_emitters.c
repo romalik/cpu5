@@ -648,41 +648,41 @@ Node * gen_replacePostOps_subtree(Node * op, Node ** head) {
 
     if(!on_top) {
         if((*head)->token != tokSequential) {
-            Node * new_head = node_create(tokSequential, 0);
+            Node * new_head = node_create(tokSequential, 0, 0);
             node_add_kid(new_head, (*head));
             (*head) = new_head;
         }
     }
 
     if(op->token == tokPostInc) {
-        new_op   = node_create('+', op->value);
-        node_add_kid(new_op, node_create(tokNumInt, 1));
+        new_op   = node_create('+', op->value, op->size);
+        node_add_kid(new_op, node_create(tokNumInt, 1, 0));
     } else if(op->token == tokPostDec) {
-        new_op   = node_create('-', op->value);
-        node_add_kid(new_op, node_create(tokNumInt, 1));
+        new_op   = node_create('-', op->value, op->size);
+        node_add_kid(new_op, node_create(tokNumInt, 1, 0));
     } else if(op->token == tokPostAdd) {
         //post add and post sub have second kid, relink it here
-        new_op   = node_create('+', op->value);
+        new_op   = node_create('+', op->value, op->size);
         node_add_kid(new_op, op->kids->next);
     } else if(op->token == tokPostSub) {
         //post add and post sub have second kid, relink it here
-        new_op   = node_create('-', op->value);
+        new_op   = node_create('-', op->value, op->size);
         node_add_kid(new_op, op->kids->next);
     }
 
     // fill tree from new_op
-    n = node_add_kid(new_op, node_create(tokUnaryStar, op->value));
-    node_add_kid(n, node_create(op->kids->token, op->kids->value));    
+    n = node_add_kid(new_op, node_create(tokUnaryStar, op->value, op->size));
+    node_add_kid(n, node_create(op->kids->token, op->kids->value, op->size));    
 
 
     if(!on_top) {
-        new_root = node_create(tokUnaryStar, op->value);
+        new_root = node_create(tokUnaryStar, op->value, op->size);
         node_add_kid(new_root, op->kids);
     }
 
-    new_asgn = node_create('=',op->value);
+    new_asgn = node_create('=',op->value, op->size);
     node_add_kid(new_asgn, new_op);
-    node_add_kid(new_asgn, node_create(op->kids->token, op->kids->value));
+    node_add_kid(new_asgn, node_create(op->kids->token, op->kids->value, op->size));
 
 
     if(!on_top) {
@@ -753,15 +753,15 @@ int assign_arith_to_tok(int token){
 }
 
 Node * gen_replaceAsignArith_subtree(Node * node, Node ** head) {
-    Node * new_root = node_create('=', node->value);
+    Node * new_root = node_create('=', node->value, node->size);
     new_root->kids = node_copy_subtree(node->kids); // reuse target
-    Node * arith_op = node_create(assign_arith_to_tok(node->token), node->value);
+    Node * arith_op = node_create(assign_arith_to_tok(node->token), node->value, node->size);
     if(node->token != tokInc && node->token != tokDec) {
         node_add_kid(arith_op, node->kids->next); //second kid goes to arith_op
     } else {
-        node_add_kid(arith_op, node_create(tokNumInt, 1)); //second kid goes to arith_op
+        node_add_kid(arith_op, node_create(tokNumInt, 1, 0)); //second kid goes to arith_op
     }
-    Node * unary_star = node_create(tokUnaryStar, node->value);
+    Node * unary_star = node_create(tokUnaryStar, node->value, node->size);
     node_add_kid(unary_star, node->kids); //reuse target
     node_add_kid(arith_op, unary_star); //add source as a first kid for arith
 
@@ -795,8 +795,7 @@ void do_replace_with_call(Node * node) {
     fxnName[2] = 'n';
 
     node->token = ')';
-    
-    Node * fxnIdent = node_create(tokIdent, AddIdent(fxnName)); // AddIdent will return ident if exists, create if not
+    Node * fxnIdent = node_create(tokIdent, AddIdent(fxnName), 0); // AddIdent will return ident if exists, create if not
     node_add_kid_to_end(node, fxnIdent);
 }
 

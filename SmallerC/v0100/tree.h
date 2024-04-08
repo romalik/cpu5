@@ -4,6 +4,7 @@
 typedef struct Node_ {
   unsigned char token;
   int value;
+  int size;
   int target_register;
 
   char suppress_emit;
@@ -12,7 +13,7 @@ typedef struct Node_ {
   struct Node_ * next;
 } Node;
 
-Node * node_create(unsigned char token, int value);
+Node * node_create(unsigned char token, int value, int size);
 void node_free(Node * node);
 Node * node_add_kid(Node * node, Node * kid);
 Node * node_add_kid_to_end(Node * node, Node * kid);
