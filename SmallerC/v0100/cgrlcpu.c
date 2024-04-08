@@ -110,6 +110,45 @@ Fix for local offsets: (@+x) = [m+x+1]
 unsigned char low(int v) { return v&0xff; }
 unsigned char high(int v) { return (v>>8)&0xff; }
 
+unsigned char register_usage[32];
+
+void mark_reg_use(unsigned char reg, unsigned char v) {
+  if(reg > 31) {
+    error("Bad register for mask\n");
+  }
+  register_usage[reg] = v;
+}
+
+unsigned char get_reg_use(unsigned char reg) {
+  if(reg > 31) {
+    error("Bad register for mask\n");
+  }
+  return register_usage[reg];
+}
+
+
+#define USED_REGS_STACK_OPERATION_SIZE 20
+
+void gen_push_used_regs() {
+  unsigned char r = 0;
+  for(;r<32;r++) {
+    if(get_reg_use(r)) {
+      printf2("mov a,r%d\n", r);
+      printf2("push a\n");
+    }
+  }
+}
+
+void gen_pop_used_regs() {
+  unsigned char r = 0;
+  for(;r<32;r++) {
+    if(get_reg_use(r)) {
+      printf2("pop a\n");
+      printf2("mov a,r%d\n", r);
+    }
+  }
+}
+
 char * adjust_sp_procedure = 
 " ; adjust sp by %d\n"
 "ld a, %d\n"
@@ -127,6 +166,10 @@ char * adjust_sp_procedure =
 
 void adjust_sp(int n) {
   
+    if(n == 0) {
+      printf2("; adjust by 0, skip\n");
+      return;
+    }
     char * op = "add";
     char * op2 = "adc";
     if(n < 0) {
@@ -429,6 +472,10 @@ STATIC void GenEmitTree(Node * root) {
 STATIC void GenAssignRegistersToTree(Node * root, int r_idx) {
   Node * kid = root->kids;
   root->target_register = r_idx;
+
+  mark_reg_use(r_idx,1);
+  mark_reg_use(r_idx+1,1);
+
   while(kid) {
     GenAssignRegistersToTree(kid, r_idx);
     kid = kid->next;
@@ -564,8 +611,18 @@ void GenStartAsciiString(void)
 STATIC
 void GenDumpChar(int ch)
 {
-  static int quot = 0;
+  char c_v = '.';
 
+  if(ch > 0) {
+
+    if (ch >= 0x20 && ch <= 0x7E)
+      c_v = ch;
+
+    printf2(".byte 0x%02x ; (%c)\n", ch, c_v);
+  } else {
+    printf2(".byte 0x00 ; (NUL)\n");
+  }
+/*
   if (ch < 0)
   {
     if (quot)
@@ -602,8 +659,9 @@ void GenDumpChar(int ch)
     }
     //if (TokenStringLen)
     //  printf2(",");
-    printf2("\n.byte %u ; !!! CHECK THIS, QUICK HACK AT cgrlcpu.c+548\n", ch & 0xFFu);
+    printf2("\n.byte %u ; !!! CHECK THIS, QUICK HACK AT cgrlcpu.c+548\n.byte 0\n", ch & 0xFFu);
   }
+*/
 }
 
 
@@ -792,13 +850,14 @@ STATIC void GenFin(void) {
 fpos_t GenPrologPos;
 
 STATIC void GenFxnProlog(void) {
+  memset(register_usage, 0, 32);
   puts2(" ; prolog");
   puts2("push xm");
 
-  puts2("lbp");
+  puts2("movms");
 
   fgetpos(OutFile, &GenPrologPos);
-  for(int i = 0; i<strlen(adjust_sp_procedure) + 25; i++) { // 25 should be enough for 2 ops and 3 figures
+  for(int i = 0; i<strlen(adjust_sp_procedure) + 25 + USED_REGS_STACK_OPERATION_SIZE*32; i++) { // 25 should be enough for 2 ops and 3 figures + 32 push operations
     printf2(" ");
   }
   puts2("\n ; prolog end\n");
@@ -806,6 +865,10 @@ STATIC void GenFxnProlog(void) {
 
 STATIC void GenFxnEpilog(void) {
   puts2(" ; epilog");
+
+  gen_pop_used_regs();
+  adjust_sp(-CurFxnMinLocalOfs);
+  puts2("movsm");
   puts2("pop mx");
 
   puts2("jmp");
@@ -817,7 +880,10 @@ STATIC void GenFxnEpilog(void) {
   fpos_t pos;
   fgetpos(OutFile, &pos);
   fsetpos(OutFile, &GenPrologPos);
-  adjust_sp(-CurFxnMinLocalOfs);
+
+  adjust_sp(CurFxnMinLocalOfs);
+  gen_push_used_regs();
+
   fsetpos(OutFile, &pos);
 
 

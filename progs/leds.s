@@ -28,6 +28,9 @@
 main:
 .export main
 
+
+
+
 ld a, 0x00
 mov r0,a
 ld a, 0xFF
@@ -64,15 +67,17 @@ mov r5,a
 ldd x, $memcpy
 jmp
 
-
-
-
-
 ldd x, $init_serial_buffer
+jmp
+
+ei
+
+ldd x, $hello
 jmp
 
 ldd x, $main_loop
 jmp
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,14 +86,18 @@ isr_0:
 mov a, f
 push a
 
-mov a, r8
+ldd x,$led_counter
+mov a, [x]
 inc
-mov r8, a
+mov b,a
+mov [x], a
+
+ldd x,OUT_7
+mov a,b
+mov [x],a
 
 pop a
 mov f, a
-
-
 pop a
 mov xh, a
 pop a
@@ -106,38 +115,121 @@ mov a, mh
 push a
 mov a, f
 push a
+mov a,r2
+push a
+mov a,r3
+push a
+mov a,r4
+push a
+mov a,r5
+push a
+
+; r2, r3 - serial_buffer_wr_ptr
 
 
+ldd x, $serial_buffer_wr_ptr
+mov a,[x]
+mov r2,a
+x++
+mov a,[x]
+mov r3,a
 
+; r4, r5 - serial_buffer
+
+ld a,$(l)serial_buffer
+mov r4,a
+ld a,$(h)serial_buffer
+mov r5,a
+
+; if serial_buffer_wr_ptr - serial_buffer > 0xff
+
+tsub r0, r2, r4
+tsbc r1, r3, r5
+ldd x,$isr_3_L1
+jz 
+
+; serial_buffer_wr_ptr = serial_buffer
+
+mov a,r4
+mov r2,a
+mov a,r5
+mov r3,a
+
+isr_3_L1:
+
+
+; write new byte
 ldd x, SERIAL
 mov a,[x]
 mov b,a
 
-ldd x, $serial_buffer_wr_ptr
-mov a,[x]
-mov r10,a
-
-x++
-mov a,[x]
+mov a,r2
+mov xl,a
+mov a,r3
 mov xh,a
 
-mov a,r10
-mov xl,a
 
 mov a,b
 mov [x],a
 
 
+; increment serial_buffer_wr_ptr
+tinc r2,r2,r2
+ld a,0
+mov r4,a
+tadc r3,r3,r4 ;inc by 1 if carry
+
+
+; save wr_ptr
+ldd x,$serial_buffer_wr_ptr
+mov a,r2
+mov [x],a
+x++
+mov a,r3
+mov [x],a
+
+
+; inc size
+
+ld a,0xff
+mov b,a
+ldd x, $serial_buffer_size
+mov a,[x]
+sub
+ldd x,$isr_3_L3
+jz
+; no overflow, increment and store
 
 ldd x, $serial_buffer_size
 mov a,[x]
 inc
 mov [x],a
+ldd x,$isr_3_L3
+jmp
 
-ldd x, $serial_buffer_wr_ptr
-mov a,[x]
-inc
+isr_3_L2:
+; overflow, do not increment, rd_ptr = wr_ptr
+ldd x,$serial_buffer_rd_ptr
+mov a,r2
 mov [x],a
+x++
+mov a,r3
+mov [x],a
+
+
+isr_3_L3:
+
+pop a
+mov r5, a
+
+pop a
+mov r4, a
+
+pop a
+mov r3, a
+
+pop a
+mov r2, a
 
 pop a
 mov f, a
@@ -192,60 +284,118 @@ jmp
 ; available: r0
 ; data: r1
 read_serial:
+.export read_serial
 ;frame
 mov a, xl
 push a
 mov a, xh
 push a
+mov a,r2
+push a
+mov a,r3
+push a
+mov a,r4
+push a
+mov a,r5
+push a
 
-
-; set available = 0
 ld a,0
 mov r0,a
+mov r1,a
 
-; check buf size
+; check size
 ldd x, $serial_buffer_size
 mov a,[x]
-test
-
+mov b,a
 ldd x, $read_serial_end
+mov a,b
+test
 jz
 
+; r2, r3 - serial_buffer_rd_ptr
 
 
-; set available = 1
-ld a,1
+ldd x, $serial_buffer_rd_ptr
+mov a,[x]
+mov r2,a
+x++
+mov a,[x]
+mov r3,a
+
+; r4, r5 - serial_buffer
+
+ld a, $(l)serial_buffer
+mov r4,a
+ld a, $(h)serial_buffer
+mov r5,a
+
+; if serial_buffer_rd_ptr - serial_buffer > 0xff
+
+tsub r0, r2, r4
+tsbc r1, r3, r5
+ldd x,$read_serial_L1
+jz 
+
+; serial_buffer_rd_ptr = serial_buffer
+
+mov a,r4
+mov r2,a
+mov a,r5
+mov r3,a
+
+read_serial_L1:
+
+
+; read new byte
+
+mov a,r2
+mov xl,a
+mov a,r3
+mov xh,a
+
+mov a,[x]
 mov r0,a
 
-; decrement size
+; increment serial_buffer_rd_ptr
+tinc r2,r2,r2
+ld a,0
+mov r4,a
+tadc r3,r3,r4 ;inc by 1 if carry
+
+
+; save rd_ptr
+ldd x,$serial_buffer_rd_ptr
+mov a,r2
+mov [x],a
+x++
+mov a,r3
+mov [x],a
+
+
+; dec size
+ld a,1
 mov b,a
 ldd x, $serial_buffer_size
 mov a,[x]
 sub
 mov [x],a
 
-; load value from buf
-ldd x, $serial_buffer_rd_ptr
-mov a,[x]
-mov r10,a
-x++
-mov a,[x]
-mov xh,a
-mov a,r10
-mov xl,a
-mov a,[x]
-mov r1,a
-
-; increment rd_ptr
-ldd x, $serial_buffer_rd_ptr
-mov a,[x]
-inc
-mov [x],a
-
-
 
 read_serial_end:
 ; return
+
+pop a
+mov r5, a
+
+pop a
+mov r4, a
+
+pop a
+mov r3, a
+
+pop a
+mov r2, a
+
 pop a
 mov xh, a
 pop a
@@ -373,14 +523,6 @@ main_loop:
 
 ei
 
-ld a, 0
-
-mov r8, a
-
-
-ld a, 'a'
-mov r5, a
-
 
 
 loop:
@@ -388,71 +530,14 @@ loop:
 ei
 
 
-ldd m, IN_1
-mov a, [m]
-mov r0, a
-
-ldd m, IN_2
-mov a, [m]
-mov r1, a
 
 
 
-
-; ISR counter
-
-ldd m, OUT_6
-mov a, r8
-mov [m], a
-
-
-; counter
-
-mov a, r5
-mov b, a
-ld a, 1
-
-add
-
-mov b, a
-mov r5, a
-
-
-
-
-mov a, r5
-mov b, a
-ld a, 'z'
-sub
-ldd x, $no_reset
-jnc
-ld a, 'a'
-mov r5, a
-
-no_reset:
-
-
-
-;ldd m, SERIAL
-;mov a, r5
-;mov [m], a
-
-
-
-;ldd m, SERIAL
-;mov a, [m]
-;mov b, a
-;ld a, 0xff
-;sub
-;ldd x, $skip_send
-;jz 
 
 
 ldd x, $read_serial
 jmp
 
-;ld a,0
-;mov r0,a
 
 ldd m, OUT_0
 mov a, r0
@@ -467,7 +552,7 @@ ldd x, $skip_send
 jz
 
 ldd m, SERIAL
-mov a, r1
+mov a, r0
 mov [m], a
 
 
@@ -508,4 +593,6 @@ serial_buffer_rd_ptr:
 serial_buffer_wr_ptr:
 .skip 2
 serial_buffer_size:
+.skip 1
+led_counter:
 .skip 1

@@ -372,6 +372,11 @@ void emit_tokCall(Node * node) {
         printf2("jmp\n");
     }
 
+    printf2("mov a,r0\n");
+    printf2("mov r%d,a\n", node->target_register);
+    printf2("mov a,r1\n");
+    printf2("mov r%d,a\n", node->target_register+1);
+
     adjust_sp(n_args*2);
 }
 
@@ -417,7 +422,6 @@ void emit_inc_x() {
 void emit_tokUnaryStar(Node * node) {
     Node * kid = node->kids;
 
-    int size = abs(node->value);
 
     int off = 0;
     int use_m_off = 0;
@@ -443,7 +447,7 @@ void emit_tokUnaryStar(Node * node) {
 
     printf2("mov r%d, a\n", node->target_register);
 
-    if(size == 2) {
+    if(abs(node->value) != 1) {
 
         if(use_m_off) {
             off++;
@@ -453,6 +457,9 @@ void emit_tokUnaryStar(Node * node) {
             printf2("mov a, [x]\n");
         }
 
+        printf2("mov r%d, a\n", node->target_register+1);
+    } else {
+        printf2("ld a,0\n");
         printf2("mov r%d, a\n", node->target_register+1);
     }
 
@@ -508,7 +515,7 @@ void emit_tokAssign(Node * node) {
     if(abs(node->value) == 2) {
         if(use_m_off) {
             off++;
-            printf2("mov a, r%d\n", rvl);
+            printf2("mov a, r%d\n", rvh);
             printf2("mov [m%+d], a\n", off); 
         } else {
             emit_inc_x();

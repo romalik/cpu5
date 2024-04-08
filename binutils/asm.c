@@ -321,9 +321,12 @@ void gen_instruction() {
   } else if(!strcmp(token, "iret")) {
     count("iret");
     emit(0x0f);
-  } else if(!strcmp(token, "lbp")) {
-    count("lbp");
+  } else if(!strcmp(token, "movms")) {
+    count("movms");
     emit(0xef);
+  } else if(!strcmp(token, "movsm")) {
+    count("movsm");
+    emit(0xee);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {

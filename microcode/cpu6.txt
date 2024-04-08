@@ -202,7 +202,7 @@ section code
 -       ----    ****    0110    mf_a b_i mread      #can combine - mf_a and b_i are on same select, read r_b
 -       ----    ****    0111    pc++
 -       ----    ****    1000    alu_l
--       ----    ****    1001    pc_a off_i          #load target addr
+-       ----    ****    1001    pc_a off_i mread    #load target addr
 
 -       ----    ****    1010    alu_d a_i           #do alu
 -       ----    ****    1011    s2 aluf_d f_i       #select aluf_d and f_i, can combine
@@ -344,7 +344,14 @@ section code
 -       ----    1100    0001    pc++
 -       ----    ----    0010    pc_a mread a_i
 -       ----    ----    0011    pc++ seq_rst
-                                                            #           lbp
+                                                            #           movsm
+-       ----    1110    0001    a_i ml_o
+-       ----    ----    0010    a_o sl_i
+-       ----    ----    0011    a_i mh_o
+-       ----    ----    0100    a_o sh_i
+-       ----    ----    0101    pc++ seq_rst
+
+                                                            #           movms
 -       ----    1111    0001    a_i sl_o
 -       ----    ----    0010    a_o ml_i
 -       ----    ----    0011    a_i sh_o
