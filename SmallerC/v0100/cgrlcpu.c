@@ -264,7 +264,7 @@ void node_print(Node * node, int indent) {
     printf2(" - ");
   }
   
-  printf2("%03d<%s> \"%d\" size() REG: r%d %s %s\n", node->token, get_token_name(node->token), node->size, node->value, node->target_register, node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
+  printf2("%03d<%s> \"%d\" size(%d) REG: r%d %s %s\n", node->token, get_token_name(node->token),  node->value, node->size, node->target_register, node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
 }
 
 void node_print_subtree(Node * node, int indent) {
