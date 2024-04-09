@@ -107,7 +107,7 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
 
             R = A + B;
 
-            if( (A & 0x80) != (B & 0x80) ) {
+            if( (A & 0x80) == (B & 0x80) ) {
                 if( (A & 0x80) != (R & 0x80) ) {
                     OF = 1;
                 }

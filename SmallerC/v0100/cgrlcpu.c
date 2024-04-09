@@ -303,51 +303,56 @@ void add_token_info(unsigned char id, char * name, int n_args, int size, void (*
 #define tokSequential 0xfe
 #include "cgrlcpu_emitters.c"
 
+//18 tokens have size
+//total 56 tokens can size
+//assign, op_assign, conv - descend size down
+//return - always 2 bytes? seems so. zero out r1 if kid size == 1 and ff if size = -1
+
 void gen_op_info() {
   add_token_info(tokEof        ,  "tokEof"          ,  0, -1, emit_not_impl);
-  add_token_info(tokNumInt     ,  "tokNumInt"       ,  0,  2, emit_tokNumInt);
-  add_token_info(tokNumUint    ,  "tokNumUint"      ,  0,  2, emit_tokNumInt);
+  add_token_info(tokNumInt     ,  "tokNumInt"       ,  0,  2, emit_tokNumInt);  //-d
+  add_token_info(tokNumUint    ,  "tokNumUint"      ,  0,  2, emit_tokNumInt);  //-d
   add_token_info(tokLitStr     ,  "tokLitStr"       , -1, -1, emit_not_impl);
-  add_token_info(tokLShift     ,  "tokLShift"       ,  2, -1, emit_tokShift);
-  add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_tokShift);
-  add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_tokLogAndOr);
-  add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_tokLogAndOr);
-  add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_alu_op  );
-  add_token_info(tokNEQ        ,  "tokNEQ"          ,  2, -1, emit_alu_op  );
-  add_token_info(tokLEQ        ,  "tokLEQ"          ,  2, -1, emit_alu_op  );
-  add_token_info(tokGEQ        ,  "tokGEQ"          ,  2, -1, emit_alu_op  );
-  add_token_info(tokInc        ,  "tokInc"          ,  1, -1, emit_not_impl);
-  add_token_info(tokDec        ,  "tokDec"          ,  1, -1, emit_not_impl);
+  add_token_info(tokLShift     ,  "tokLShift"       ,  2, -1, emit_tokShift);   //-
+  add_token_info(tokRShift     ,  "tokRShift"       ,  2, -1, emit_tokShift);   //-
+  add_token_info(tokLogAnd     ,  "tokLogAnd"       ,  2, -1, emit_tokLogAndOr);//-
+  add_token_info(tokLogOr      ,  "tokLogOr"        ,  2, -1, emit_tokLogAndOr);//-
+  add_token_info(tokEQ         ,  "tokEQ"           ,  2, -1, emit_alu_op  );   //-   
+  add_token_info(tokNEQ        ,  "tokNEQ"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info(tokLEQ        ,  "tokLEQ"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info(tokGEQ        ,  "tokGEQ"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info(tokInc        ,  "tokInc"          ,  1, -1, emit_not_impl);   //+   
+  add_token_info(tokDec        ,  "tokDec"          ,  1, -1, emit_not_impl);   //+
   add_token_info(tokArrow      ,  "tokArrow"        , -1, -1, emit_not_impl);
   add_token_info(tokEllipsis   ,  "tokEllipsis"     , -1, -1, emit_not_impl);
   add_token_info(tokIdent      ,  "tokIdent"        ,  0, -1, emit_tokIdent);
   add_token_info(tokVoid       ,  "tokVoid"         ,  1, -1, emit_tokVoid );
-  add_token_info(tokChar       ,  "tokChar"         , -1, -1, emit_not_impl);
-  add_token_info(tokInt        ,  "tokInt"          , -1, -1, emit_not_impl);
-  add_token_info(tokReturn     ,  "tokReturn"       ,  1, -1, emit_tokReturn);
+  add_token_info(tokChar       ,  "tokChar"         ,  1, -1, emit_not_impl);
+  add_token_info(tokInt        ,  "tokInt"          ,  1, -1, emit_not_impl);
+  add_token_info(tokReturn     ,  "tokReturn"       ,  1, -1, emit_tokReturn);  //-
   add_token_info(tokGoto       ,  "tokGoto"         ,  1, -1, emit_tokGoto);
-  add_token_info(tokIf         ,  "tokIf"           ,  1, -1, emit_tokIf   );
+  add_token_info(tokIf         ,  "tokIf"           ,  1, -1, emit_tokIf   );   //-
   add_token_info(tokElse       ,  "tokElse"         ,  1, -1, emit_not_impl);
   add_token_info(tokWhile      ,  "tokWhile"        , -1, -1, emit_not_impl);
   add_token_info(tokCont       ,  "tokCont"         , -1, -1, emit_not_impl);
   add_token_info(tokBreak      ,  "tokBreak"        , -1, -1, emit_not_impl);
   add_token_info(tokSizeof     ,  "tokSizeof"       , -1, -1, emit_not_impl);
-  add_token_info(tokAssignMul  ,  "tokAssignMul"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignDiv  ,  "tokAssignDiv"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignMod  ,  "tokAssignMod"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignAdd  ,  "tokAssignAdd"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignSub  ,  "tokAssignSub"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignLSh  ,  "tokAssignLSh"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignRSh  ,  "tokAssignRSh"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignAnd  ,  "tokAssignAnd"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignXor  ,  "tokAssignXor"    ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokAssignOr   ,  "tokAssignOr"     ,  2, -1, emit_not_impl); //convert to assign + op
-  add_token_info(tokFloat      ,  "tokFloat"        , -1, -1, emit_not_impl);
-  add_token_info(tokDouble     ,  "tokDouble"       , -1, -1, emit_not_impl);
-  add_token_info(tokLong       ,  "tokLong"         , -1, -1, emit_not_impl);
-  add_token_info(tokShort      ,  "tokShort"        , -1, -1, emit_not_impl);
-  add_token_info(tokUnsigned   ,  "tokUnsigned"     , -1, -1, emit_not_impl);
-  add_token_info(tokSigned     ,  "tokSigned"       , -1, -1, emit_not_impl);
+  add_token_info(tokAssignMul  ,  "tokAssignMul"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignDiv  ,  "tokAssignDiv"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignMod  ,  "tokAssignMod"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignAdd  ,  "tokAssignAdd"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignSub  ,  "tokAssignSub"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignLSh  ,  "tokAssignLSh"    ,  2, -1, emit_not_impl); // ?+ //convert to assign + op
+  add_token_info(tokAssignRSh  ,  "tokAssignRSh"    ,  2, -1, emit_not_impl); // ?+ //convert to assign + op
+  add_token_info(tokAssignAnd  ,  "tokAssignAnd"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignXor  ,  "tokAssignXor"    ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokAssignOr   ,  "tokAssignOr"     ,  2, -1, emit_not_impl); // + //convert to assign + op
+  add_token_info(tokFloat      ,  "tokFloat"        ,  1, -1, emit_not_impl);
+  add_token_info(tokDouble     ,  "tokDouble"       ,  1, -1, emit_not_impl);
+  add_token_info(tokLong       ,  "tokLong"         ,  1, -1, emit_not_impl);
+  add_token_info(tokShort      ,  "tokShort"        ,  1, -1, emit_not_impl);
+  add_token_info(tokUnsigned   ,  "tokUnsigned"     ,  1, -1, emit_not_impl);
+  add_token_info(tokSigned     ,  "tokSigned"       ,  1, -1, emit_not_impl);
   add_token_info(tokConst      ,  "tokConst"        , -1, -1, emit_not_impl);
   add_token_info(tokVolatile   ,  "tokVolatile"     , -1, -1, emit_not_impl);
   add_token_info(tokRestrict   ,  "tokRestrict"     , -1, -1, emit_not_impl);
@@ -365,36 +370,36 @@ void gen_op_info() {
   add_token_info(tokSwitch     ,  "tokSwitch"       , -1, -1, emit_not_impl);
   add_token_info(tokCase       ,  "tokCase"         , -1, -1, emit_not_impl);
   add_token_info(tokDefault    ,  "tokDefault"      , -1, -1, emit_not_impl);
-  add_token_info(tok_Bool      ,  "tok_Bool"        ,  1, -1, emit_tokBool );
+  add_token_info(tok_Bool      ,  "tok_Bool"        ,  1, -1, emit_tokBool ); //-
   add_token_info(tok_Complex   ,  "tok_Complex"     , -1, -1, emit_not_impl);
   add_token_info(tok_Imagin    ,  "tok_Imagin"      , -1, -1, emit_not_impl);
   add_token_info(tok_Asm       ,  "tok_Asm"         , -1, -1, emit_not_impl);
-  add_token_info(tokURShift    ,  "tokURShift"      ,  2, -1, emit_tokShift);
-  add_token_info(tokUDiv       ,  "tokUDiv"         ,  1, -1, emit_not_impl);
-  add_token_info(tokUMod       ,  "tokUMod"         ,  1, -1, emit_not_impl);
-  add_token_info(tokAssignURSh ,  "tokAssignURSh"   ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignUDiv ,  "tokAssignUDiv"   ,  2, -1, emit_not_impl);
-  add_token_info(tokAssignUMod ,  "tokAssignUMod"   ,  2, -1, emit_not_impl);
+  add_token_info(tokURShift    ,  "tokURShift"      ,  2, -1, emit_tokShift); //-
+  add_token_info(tokUDiv       ,  "tokUDiv"         ,  1, -1, emit_not_impl); //-
+  add_token_info(tokUMod       ,  "tokUMod"         ,  1, -1, emit_not_impl); //-
+  add_token_info(tokAssignURSh ,  "tokAssignURSh"   ,  2, -1, emit_not_impl); //-
+  add_token_info(tokAssignUDiv ,  "tokAssignUDiv"   ,  2, -1, emit_not_impl); //-
+  add_token_info(tokAssignUMod ,  "tokAssignUMod"   ,  2, -1, emit_not_impl); //-
   add_token_info(tokComma      ,  "tokComma"        ,  2, -1, emit_tokComma);
-  add_token_info(tokIfNot      ,  "tokIfNot"        ,  1, -1, emit_tokIf   );
+  add_token_info(tokIfNot      ,  "tokIfNot"        ,  1, -1, emit_tokIf   ); //-
   add_token_info(tokUnaryAnd   ,  "tokUnaryAnd"     ,  1, -1, emit_not_impl);
-  add_token_info(tokUnaryStar  ,  "tokUnaryStar"    ,  1, -1, emit_tokUnaryStar);
+  add_token_info(tokUnaryStar  ,  "tokUnaryStar"    ,  1, -1, emit_tokUnaryStar); //+
   add_token_info(tokUnaryPlus  ,  "tokUnaryPlus"    ,  1, -1, emit_not_impl);
-  add_token_info(tokUnaryMinus ,  "tokUnaryMinus"   ,  1, -1, emit_tokUnaryAlu);
-  add_token_info(tokPostInc    ,  "tokPostInc"      ,  1, -1, emit_not_impl);
-  add_token_info(tokPostDec    ,  "tokPostDec"      ,  1, -1, emit_not_impl);
-  add_token_info(tokPostAdd    ,  "tokPostAdd"      ,  2, -1, emit_not_impl);
-  add_token_info(tokPostSub    ,  "tokPostSub"      ,  2, -1, emit_not_impl);
-  add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_alu_op  );
-  add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_alu_op  );
-  add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_alu_op  );
-  add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_alu_op  );
+  add_token_info(tokUnaryMinus ,  "tokUnaryMinus"   ,  1, -1, emit_tokUnaryAlu); //-
+  add_token_info(tokPostInc    ,  "tokPostInc"      ,  1, -1, emit_not_impl); //+
+  add_token_info(tokPostDec    ,  "tokPostDec"      ,  1, -1, emit_not_impl); //+
+  add_token_info(tokPostAdd    ,  "tokPostAdd"      ,  2, -1, emit_not_impl); //+
+  add_token_info(tokPostSub    ,  "tokPostSub"      ,  2, -1, emit_not_impl); //+
+  add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_alu_op  ); //-
+  add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_alu_op  ); //-
+  add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_alu_op  ); //-
+  add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_alu_op  ); //-
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
-  add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc);
-  add_token_info(tokSChar      ,  "tokSChar"        , -1, -1, emit_not_impl);
-  add_token_info(tokUChar      ,  "tokUChar"        , -1, -1, emit_not_impl);
-  add_token_info(tokUShort     ,  "tokUShort"       , -1, -1, emit_not_impl);
-  add_token_info(tokULong      ,  "tokULong"        , -1, -1, emit_not_impl);
+  add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc); //-
+  add_token_info(tokSChar      ,  "tokSChar"        ,  1, -1, emit_not_impl);
+  add_token_info(tokUChar      ,  "tokUChar"        ,  1, -1, emit_not_impl);
+  add_token_info(tokUShort     ,  "tokUShort"       ,  1, -1, emit_not_impl);
+  add_token_info(tokULong      ,  "tokULong"        ,  1, -1, emit_not_impl);
   add_token_info(tokGotoLabel  ,  "tokGotoLabel"    , -1, -1, emit_not_impl);
   add_token_info(tokStructPtr  ,  "tokStructPtr"    , -1, -1, emit_not_impl);
   add_token_info(tokTag        ,  "tokTag"          , -1, -1, emit_not_impl);
@@ -404,25 +409,25 @@ void gen_op_info() {
   add_token_info(tokNumFloat   ,  "tokNumFloat"     , -1, -1, emit_not_impl);
   add_token_info(tokNumCharWide,  "tokNumCharWide"  , -1, -1, emit_not_impl);
   add_token_info(tokLitStrWide ,  "tokLitStrWide"   , -1, -1, emit_not_impl);
-  add_token_info('+',             "tokAdd"          ,  2, -1, emit_alu_op  );
-  add_token_info('-',             "tokSub"          ,  2, -1, emit_alu_op  );
-  add_token_info('~',             "tokBNot"         ,  1, -1, emit_tokUnaryAlu);
-  add_token_info('*',             "tokMul"          ,  2, -1, emit_not_impl);
-  add_token_info('/',             "tokDiv"          ,  2, -1, emit_not_impl);
-  add_token_info('%',             "tokMod"          ,  2, -1, emit_not_impl);
-  add_token_info('&',             "tokAnd"          ,  2, -1, emit_alu_op  );
-  add_token_info('|',             "tokOr"           ,  2, -1, emit_alu_op  );
-  add_token_info('^',             "tokXor"          ,  2, -1, emit_alu_op  );
-  add_token_info('!',             "tokNot"          ,  1, -1, emit_not_impl);
-  add_token_info('<',             "tokLess"         ,  2, -1, emit_alu_op);
-  add_token_info('>',             "tokMore"         ,  2, -1, emit_alu_op);
+  add_token_info('+',             "tokAdd"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info('-',             "tokSub"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info('~',             "tokBNot"         ,  1, -1, emit_tokUnaryAlu);//-
+  add_token_info('*',             "tokMul"          ,  2, -1, emit_not_impl);   //-
+  add_token_info('/',             "tokDiv"          ,  2, -1, emit_not_impl);   //-
+  add_token_info('%',             "tokMod"          ,  2, -1, emit_not_impl);   //-
+  add_token_info('&',             "tokAnd"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info('|',             "tokOr"           ,  2, -1, emit_alu_op  );   //-
+  add_token_info('^',             "tokXor"          ,  2, -1, emit_alu_op  );   //-
+  add_token_info('!',             "tokNot"          ,  1, -1, emit_not_impl);   //-
+  add_token_info('<',             "tokLess"         ,  2, -1, emit_alu_op);     //-
+  add_token_info('>',             "tokMore"         ,  2, -1, emit_alu_op);     //-
   add_token_info('(',             "tokStartArgs"    ,  0, -1, emit_not_impl);
-  add_token_info(')',             "tokCall"         ,  1, -1, emit_tokCall ); //fn call
+  add_token_info(')',             "tokCall"         ,  1, -1, emit_tokCall );   //- fn call
   add_token_info('[',             "'['"             ,  2, -1, emit_not_impl);
   add_token_info(']',             "']'"             ,  2, -1, emit_not_impl);
   add_token_info('{',             "'{'"             ,  2, -1, emit_not_impl);
   add_token_info('}',             "'}'"             ,  2, -1, emit_not_impl);
-  add_token_info('=',             "tokAssign"       ,  2, -1, emit_tokAssign);
+  add_token_info('=',             "tokAssign"       ,  2, -1, emit_tokAssign);  //+
   add_token_info(',',             "','"             , -1, -1, emit_not_impl);
   add_token_info(';',             "';'"             ,  2, -1, emit_not_impl);
   add_token_info(':',             "':'"             ,  2, -1, emit_not_impl);
@@ -512,13 +517,15 @@ void add_optimizer(void (*opt)(Node **, Node **)) {
 void init_optimizers() {
   optimizers = NULL;
   add_optimizer(opt_callWithIdent);
-  add_optimizer(opt_assignSizes);
   add_optimizer(opt_suppressDereferences);
 
   add_optimizer(opt_replaceTokensWithCalls);
 
   add_optimizer(opt_replacePostOps);
   add_optimizer(opt_replaceAssignArith);
+  add_optimizer(opt_deriveNumSizes);  
+  add_optimizer(opt_deriveSizes);  
+  add_optimizer(opt_assignSizes);
   
 }
 
