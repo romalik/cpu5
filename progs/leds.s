@@ -286,10 +286,9 @@ jmp
 read_serial:
 .export read_serial
 ;frame
-mov a, xl
-push a
-mov a, xh
-push a
+push xm
+movms
+
 mov a,r2
 push a
 mov a,r3
@@ -384,6 +383,11 @@ mov [x],a
 read_serial_end:
 ; return
 
+mov a,r0
+mov [m+5],a
+mov a,r1
+mov [m+6],a
+
 pop a
 mov r5, a
 
@@ -396,10 +400,7 @@ mov r3, a
 pop a
 mov r2, a
 
-pop a
-mov xh, a
-pop a
-mov xl, a
+pop mx
 jmp
 
 

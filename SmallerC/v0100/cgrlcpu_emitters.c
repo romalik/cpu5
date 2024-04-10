@@ -69,40 +69,56 @@ void emit_tokShift(Node * node) {
         error("Zero size for tokShift!\n");
     }
     if(node->kids->next->token == tokNumInt) { //shift on constant, can do in-place
+    
         int k = node->kids->next->value;
-        for(int i = 0; i<k; i++) {
-            if(node->token == tokLShift) {
-                if(abs(node->size) == 2) {
-                    printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
-                    printf2("tshlc r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
-                } else if (abs(node->size) == 1) {
-                    printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
-                } else {
-                    error("");
-                }
 
-            } else if(node->token == tokRShift) {
-                if(abs(node->size) == 2) {
-                    printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
-                    printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
-                } else if (abs(node->size) == 1) {
-                    printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+        if(k == 8) {
+                if(node->token == tokLShift) {
+                    printf2("mov a, r%d\n", node->kids->target_register);
+                    printf2("mov r%d, a\n", node->target_register+1);
+                    printf2("ld a,0\n");
+                    printf2("mov r%d, a\n", node->target_register);
                 } else {
-                    error("");
+                    printf2("mov a, r%d\n", node->kids->target_register+1);
+                    printf2("mov r%d, a\n", node->target_register);
+                    printf2("ld a,0\n");
+                    printf2("mov r%d, a\n", node->target_register+1);
                 }
+        } else {
+            for(int i = 0; i<k; i++) {
+                if(node->token == tokLShift) {
+                    if(abs(node->size) == 2) {
+                        printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshlc r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
+                    } else if (abs(node->size) == 1) {
+                        printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                    } else {
+                        error("");
+                    }
 
-            } else if(node->token == tokURShift) {
-                if(abs(node->size) == 2) {
-                    printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
-                    printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
-                } else if (abs(node->size) == 1) {
-                    printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                } else if(node->token == tokRShift) {
+                    if(abs(node->size) == 2) {
+                        printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
+                        printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                    } else if (abs(node->size) == 1) {
+                        printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                    } else {
+                        error("");
+                    }
+
+                } else if(node->token == tokURShift) {
+                    if(abs(node->size) == 2) {
+                        printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
+                        printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                    } else if (abs(node->size) == 1) {
+                        printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                    } else {
+                        error("");
+                    }
+
                 } else {
-                    error("");
+                    error("Unknown shift\n");
                 }
-
-            } else {
-                error("Unknown shift\n");
             }
         }
     } else {
@@ -153,25 +169,12 @@ void emit_alu_op(Node * node) {
         first_op = "xor";
         second_op = "xor";
     } else {
-
-        switch(node->token) {
-        case tokEQ:
-        case tokNEQ:
-        case tokLEQ:
-        case tokGEQ:
-        case tokULEQ:
-        case tokUGEQ:
-        case tokULess:
-        case tokUGreater:
-        case '>':
-        case '<':
+        if(is_comparison(node->token)) {
             is_cmp = 1;
-            break;
-        default: 
+        } else {
             emit_not_impl(node);
-            return;
         }
-    }
+   }
 
 
     int rcl = node->target_register;
@@ -194,57 +197,154 @@ void emit_alu_op(Node * node) {
         
         //jump over loading one on opposite condition
 
+        int labelTrue = LabelCnt++;
         int labelAfter = LabelCnt++;
         printf2("ldd x, $"); GenPrintNumLabel(labelAfter); puts2("");
 
         if(size == 2) {
-            printf2("tsub r%d, r%d, r%d\n", ral, ral, rbl);
-            printf2("tsbc r%d, r%d, r%d\n", rah, rah, rbh);
+            printf2("tsub r%d, r%d, r%d\n", rah, rah, rbh);
             printf2("ld r%d, 0\n", rch); //preload high zero for size==2
             printf2("ld r%d, 0\n", rcl); //preload low zero
+
+
+            /* remove equals! Should be tested on low byte*/
+            switch(node->token) {
+            case tokEQ:
+                printf2("jnz\n"); // ==jne
+                break;
+            case tokLEQ:
+                printf2("jg\n");
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jl\n");
+                break;
+            case tokGEQ:
+                printf2("jl\n");
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jg\n");
+                break;
+            case tokULEQ:
+                printf2("ja\n");
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jc\n"); // ==jb
+
+                break;
+            case tokUGEQ:
+                printf2("jc\n"); // ==jb
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ja\n");
+                break;
+            case tokULess:
+                printf2("ja\n"); // should be jae, remove equal
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jc\n"); // ==jb
+                break;
+            case tokUGreater:
+                printf2("jc\n"); // == jb, should be jbe, remove e
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ja\n");
+                break;
+            case '<':
+                printf2("jg\n"); //should be jge
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jl\n");
+                break;
+            case '>':
+                printf2("jl\n"); //should be jle
+                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("jg\n");
+                break;
+
+            default: 
+                error("");
+                return;
+            }
+
+            printf2("tsub r%d, r%d, r%d\n", ral, ral, rbl);
+            printf2("ldd x, $"); GenPrintNumLabel(labelAfter); puts2("");
+
+            switch(node->token) {
+            case tokEQ:
+                printf2("jnz\n"); // ==jne
+                break;
+            case tokLEQ:
+                printf2("ja\n"); // Greater, use JA because 2's compl
+                break;
+            case tokGEQ:
+                printf2("jc\n"); //less, use jb==jc because 2's compl
+                break;
+            case tokULEQ:
+                printf2("ja\n");
+                break;
+            case tokUGEQ:
+                printf2("jc\n"); // ==jb
+                break;
+            case tokULess:
+                printf2("jnc\n"); // ==jae
+                break;
+            case tokUGreater:
+                printf2("jbe\n");
+                break;
+            case '<':
+                printf2("jnc\n"); // Greater-Equal, use jae==jnc
+                break;
+            case '>':
+                printf2("jbe\n"); //Less-Equal, use lbe
+                break;
+                
+                
+            default: 
+                error("");
+                return;
+            }
+
+
+
+
         } else {
             printf2("tsub r%d, r%d, r%d\n", ral, ral, rbl);
             printf2("ld r%d, 0\n", rcl); //preload low zero
+
+            switch(node->token) {
+            case tokEQ:
+                printf2("jnz\n"); // ==jne
+                break;
+            case tokNEQ:
+                printf2("jz\n"); // ==je
+                break;
+            case tokLEQ:
+                printf2("jg\n");
+                break;
+            case tokGEQ:
+                printf2("jl\n");
+                break;
+            case tokULEQ:
+                printf2("ja\n");
+                break;
+            case tokUGEQ:
+                printf2("jc\n"); // ==jb
+                break;
+            case tokULess:
+                printf2("jnc\n"); // ==jae
+                break;
+            case tokUGreater:
+                printf2("jbe\n");
+                break;
+            case '<':
+                printf2("jge\n");
+                break;
+            case '>':
+                printf2("jle\n");
+                break;
+                
+                
+            default: 
+                error("");
+                return;
+            }
+
         }
 
-        switch(node->token) {
-        case tokEQ:
-            printf2("jnz\n"); // ==jne
-            break;
-        case tokNEQ:
-            printf2("jz\n"); // ==je
-            break;
-        case tokLEQ:
-            printf2("jg\n");
-            break;
-        case tokGEQ:
-            printf2("jl\n");
-            break;
-        case tokULEQ:
-            printf2("ja\n");
-            break;
-        case tokUGEQ:
-            printf2("jc\n"); // ==jb
-            break;
-        case tokULess:
-            printf2("jnc\n"); // ==jae
-            break;
-        case tokUGreater:
-            printf2("jbe\n");
-            break;
-        case '<':
-            printf2("jge\n");
-            break;
-        case '>':
-            printf2("jle\n");
-            break;
-            
-            
-        default: 
-            error("");
-            return;
-        }
-
+        GenNumLabel(labelTrue);
         printf2("ld r%d, 1\n", rcl);
 
         printf2("; --- end of comparison:\n");
@@ -387,6 +487,12 @@ void emit_tokCall(Node * node) {
     }
     printf2(" ; pushed %d args\n", n_args);
 
+    if(n_args == 0) {
+        printf2(" ; no args, reserve 2 bytes for retval\n");
+        printf2("push a\n");
+        printf2("push a\n");
+        n_args = 1;
+    }
     if(kid->token == tokIdent && kid->suppress_emit) {
         emit_ldd_x_with_ident(kid->value);
         printf2("jmp\n");
@@ -401,12 +507,13 @@ void emit_tokCall(Node * node) {
         printf2("jmp\n");
     }
 
-    printf2("mov a,r0\n");
+    printf2("pop a\n");
     printf2("mov r%d,a\n", node->target_register);
-    printf2("mov a,r1\n");
+    printf2("pop a\n");
     printf2("mov r%d,a\n", node->target_register+1);
 
-    adjust_sp(n_args*2);
+    adjust_sp((n_args-1)*2);
+
 }
 
 
@@ -504,6 +611,22 @@ void emit_tokIdent(Node * node) {
     printf2("mov r%d, a\n", node->target_register);
     printf2("mov a, xh\n");
     printf2("mov r%d, a\n", node->target_register+1);
+}
+
+void emit_convType(Node * node) {
+    if(abs(node->size) == 2) {
+        if(node->token == tokInt) {
+            if(node->kids->size < 0) {
+                printf2(" ; XXX DO PROPER SIGN EXTEND HERE\n");
+                printf2("ld a, 0x00\n");
+            } else {
+                printf2("ld a, 0x00\n");
+            }
+        }
+        printf2("mov r%d, a\n", node->target_register+1);
+    } else {
+        printf2(" ; skip 2->1 conv\n");
+    }
 }
 
 void emit_tokAssign(Node * node) {
@@ -759,12 +882,55 @@ void opt_deriveNumSizes(Node ** node, Node ** head) {
     Node * kid = (*node)->kids;
     while(kid) {
         if(kid->token == tokNumInt || kid->token == tokNumUint) {
+            printf2(" ; !! Optimize NumInt/NumUint size!\n");
             kid->size = 2;//(*node)->size;
         }
         kid = kid->next;
     }
 }
 
+void opt_replaceMulDiv(Node ** node, Node ** head) {
+    char new_token = 0;
+    if((*node)->token == '*') {
+        new_token = tokLShift;
+    }
+
+    if((*node)->token == tokUDiv || (*node)->token == '/') {
+        new_token = tokRShift;
+    }
+
+    // if second kid is constant int
+    if(new_token) {
+        if((*node)->kids->next->token == tokNumInt || (*node)->kids->next->token == tokNumUint) {
+            if((*node)->kids->next->value == 2) {
+                (*node)->token = new_token;
+                (*node)->kids->next->value = 1;
+            }
+        }
+    }
+
+}
+
+void opt_insertConvs(Node ** node, Node ** head) {
+    Node ** kid = &((*node)->kids);
+    if(abs((*node)->size) == 2) { // conv to 1-byte not needed, will happen automatically
+        if((*node)->token == tokInt) return;
+
+        while((*kid)) {
+            if((*kid)->size != (*node)->size) {
+                Node * moving_node = (*kid);
+                Node * conv_node = node_create(tokInt, 0, (*node)->size);
+
+                
+                *kid = conv_node;
+                conv_node->next = moving_node->next;
+                moving_node->next = NULL;
+                conv_node->kids = moving_node;
+            }
+            kid = &((*kid)->next);
+        }
+    }
+}
 
 
 int ok_for_imm(Node * node) {

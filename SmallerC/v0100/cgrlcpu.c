@@ -107,6 +107,25 @@ Fix for local offsets: (@+x) = [m+x+1]
 
 */
 
+int is_comparison(int token) {
+  switch(token) {
+    case tokEQ:
+    case tokNEQ:
+    case tokLEQ:
+    case tokGEQ:
+    case tokULEQ:
+    case tokUGEQ:
+    case tokULess:
+    case tokUGreater:
+    case '>':
+    case '<':
+      return 1;
+    default: 
+      return 0;
+  }
+} 
+
+
 unsigned char low(int v) { return v&0xff; }
 unsigned char high(int v) { return (v>>8)&0xff; }
 
@@ -178,8 +197,8 @@ void adjust_sp(int n) {
         op2 = "sbc";
     }
 
-
-  printf2(adjust_sp_procedure, n, low(n), op, high(n), op);
+  printf2("; XXX adjust can be optimized inlining pop's and push's\n");
+  printf2(adjust_sp_procedure, n, low(n), op, high(n), op2);
 
 }
 
@@ -328,7 +347,7 @@ void gen_op_info() {
   add_token_info(tokIdent      ,  "tokIdent"        ,  0, -1, emit_tokIdent);
   add_token_info(tokVoid       ,  "tokVoid"         ,  1, -1, emit_tokVoid );
   add_token_info(tokChar       ,  "tokChar"         ,  1, -1, emit_not_impl);
-  add_token_info(tokInt        ,  "tokInt"          ,  1, -1, emit_not_impl);
+  add_token_info(tokInt        ,  "tokInt"          ,  1, -1, emit_convType);
   add_token_info(tokReturn     ,  "tokReturn"       ,  1, -1, emit_tokReturn);  //-
   add_token_info(tokGoto       ,  "tokGoto"         ,  1, -1, emit_tokGoto);
   add_token_info(tokIf         ,  "tokIf"           ,  1, -1, emit_tokIf   );   //-
@@ -484,6 +503,10 @@ STATIC void GenAssignRegistersToTree(Node * root, int r_idx) {
   mark_reg_use(r_idx,1);
   mark_reg_use(r_idx+1,1);
 
+  if(is_comparison(root->token)) { //free space for result, should be different because preload in jump instructions
+    r_idx += 2;
+  }
+
   while(kid) {
     GenAssignRegistersToTree(kid, r_idx);
     kid = kid->next;
@@ -516,10 +539,15 @@ void add_optimizer(void (*opt)(Node **, Node **)) {
 
 void init_optimizers() {
   optimizers = NULL;
+
+  add_optimizer(opt_insertConvs);
+
   add_optimizer(opt_callWithIdent);
   add_optimizer(opt_suppressDereferences);
 
   add_optimizer(opt_replaceTokensWithCalls);
+
+  add_optimizer(opt_replaceMulDiv);
 
   add_optimizer(opt_replacePostOps);
   add_optimizer(opt_replaceAssignArith);
@@ -876,10 +904,17 @@ STATIC void GenFxnProlog(void) {
 STATIC void GenFxnEpilog(void) {
   puts2(" ; epilog");
 
+  puts2("mov a,r0");
+  puts2("mov [m+5],a");
+  puts2("mov a,r1");
+  puts2("mov [m+6],a");
+
   gen_pop_used_regs();
   adjust_sp(-CurFxnMinLocalOfs);
-  puts2("movsm");
+//  puts2("movsm");
   puts2("pop mx");
+
+
 
   puts2("jmp");
   puts2(" ; epilog end\n");
