@@ -43,13 +43,14 @@ void hexdump(uint8_t * data, uint16_t length) {
 typedef struct map {
   char key[32];
   int value;
+  int m;
   struct map * next;
 } map_t;
 
 
 map_t * kw_map = NULL;
 
-void count(char * key) {
+void count(char * key, int m) {
   map_t ** e = (&kw_map);
   while((*e)) {
     if(!strcmp((*e)->key, key)) break;
@@ -61,6 +62,7 @@ void count(char * key) {
   } else {
     (*e) = (map_t *)malloc(sizeof(map_t));
     (*e)->value = 1;
+    (*e)->m = m;
     strcpy((*e)->key, key);
     (*e)->next = NULL;
   }
@@ -68,9 +70,12 @@ void count(char * key) {
 
 void print_counts() {
   map_t * e = kw_map;
-  printf("Count:\n");
+  uint16_t sz = 0;
+  printf("\nOp stats:\nN\tsz\tname\n");
   while(e) {
-    printf("\t%s:\t%d\n", e->key, e->value);
+    printf("%d\t%d\t%s\n", e->value, e->value*e->m, e->key);
+    sz += e->value*e->m;
     e = e->next;
   }
+  printf("Total ops: %d bytes\n", sz);
 }

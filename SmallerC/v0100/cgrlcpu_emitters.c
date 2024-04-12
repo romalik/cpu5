@@ -1115,7 +1115,7 @@ Node * gen_replaceAsignArith_subtree(Node * node, Node ** head) {
     if(node->token != tokInc && node->token != tokDec) {
         node_add_kid(arith_op, node->kids->next); //second kid goes to arith_op
     } else {
-        node_add_kid(arith_op, node_create(tokNumInt, 1, 0)); //second kid goes to arith_op
+        node_add_kid(arith_op, node_create(tokNumInt, 1, node->size)); //second kid goes to arith_op
     }
     Node * unary_star = node_create(tokUnaryStar, node->value, node->size);
     node_add_kid(unary_star, node->kids); //reuse target

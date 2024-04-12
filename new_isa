@@ -126,3 +126,13 @@ jumps:
 
 Three address code:
 alu_op r_dest, r_src, r_src
+
+target 3300
+
+total 8494
+
+push-pop 700
+adjust sp 528
+                  =7266
+alu_t 1228 (-614 if 2 bytes vs 4)
+                  ~6700

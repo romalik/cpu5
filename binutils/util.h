@@ -14,7 +14,7 @@ int find_keyword(char * kw[], char * str);
 
 void hexdump(uint8_t * data, uint16_t length);
 
-void count(char * key);
+void count(char * key, int m);
 
 void print_counts();
 

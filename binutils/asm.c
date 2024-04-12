@@ -87,7 +87,7 @@ char expect_arg_size = 0;
 
 
 void generate_nop() {
-  count("nop");
+  count("nop", 1);
 
   emit(0x03);
 }
@@ -136,13 +136,13 @@ void generate_mov() {
   if(dest_type == 0 && dest == 0x0f) { // A<-...
     if(src_type == 0) { //A<-reg
       opcode = 0xE0 | src;
-      count("mov");
+      count("mov", 1);
     } else if(src_type == 1) { //A<-mreg
       opcode = 0x80 | (src&0x1f);
-      count("mov_mr");
+      count("mov_mr", 1);
     } else if(src_type == 2) { //A<-m+imm
       opcode = 0x40 | (src&0x1f);
-      count("mov_imm");
+      count("mov_imm", 1);
     } else {
       panic("Bad mov arg type");
     }
@@ -150,13 +150,13 @@ void generate_mov() {
   } else if(src_type == 0 && src == 0x0f) { // A->...
     if(dest_type == 0) { //A->reg
       opcode = 0xD0 | dest;
-      count("mov");
+      count("mov", 1);
     } else if(dest_type == 1) { //A->mreg
       opcode = 0x60 | (dest&0x1f);
-      count("mov_mr");
+      count("mov_mr", 1);
     } else if(dest_type == 2) { //A->m+imm
       opcode = 0x20 | (dest&0x1f);
-      count("mov_imm");
+      count("mov_imm", 1);
     } else {
       panic("Bad mov arg type");
     }
@@ -172,14 +172,14 @@ void generate_push() {
   get_next_token();
   if(!strcmp(token, "xm")) {
     emit(0xF0);
-    count("push_xm");
+    count("push_xm", 1);
   } else {
     reg = find_keyword(regs, token);
 
     if(reg != 0x0f) {
       panic("Try push other than A reg");
     }
-    count("push");
+    count("push", 1);
 
     emit(0xD9);
   }
@@ -190,7 +190,7 @@ void generate_pop() {
   get_next_token();
   if(!strcmp(token, "mx")) {
     emit(0xF1);
-    count("pop_mx");
+    count("pop_mx", 1);
   } else {
     reg = find_keyword(regs, token);
 
@@ -198,7 +198,7 @@ void generate_pop() {
       panic("Try pop other than A reg");
     }
 
-    count("pop");
+    count("pop", 1);
 
     emit(0xE9);
   }
@@ -215,13 +215,13 @@ void generate_ld() {
       panic("Try ld other than A reg");
     }
 
-    count("ld_a");
+    count("ld_a", 2);
     emit(0xEC);
     expect_arg_n = 1;
     expect_arg_size = 1;
 
   } else if(dest_type == 1) { // ld r#, #
-    count("ld_r");
+    count("ld_r", 3);
     emit(0xDF);
     emit(dest);
     expect_arg_n = 1;
@@ -242,7 +242,7 @@ void generate_ldd() {
     panic("Bad ldd destination");
   }
 
-  count("ldd");
+  count("ldd", 3);
 
   expect_arg_n = 1;
   expect_arg_size = 2;
@@ -254,11 +254,11 @@ void generate_cmp() {
 
 void generate_alu(uint8_t arg) {
   emit(0xC0 | arg);
-  count("alu");
+  count("alu", 1);
 }
 
 void generate_t_alu(uint8_t arg) {
-  count("alu_t");
+  count("alu_t", 4);
 
   emit(0xB0 | arg);
   uint8_t ra, rb, rd;
@@ -282,7 +282,7 @@ void generate_t_alu(uint8_t arg) {
 
 
 void generate_jmp(uint8_t arg) {
-  count("jmp");
+  count("jmp", 1);
   emit(0xA0 | arg);
 }
 
@@ -307,25 +307,25 @@ void gen_instruction() {
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
   } else if(!strcmp(token, "x++")) {
-    count("x++");
+    count("x++", 1);
     emit(0x07);
   } else if(!strcmp(token, "hlt")) {
-    count("hlt");
+    count("hlt", 1);
     emit(0x00);
   } else if(!strcmp(token, "ei")) {
-    count("ei");
+    count("ei", 1);
     emit(0x02);
   } else if(!strcmp(token, "di")) {
-    count("di");
+    count("di", 1);
     emit(0x01);
   } else if(!strcmp(token, "iret")) {
-    count("iret");
+    count("iret", 1);
     emit(0x0f);
   } else if(!strcmp(token, "movms")) {
-    count("movms");
+    count("movms", 1);
     emit(0xef);
   } else if(!strcmp(token, "movsm")) {
-    count("movsm");
+    count("movsm", 1);
     emit(0xee);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
