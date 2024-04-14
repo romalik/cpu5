@@ -1,5 +1,11 @@
 #include "tree.h"
 
+#define R(x) (((x)&0xff00)>>8),(char)((x)&0xff)
+
+#define to_R(t,x) (((t)<<8)|((x)&0xff))
+
+#define NO_REG to_R('z',0)
+
 void emit_not_impl(Node * node) {
     printf2(" error !! not_impl \"%s\"\n", get_token_name(node->token));
 }
@@ -10,9 +16,9 @@ void emit_tokNumInt(Node * node) {
     }
 
     printf2(" ; possible optimization - pass size\n");
-    printf2("ld r%d, %d\n", node->target_register, low(node->value));
+    printf2("ld %c%d, %d\n", R(node->target_register), low(node->value));
     if(abs(node->size) > 1) {
-        printf2("ld r%d, %d\n", node->target_register+1, high(node->value));
+        printf2("ld %c%d, %d\n", R(node->target_register+1), high(node->value));
     }
 }
 
@@ -21,14 +27,14 @@ void emit_tokGoto(Node * node) {
 }
 
 void emit_tokIf(Node * node) {
-    if(node->kids->target_register != 0) {
+    if(node->kids->target_register != to_R('r',0)) {
         error("tokIf not on top!\n");
     }
     
     if(abs(node->kids->size) == 1) {
         printf2(" ; !!!!! XXX QUICK HACK\n");
-        printf2("ld a,0\n");
-        printf2("mov r1,a\n");
+        printf2("ld A,0\n");
+        printf2("mov r1,A\n");
     }
 
     if(node->token == tokIfNot) {
@@ -53,11 +59,11 @@ void emit_tokBool(Node * node) {
     printf2("; XXX Optimize size!\n");
 
     if(abs(node->size) == 2) {
-        printf2("tor r%d, r%d, r%d\n", rcl, ral, rah);
-        printf2("ttest r%d, r%d, r%d\n", rcl, rcl, rcl);
-        printf2("ld r%d, 0\n", rch);
+        printf2("tor %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(rah));
+        printf2("ttest %c%d, %c%d, %c%d\n", R(rcl), R(rcl), R(rcl));
+        printf2("ld %c%d, 0\n", R(rch));
     } else {
-        printf2("ttest r%d, r%d, r%d\n", rcl, ral, ral);
+        printf2("ttest %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(ral));
     }
 
     printf2(";;;;;;");
@@ -74,44 +80,44 @@ void emit_tokShift(Node * node) {
 
         if(k == 8) {
                 if(node->token == tokLShift) {
-                    printf2("mov a, r%d\n", node->kids->target_register);
-                    printf2("mov r%d, a\n", node->target_register+1);
-                    printf2("ld a,0\n");
-                    printf2("mov r%d, a\n", node->target_register);
+                    printf2("mov A, %c%d\n", R(node->kids->target_register));
+                    printf2("mov %c%d, A\n", R(node->target_register+1));
+                    printf2("ld A,0\n");
+                    printf2("mov %c%d, A\n", R(node->target_register));
                 } else {
-                    printf2("mov a, r%d\n", node->kids->target_register+1);
-                    printf2("mov r%d, a\n", node->target_register);
-                    printf2("ld a,0\n");
-                    printf2("mov r%d, a\n", node->target_register+1);
+                    printf2("mov A, %c%d\n", R(node->kids->target_register+1));
+                    printf2("mov %c%d, A\n", R(node->target_register));
+                    printf2("ld A,0\n");
+                    printf2("mov %c%d, A\n", R(node->target_register+1));
                 }
         } else {
             for(int i = 0; i<k; i++) {
                 if(node->token == tokLShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
-                        printf2("tshlc r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
+                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshlc %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshl r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
                     } else {
                         error("");
                     }
 
                 } else if(node->token == tokRShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
-                        printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
+                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
                     } else {
                         error("");
                     }
 
                 } else if(node->token == tokURShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshr r%d, r%d, r%d\n", node->target_register+1, node->kids->target_register+1, 0);
-                        printf2("tshrc r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
+                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshr r%d, r%d, r%d\n", node->target_register, node->kids->target_register, 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
                     } else {
                         error("");
                     }
@@ -187,10 +193,10 @@ void emit_alu_op(Node * node) {
 
     if(!is_cmp) { //alu operations
 
-        printf2("t%s r%d, r%d, r%d\n", first_op, rcl, ral, rbl);
+        printf2("t%s %c%d, %c%d, %c%d\n", first_op, R(rcl), R(ral), R(rbl));
 
         if(size == 2) {
-            printf2("t%s r%d, r%d, r%d\n", second_op, rch, rah, rbh);
+            printf2("t%s %c%d, %c%d, %c%d\n", second_op, R(rch), R(rah), R(rbh));
         }
     } else {
 
@@ -199,12 +205,12 @@ void emit_alu_op(Node * node) {
 
         int labelTrue = LabelCnt++;
         int labelAfter = LabelCnt++;
-        printf2("ldd x, $"); GenPrintNumLabel(labelAfter); puts2("");
+        printf2("ldd X, $"); GenPrintNumLabel(labelAfter); puts2("");
 
         if(size == 2) {
-            printf2("tsub r%d, r%d, r%d\n", rah, rah, rbh);
-            printf2("ld r%d, 0\n", rch); //preload high zero for size==2
-            printf2("ld r%d, 0\n", rcl); //preload low zero
+            printf2("tsub %c%d, %c%d, %c%d\n", R(rah), R(rah), R(rbh));
+            printf2("ld %c%d, 0\n", R(rch)); //preload high zero for size==2
+            printf2("ld %c%d, 0\n", R(rcl)); //preload low zero
 
 
             /* remove equals! Should be tested on low byte*/
@@ -214,43 +220,43 @@ void emit_alu_op(Node * node) {
                 break;
             case tokLEQ:
                 printf2("jg\n");
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jl\n");
                 break;
             case tokGEQ:
                 printf2("jl\n");
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jg\n");
                 break;
             case tokULEQ:
                 printf2("ja\n");
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jc\n"); // ==jb
 
                 break;
             case tokUGEQ:
                 printf2("jc\n"); // ==jb
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("ja\n");
                 break;
             case tokULess:
                 printf2("ja\n"); // should be jae, remove equal
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jc\n"); // ==jb
                 break;
             case tokUGreater:
                 printf2("jc\n"); // == jb, should be jbe, remove e
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("ja\n");
                 break;
             case '<':
                 printf2("jg\n"); //should be jge
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jl\n");
                 break;
             case '>':
                 printf2("jl\n"); //should be jle
-                printf2("ldd x, $"); GenPrintNumLabel(labelTrue); puts2("");
+                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
                 printf2("jg\n");
                 break;
 
@@ -259,8 +265,8 @@ void emit_alu_op(Node * node) {
                 return;
             }
 
-            printf2("tsub r%d, r%d, r%d\n", ral, ral, rbl);
-            printf2("ldd x, $"); GenPrintNumLabel(labelAfter); puts2("");
+            printf2("tsub %c%d, %c%d, %c%d\n", R(ral), R(ral), R(rbl));
+            printf2("ldd X, $"); GenPrintNumLabel(labelAfter); puts2("");
 
             switch(node->token) {
             case tokEQ:
@@ -301,8 +307,8 @@ void emit_alu_op(Node * node) {
 
 
         } else {
-            printf2("tsub r%d, r%d, r%d\n", ral, ral, rbl);
-            printf2("ld r%d, 0\n", rcl); //preload low zero
+            printf2("tsub %c%d, %c%d, %c%d\n", R(ral), R(ral), R(rbl));
+            printf2("ld %c%d, 0\n", R(rcl)); //preload low zero
 
             switch(node->token) {
             case tokEQ:
@@ -345,7 +351,7 @@ void emit_alu_op(Node * node) {
         }
 
         GenNumLabel(labelTrue);
-        printf2("ld r%d, 1\n", rcl);
+        printf2("ld %c%d, 1\n", R(rcl));
 
         printf2("; --- end of comparison:\n");
         GenNumLabel(labelAfter);
@@ -367,23 +373,23 @@ void emit_tokUnaryAlu(Node * node) {
 
     char * op;
     if(node->token == '~') {
-        printf2("tnot r%d, r%d, r%d\n", rcl, ral, ral);
-        printf2("tnot r%d, r%d, r%d\n", rch, rah, rah);
+        printf2("tnot %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(ral));
+        printf2("tnot %c%d, %c%d, %c%d\n", R(rch), R(rah), R(rah));
     } else if(node->token == tokUnaryMinus) {
         if(abs(node->size) == 2) {
             printf2(" ;; optimize this\n");
-            printf2("mov a, r%d\n", ral);
+            printf2("mov A, %c%d\n", R(ral));
             printf2("not\n");
             printf2("inc\n");
-            printf2("mov r%d, a\n", rcl);
-            printf2("ld a,0\n");
-            printf2("mov b,a\n");
-            printf2("mov a, r%d\n", rah);
+            printf2("mov %c%d, A\n", R(rcl));
+            printf2("ld A,0\n");
+            printf2("mov B,A\n");
+            printf2("mov A, %c%d\n", R(rah));
             printf2("adc\n");
-            printf2("mov r%d, a\n", rch);
+            printf2("mov %c%d, A\n", R(rch));
 
         } else {
-            printf2("tneg r%d, r%d, r%d\n", rcl, ral, ral);
+            printf2("tneg %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(ral));
         }
     } else {
         error("Unknown unary alu op\n");
@@ -423,18 +429,25 @@ void convert_signed_char_to_signed_int(int r_src, int r_target) {
 }
 
 void emit_tokReturn(Node * node) {
-    if(node->target_register != 0 || node->kids->target_register != 0 || node->kids->next != NULL) {
+    if(node->target_register != to_R('r',0) || node->kids->next != NULL) {
         error("Internal Error: Unexpected tokReturn contents\n");
     }
 
+    if(node->kids->target_register != to_R('r',0)) {
+        printf2("mov a,%c%d\n", R(node->kids->target_register));
+        printf2("mov %c%d,a\n", R(node->target_register));
+        printf2("mov a,%c%d\n", R(node->kids->target_register+1));
+        printf2("mov %c%d,a\n", R(node->target_register+1));
+    }
+
     if(node->kids->size == 1) {
-        printf2("ld a,0\n");
-        printf2("mov r%d, a\n", node->target_register + 1);
+        printf2("ld A,0\n");
+        printf2("mov %c%d, A\n", R(node->target_register + 1));
     } else if(node->kids->size == -1) {
         convert_signed_char_to_signed_int(0,0);
         printf2("; !!!!!!!!!!!! THIS IS WRONG, WILL LOOSE SIGN!\n");
-        printf2("ld a,0\n");
-        printf2("mov r%d, a\n", node->target_register + 1);
+        printf2("ld A,0\n");
+        printf2("mov %c%d, A\n", R(node->target_register + 1));
     }
 
     /* pass */
@@ -443,7 +456,7 @@ void emit_tokReturn(Node * node) {
 
 
 void emit_tokSequential(Node * node) {
-    if(node->target_register != 0 || node->kids->target_register != 0) {
+    if(node->target_register != to_R('r',0) || node->kids->target_register != to_R('r',0)) {
         error("Internal Error: Unexpected tokReturn contents\n");
     }
     /* pass */
@@ -453,7 +466,7 @@ void emit_tokSequential(Node * node) {
 
 void emit_ldd_x_with_ident(int ident) {
     char *p = IdentTable + ident;
-    printf2("ldd x, $%s%s\n", isdigit(*p)?"L":"", p);
+    printf2("ldd X, $%s%s\n", isdigit(*p)?"L":"", p);
 }
 
 void emit_tokCall(Node * node) {
@@ -464,22 +477,22 @@ void emit_tokCall(Node * node) {
     int n_args = 0;
     while(kid->next) {
         if(abs(kid->size) == 2) {
-            printf2("mov a, r%d\n", kid->target_register + 1);
-            printf2("push a\n");
-            printf2("mov a, r%d\n", kid->target_register);
-            printf2("push a\n");
+            printf2("mov A, %c%d\n", R(kid->target_register + 1));
+            printf2("push A\n");
+            printf2("mov A, %c%d\n", R(kid->target_register));
+            printf2("push A\n");
         } else {
             if(kid->size == 1) {
-                printf2("ld a,0\n");
-                printf2("push a\n");
-                printf2("mov a, r%d\n", kid->target_register);
-                printf2("push a\n");
+                printf2("ld A,0\n");
+                printf2("push A\n");
+                printf2("mov A, %c%d\n", R(kid->target_register));
+                printf2("push A\n");
             } else {
                 convert_signed_char_to_signed_int(kid->target_register, kid->target_register);
-                printf2("mov a, r%d\n", kid->target_register + 1);
-                printf2("push a\n");
-                printf2("mov a, r%d\n", kid->target_register);
-                printf2("push a\n");
+                printf2("mov A, %c%d\n", R(kid->target_register + 1));
+                printf2("push A\n");
+                printf2("mov A, %c%d\n", R(kid->target_register));
+                printf2("push A\n");
             }
         }
         kid = kid->next;
@@ -489,8 +502,8 @@ void emit_tokCall(Node * node) {
 
     if(n_args == 0) {
         printf2(" ; no args, reserve 2 bytes for retval\n");
-        printf2("push a\n");
-        printf2("push a\n");
+        printf2("push A\n");
+        printf2("push A\n");
         n_args = 1;
     }
     if(kid->token == tokIdent && kid->suppress_emit) {
@@ -499,18 +512,18 @@ void emit_tokCall(Node * node) {
     } else {
 
         printf2(" ; Call not by tokIdent - load address\n");
-        printf2("mov a, r%d\n", kid->target_register);
-        printf2("mov xl, a\n", kid->target_register);
+        printf2("mov A, %c%d\n", R(kid->target_register));
+        printf2("mov XL, A\n", R(kid->target_register));
 
-        printf2("mov a, r%d\n", kid->target_register+1);
-        printf2("mov xh, a\n", kid->target_register+1);
+        printf2("mov A, %c%d\n", R(kid->target_register+1));
+        printf2("mov XH, A\n", R(kid->target_register+1));
         printf2("jmp\n");
     }
 
-    printf2("pop a\n");
-    printf2("mov r%d,a\n", node->target_register);
-    printf2("pop a\n");
-    printf2("mov r%d,a\n", node->target_register+1);
+    printf2("pop A\n");
+    printf2("mov %c%d,A\n", R(node->target_register));
+    printf2("pop A\n");
+    printf2("mov %c%d,A\n", R(node->target_register+1));
 
     adjust_sp((n_args-1)*2);
 
@@ -528,7 +541,11 @@ void emit_tokLocalOfs(Node * node) {
         error("Bad size for tokLocalOfs!\n");
     }
 
-    off = (node->value + 1); // +1 because of SP->BP store features
+    if(node->value <= 0) {
+        off = (node->value - 15); // -15 because of SP->BP store features
+    } else {
+        off = (node->value + 1); // +1 because of SP->BP store features
+    }
 
     printf2(" ; localOfs: %d, fix for [m+off] to %d\n", node->value, off);
 
@@ -538,25 +555,34 @@ void emit_tokLocalOfs(Node * node) {
         op2 = "sbc";
     }
 
-    printf2("ld a, %d\n", low(off));
-    printf2("mov b,a\n");
-    printf2("mov a,ml\n");
+    printf2("ld A, %d\n", low(off));
+    printf2("mov B,A\n");
+    printf2("mov A,ML\n");
     printf2("%s\n", op);
-    printf2("mov r%d,a\n", node->target_register);
+    printf2("mov %c%d,A\n", R(node->target_register));
 
-    printf2("ld a, %d\n", high(off));
-    printf2("mov b,a\n");
-    printf2("mov a,mh\n");
+    printf2("ld A, %d\n", high(off));
+    printf2("mov B,A\n");
+    printf2("mov A,MH\n");
     printf2("%s\n", op2);
-    printf2("mov r%d,a\n", node->target_register+1);
+    printf2("mov %c%d,A\n", R(node->target_register+1));
 
 
 }
 
 void emit_inc_x() {
     printf2(" ; emit_inc_x()\n");
-    printf2("x++\n");
+    printf2("X++\n");
 
+}
+int off_to_reg(int off) {
+    int s_reg = 0;
+    if(off <= 0) {
+        s_reg = to_R('l',off+1);
+    } else {
+        s_reg = to_R('a',off-4);
+    }
+    return s_reg;
 }
 
 void emit_tokUnaryStar(Node * node) {
@@ -568,49 +594,51 @@ void emit_tokUnaryStar(Node * node) {
 
     int off = 0;
     int use_m_off = 0;
+    int s_reg = 0;
 
     
     if(node->kids->token == tokIdent && node->kids->suppress_emit) {
         //we deref ident
         emit_ldd_x_with_ident(node->kids->value);
-        printf2("mov a, [x]\n"); 
+        printf2("mov A, [X]\n"); 
     } else if(node->kids->token == tokLocalOfs && node->kids->suppress_emit) {
-        off = node->kids->value + 1; // +1 because of SP->BP store features
+        off = node->kids->value;
+
+        s_reg = off_to_reg(off);
         use_m_off = 1;
-        printf2("mov a, [m%+d]\n", off); 
+        printf2("mov A, %c%d\n", R(s_reg)); 
     } else {
         //we assign to something else
         printf2(" ; deref from non-ident non-local tok : %s suppress %d\n", get_token_name(node->kids->token), node->kids->suppress_emit);
-        printf2("mov a, r%d\n", kid->target_register);
-        printf2("mov xl, a\n");
-        printf2("mov a, r%d\n", kid->target_register + 1);
-        printf2("mov xh, a\n");
-        printf2("mov a, [x]\n");
+        printf2("mov A, %c%d\n", R(kid->target_register));
+        printf2("mov XL, A\n");
+        printf2("mov A, %c%d\n", R(kid->target_register + 1));
+        printf2("mov XH, A\n");
+        printf2("mov A, [X]\n");
     }
 
-    printf2("mov r%d, a\n", node->target_register);
+    printf2("mov %c%d, A\n", R(node->target_register));
 
     if(abs(node->size) == 2) {
 
         if(use_m_off) {
-            off++;
-            printf2("mov a, [m%+d]\n", off); 
+            printf2("mov A, %c%d\n", R(s_reg+1)); 
         } else {
             emit_inc_x();
-            printf2("mov a, [x]\n");
+            printf2("mov A, [X]\n");
         }
 
-        printf2("mov r%d, a\n", node->target_register+1);
+        printf2("mov %c%d, A\n", R(node->target_register+1));
     }
 }
 
 void emit_tokIdent(Node * node) {
     emit_ldd_x_with_ident(node->value);
 
-    printf2("mov a, xl\n");
-    printf2("mov r%d, a\n", node->target_register);
-    printf2("mov a, xh\n");
-    printf2("mov r%d, a\n", node->target_register+1);
+    printf2("mov A, XL\n");
+    printf2("mov %c%d, A\n", R(node->target_register));
+    printf2("mov A, XH\n");
+    printf2("mov %c%d, A\n", R(node->target_register+1));
 }
 
 void emit_convType(Node * node) {
@@ -618,12 +646,12 @@ void emit_convType(Node * node) {
         if(node->token == tokInt) {
             if(node->kids->size < 0) {
                 printf2(" ; XXX DO PROPER SIGN EXTEND HERE\n");
-                printf2("ld a, 0x00\n");
+                printf2("ld A, 0x00\n");
             } else {
-                printf2("ld a, 0x00\n");
+                printf2("ld A, 0x00\n");
             }
         }
-        printf2("mov r%d, a\n", node->target_register+1);
+        printf2("mov %c%d, A\n", R(node->target_register+1));
     } else {
         printf2(" ; skip 2->1 conv\n");
     }
@@ -649,41 +677,41 @@ void emit_tokAssign(Node * node) {
     if(node->kids->token == tokIdent && node->kids->suppress_emit) {
         //we assign to ident
         emit_ldd_x_with_ident(node->kids->value);
-        printf2("mov a, r%d\n", rvl);
-        printf2("mov [x], a\n");
+        printf2("mov A, %c%d\n", R(rvl));
+        printf2("mov [X], A\n");
     } else if(node->kids->token == tokLocalOfs && node->kids->suppress_emit) {
-        off = node->kids->value + 1; // +1 because of SP->BP store features
+        off = node->kids->value; // +1 because of SP->BP store features
         use_m_off = 1;
-        printf2("mov a, r%d\n", rvl);
-        printf2("mov [m%+d], a\n", off); 
+        printf2("mov A, %c%d\n", R(rvl));
+        printf2("mov %c%d, A\n", R(off_to_reg(off))); 
     } else {
         //we assign to something else
         printf2(" ; assign to non-ident non-local lvalue\n");
-        printf2("mov a, r%d\n", ral);
-        printf2("mov xl, a\n");
-        printf2("mov a, r%d\n", rah);
-        printf2("mov xh, a\n");
-        printf2("mov a, r%d\n", rvl);
-        printf2("mov [x], a\n");
+        printf2("mov A, %c%d\n", R(ral));
+        printf2("mov XL, A\n");
+        printf2("mov A, %c%d\n", R(rah));
+        printf2("mov XH, A\n");
+        printf2("mov A, %c%d\n", R(rvl));
+        printf2("mov [X], A\n");
     }
 
 
     printf2(" ; load to retval\n");
-    printf2("mov r%d, a\n", node->target_register);
+    printf2("mov %c%d, A\n", R(node->target_register));
 
     if(abs(node->size) == 2) {
         if(use_m_off) {
             off++;
-            printf2("mov a, r%d\n", rvh);
-            printf2("mov [m%+d], a\n", off); 
+            printf2("mov A, %c%d\n", R(rvh));
+            printf2("mov %c%d, A\n", R(off_to_reg(off))); 
         } else {
             emit_inc_x();
-            printf2("mov a, r%d\n", rvh);
-            printf2("mov [x], a\n");
+            printf2("mov A, %c%d\n", R(rvh));
+            printf2("mov [X], A\n");
         }
 
         printf2(" ; load to retval\n");
-        printf2("mov r%d, a\n", node->target_register+1);
+        printf2("mov %c%d, A\n", R(node->target_register+1));
     }
 
 }
@@ -933,10 +961,10 @@ void opt_insertConvs(Node ** node, Node ** head) {
 }
 
 
-int ok_for_imm(Node * node) {
+int ok_for_reg_addr(Node * node) {
     if(node->token == tokLocalOfs) {
-        int off = node->value + 1; // SP->BP features
-        if(off < -16 || off > 14) { //14 because of 2-byte args
+        int off = node->value;
+        if(off < -128 || off > 127) { 
             return 0;
         } else {
             return 1;
@@ -950,15 +978,34 @@ void opt_suppressDereferences(Node ** node, Node ** head) {
         if(!(*node)->kids || !(*node)->kids->next) {
             error("Too few kids for assign!\n");
         }
-        if((*node)->kids->token == tokIdent || ok_for_imm((*node)->kids))  { // XXX add tokNumInt for constant addrs
+        if((*node)->kids->token == tokIdent)  { // XXX add tokNumInt for constant addrs
             (*node)->kids->suppress_emit = 1;
         }
 
+        /* first kid is local ofs, second kid has no register assigned */
+        if(ok_for_reg_addr((*node)->kids)  && (*node)->kids->next->target_register == NO_REG) {
+            printf2(" ; replace assign with kid->next with correct regs\n");
+            Node * tmp = (*node);
+            (*node)->kids->next->target_register = off_to_reg((*node)->kids->value);
+            *node = (*node)->kids->next;
+            tmp->kids->next = NULL;
+            node_free(tmp);
+        }
     }
 
     if((*node)->token == tokUnaryStar) {
-        if((*node)->kids->token == tokIdent || ok_for_imm((*node)->kids)) {
+        if((*node)->kids->token == tokIdent) {
             (*node)->kids->suppress_emit = 1;
+        }
+    }
+}
+
+void opt_assignRegsLocals(Node ** node, Node ** head) {
+    if((*node)->token == tokUnaryStar) {
+        if(ok_for_reg_addr((*node)->kids)) {
+            (*node)->suppress_emit = 1;
+            (*node)->kids->suppress_emit = 1;
+            (*node)->target_register = off_to_reg((*node)->kids->value);
         }
     }
 }

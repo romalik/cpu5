@@ -113,7 +113,7 @@
         </entry>
         <entry>
           <string>lastDataFile</string>
-          <file>/home/rl/cpu5/progs/leds.hex</file>
+          <file>/home/rl/cpu5/progs/rom.hex</file>
         </entry>
         <entry>
           <string>autoReload</string>

@@ -50,6 +50,12 @@ either expressed or implied, of the FreeBSD Project.
 STATIC void GenPrintNumLabel(int label);
 STATIC void GenNumLabel(int Label);
 
+#define R(x) (((x)&0xff00)>>8),(char)((x)&0xff)
+
+#define to_R(t,x) (((t)<<8)|((x)&0xff))
+
+
+
 /*
 `GenAddrData'
 `GenDumpChar'
@@ -88,19 +94,35 @@ STATIC void GenNumLabel(int Label);
 //   local var n
 
 
+rlcpu impl:
 
-20: arg2 h
-19: arg2 l @+6
-18: arg1 h
-17: arg1 l @+4
-16: ret h
-15: ret l
-14: sbp h  
-13: sbp l  @<<<<<< supposed BP reference
-12: loc1 h <<<<<<< actual BP reference (after frame construction)
-11: loc1 l @-2
-10: loc2 h
-9: loc2 l
+if loc > 0: a = loc - 4;  # = a+5
+if loc < 0: l = loc + 1;  # = l-16
+                          # = r-15
+
+ arg2 h         [m+8]
+ arg2 l @+6     [m+7]
+ arg1 h         [m+6]
+ arg1 l @+4     [m+5]
+
+ ret h      0xffff
+ ret l      0xfffe
+ sbp h      0xfffd
+ sbp l  @<<<<<< supposed BP reference 0xfffc
+
+ r15            [m+0]  <<<<<<< actual BP reference (after frame construction) 0xfffb
+ r14            [m-1]   0xfffa
+ r13
+ ...
+ r3
+ r2
+ r1             [m-14]
+ r0             [m-15]
+
+ loc1 h @-1     [m-16]
+ loc1 l @-2     [m-17]
+ loc2 h
+ loc2 l
 
 Fix for local offsets: (@+x) = [m+x+1]
 
@@ -132,16 +154,18 @@ unsigned char high(int v) { return (v>>8)&0xff; }
 unsigned char register_usage[32];
 
 void mark_reg_use(unsigned char reg, unsigned char v) {
-  if(reg > 31) {
+  if(reg < 0) {
     error("Bad register for mask\n");
   }
+  reg = reg&0xff;
   register_usage[reg] = v;
 }
 
 unsigned char get_reg_use(unsigned char reg) {
-  if(reg > 31) {
+  if(reg < 0) {
     error("Bad register for mask\n");
   }
+  reg = reg&0xff;
   return register_usage[reg];
 }
 
@@ -152,8 +176,8 @@ void gen_push_used_regs() {
   unsigned char r = 0;
   for(;r<32;r++) {
     if(get_reg_use(r)) {
-      printf2("mov a,r%d\n", r);
-      printf2("push a\n");
+      printf2("mov A,r%d\n", r);
+      printf2("push A\n");
     }
   }
 }
@@ -162,24 +186,24 @@ void gen_pop_used_regs() {
   unsigned char r = 0;
   for(;r<32;r++) {
     if(get_reg_use(r)) {
-      printf2("pop a\n");
-      printf2("mov a,r%d\n", r);
+      printf2("pop A\n");
+      printf2("mov A,r%d\n", r);
     }
   }
 }
 
 char * adjust_sp_procedure = 
 " ; adjust sp by %d\n"
-"ld a, %d\n"
-"mov b,a\n"
-"mov a,sl\n"
+"ld A, %d\n"
+"mov B,A\n"
+"mov A,SL\n"
 "%s\n"
-"mov sl,a\n"
-"ld a, %d\n"
-"mov b,a\n"
-"mov a,sh\n"
+"mov SL,A\n"
+"ld A, %d\n"
+"mov B,A\n"
+"mov A,SH\n"
 "%s\n"
-"mov sh,a\n"
+"mov SH,A\n"
 ;
 
 
@@ -211,7 +235,7 @@ Node * node_create(unsigned char token, int value, int size) {
 
   node->suppress_emit = 0;
 
-  node->target_register = -1;
+  node->target_register = to_R('z',0);
 
   node->size = size;
 
@@ -283,7 +307,7 @@ void node_print(Node * node, int indent) {
     printf2(" - ");
   }
   
-  printf2("%03d<%s> \"%d\" size(%d) REG: r%d %s %s\n", node->token, get_token_name(node->token),  node->value, node->size, node->target_register, node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
+  printf2("%03d<%s> \"%d\" size(%d) REG: %c%d %s %s\n", node->token, get_token_name(node->token),  node->value, node->size, R(node->target_register), node->suppress_emit?"SUPPRESSED":"", node->kids?"":"*");
 }
 
 void node_print_subtree(Node * node, int indent) {
@@ -474,9 +498,9 @@ void (* get_emitter(unsigned char tok))(Node *) {
 
 STATIC void GenEmitNode(Node * node) {
   Node * kid = node->kids;
-  printf2(" ; r%02d <-[%s]- ", node->target_register, get_token_name(node->token));
+  printf2(" ; %c%d <-[%s]- ", R(node->target_register), get_token_name(node->token));
   while(kid) {
-    printf2("r%02d ", kid->target_register);
+    printf2("%c%d ", R(kid->target_register));
     kid = kid->next;
   }
   printf2(" value(%d) size (%d)\n", node->value, node->size);
@@ -498,10 +522,12 @@ STATIC void GenEmitTree(Node * root) {
 
 STATIC void GenAssignRegistersToTree(Node * root, int r_idx) {
   Node * kid = root->kids;
-  root->target_register = r_idx;
+  if(root->target_register == to_R('z',0)) {
+    root->target_register = to_R('r',r_idx);
 
-  mark_reg_use(r_idx,1);
-  mark_reg_use(r_idx+1,1);
+    mark_reg_use(r_idx,1);
+    mark_reg_use(r_idx+1,1);
+  }
 
   if(is_comparison(root->token)) { //free space for result, should be different because preload in jump instructions
     r_idx += 2;
@@ -544,6 +570,8 @@ void init_optimizers() {
 
   add_optimizer(opt_callWithIdent);
   add_optimizer(opt_suppressDereferences);
+
+  add_optimizer(opt_assignRegsLocals);
 
   add_optimizer(opt_replaceTokensWithCalls);
 
@@ -890,9 +918,11 @@ fpos_t GenPrologPos;
 STATIC void GenFxnProlog(void) {
   memset(register_usage, 0, 32);
   puts2(" ; prolog");
-  puts2("push xm");
-
+  puts2("push XM");
   puts2("movms");
+  puts2("SP-=8");
+  puts2("SP-=8");
+
 
   fgetpos(OutFile, &GenPrologPos);
   for(int i = 0; i<strlen(adjust_sp_procedure) + 25 + USED_REGS_STACK_OPERATION_SIZE*32; i++) { // 25 should be enough for 2 ops and 3 figures + 32 push operations
@@ -901,18 +931,25 @@ STATIC void GenFxnProlog(void) {
   puts2("\n ; prolog end\n");
 }
 
+
+
 STATIC void GenFxnEpilog(void) {
   puts2(" ; epilog");
 
-  puts2("mov a,r0");
-  puts2("mov [m+5],a");
-  puts2("mov a,r1");
-  puts2("mov [m+6],a");
+  puts2("mov A,r0");
+  puts2("mov a0,A");
+  puts2("mov A,r1");
+  puts2("mov a1,A");
 
-  gen_pop_used_regs();
+  int n_adjusts = abs(CurFxnMinLocalOfs)/8 + ((abs(CurFxnMinLocalOfs)%8)?1:0);
+  for(int i = 0; i<n_adjusts; i++) {
+    puts2("SP-=8");
+  }
+
+  //gen_pop_used_regs();
   adjust_sp(-CurFxnMinLocalOfs);
-//  puts2("movsm");
-  puts2("pop mx");
+  puts2("movsm");
+  puts2("pop MX");
 
 
 
@@ -927,7 +964,12 @@ STATIC void GenFxnEpilog(void) {
   fsetpos(OutFile, &GenPrologPos);
 
   adjust_sp(CurFxnMinLocalOfs);
-  gen_push_used_regs();
+  //gen_push_used_regs();
+
+  for(int i = 0; i<n_adjusts; i++) {
+    puts2("SP+=8");
+  }
+
 
   fsetpos(OutFile, &pos);
 
@@ -981,7 +1023,7 @@ STATIC void GenJumpIfEqual(int val, int label) {
   printf2("tsub r0,r2,r0\n");
   printf2("tsbc r1,r3,r1\n");
   printf2("tor r0,r0,r1\n");
-  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
+  printf2("ldd X, $"); GenPrintNumLabel(label); puts2("");
   printf2("jz\n");
 
 }
@@ -991,7 +1033,7 @@ STATIC void GenJumpIfNotZero(int label) {
   printf2("\n ; 16 bit for now, optimize\n");
   
   printf2("tor r0,r0,r1\n");
-  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
+  printf2("ldd X, $"); GenPrintNumLabel(label); puts2("");
   printf2("jnz\n");
 
 }
@@ -1002,7 +1044,7 @@ STATIC void GenJumpIfZero(int label) {
   printf2("\n ; 16 bit for now, optimize\n");
   
   printf2("tor r0,r0,r1\n");
-  printf2("ldd x, $"); GenPrintNumLabel(label); puts2("");
+  printf2("ldd X, $"); GenPrintNumLabel(label); puts2("");
   printf2("jz\n");
   
 }
@@ -1012,7 +1054,7 @@ STATIC void GenJumpIfZero(int label) {
 STATIC void GenJumpUncond(int label)
 {
   printf2(" ; Unconditional jump to "); GenPrintNumLabel(label);
-  printf2("\nldd x, $"), GenPrintNumLabel(label); puts2("");
+  printf2("\nldd X, $"), GenPrintNumLabel(label); puts2("");
   puts2("jmp");
 }
 
