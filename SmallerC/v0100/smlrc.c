@@ -463,6 +463,8 @@ void ShiftChar(void);
 STATIC
 int puts2(char*);
 STATIC
+int fflush2();
+STATIC
 int printf2(char*, ...);
 
 STATIC
@@ -5850,7 +5852,13 @@ int puts2(char* s)
   }
   return res;
 }
-
+STATIC
+int fflush2() {
+  if(OutFile) {
+    return fflush(OutFile);
+  }
+  return EOF;
+}
 // Equivalent to printf() but outputs to OutFile.
 STATIC
 int printf2(char* format, ...)

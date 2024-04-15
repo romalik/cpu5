@@ -857,6 +857,7 @@ STATIC void GenExpr(void) {
   node_print_subtree(root, 0);
 
 
+  fflush2();
 
   GenRunOptimizers(&root);
 

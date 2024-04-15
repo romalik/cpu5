@@ -95,7 +95,7 @@ void generate_nop() {
 
 int a_offset = 5;
 int r_offset = -15;
-int l_offset = -16;
+int l_offset = -15;
 
 
 int parse_relative_arg(char * token, uint8_t * value) {

@@ -60,10 +60,10 @@ void emit_tokBool(Node * node) {
 
     if(abs(node->size) == 2) {
         printf2("tor %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(rah));
-        printf2("ttest %c%d, %c%d, %c%d\n", R(rcl), R(rcl), R(rcl));
+        //printf2("ttest %c%d, %c%d, %c%d\n", R(rcl), R(rcl), R(rcl));
         printf2("ld %c%d, 0\n", R(rch));
     } else {
-        printf2("ttest %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(ral));
+        printf2("tor %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(ral));
     }
 
     printf2(";;;;;;");
@@ -203,154 +203,57 @@ void emit_alu_op(Node * node) {
         
         //jump over loading one on opposite condition
 
-        int labelTrue = LabelCnt++;
         int labelAfter = LabelCnt++;
         printf2("ldd X, $"); GenPrintNumLabel(labelAfter); puts2("");
 
         if(size == 2) {
-            printf2("tsub %c%d, %c%d, %c%d\n", R(rah), R(rah), R(rbh));
+            printf2("tsub %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(rbl));
+            printf2("tsbc %c%d, %c%d, %c%d\n", R(rch), R(rah), R(rbh));
             printf2("ld %c%d, 0\n", R(rch)); //preload high zero for size==2
             printf2("ld %c%d, 0\n", R(rcl)); //preload low zero
 
-
-            /* remove equals! Should be tested on low byte*/
-            switch(node->token) {
-            case tokEQ:
-                printf2("jnz\n"); // ==jne
-                break;
-            case tokLEQ:
-                printf2("jg\n");
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jl\n");
-                break;
-            case tokGEQ:
-                printf2("jl\n");
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jg\n");
-                break;
-            case tokULEQ:
-                printf2("ja\n");
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jc\n"); // ==jb
-
-                break;
-            case tokUGEQ:
-                printf2("jc\n"); // ==jb
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("ja\n");
-                break;
-            case tokULess:
-                printf2("ja\n"); // should be jae, remove equal
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jc\n"); // ==jb
-                break;
-            case tokUGreater:
-                printf2("jc\n"); // == jb, should be jbe, remove e
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("ja\n");
-                break;
-            case '<':
-                printf2("jg\n"); //should be jge
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jl\n");
-                break;
-            case '>':
-                printf2("jl\n"); //should be jle
-                printf2("ldd X, $"); GenPrintNumLabel(labelTrue); puts2("");
-                printf2("jg\n");
-                break;
-
-            default: 
-                error("");
-                return;
-            }
-
-            printf2("tsub %c%d, %c%d, %c%d\n", R(ral), R(ral), R(rbl));
-            printf2("ldd X, $"); GenPrintNumLabel(labelAfter); puts2("");
-
-            switch(node->token) {
-            case tokEQ:
-                printf2("jnz\n"); // ==jne
-                break;
-            case tokLEQ:
-                printf2("ja\n"); // Greater, use JA because 2's compl
-                break;
-            case tokGEQ:
-                printf2("jc\n"); //less, use jb==jc because 2's compl
-                break;
-            case tokULEQ:
-                printf2("ja\n");
-                break;
-            case tokUGEQ:
-                printf2("jc\n"); // ==jb
-                break;
-            case tokULess:
-                printf2("jnc\n"); // ==jae
-                break;
-            case tokUGreater:
-                printf2("jbe\n");
-                break;
-            case '<':
-                printf2("jnc\n"); // Greater-Equal, use jae==jnc
-                break;
-            case '>':
-                printf2("jbe\n"); //Less-Equal, use lbe
-                break;
-                
-                
-            default: 
-                error("");
-                return;
-            }
-
-
-
-
         } else {
-            printf2("tsub %c%d, %c%d, %c%d\n", R(ral), R(ral), R(rbl));
+            printf2("tsub %c%d, %c%d, %c%d\n", R(rcl), R(ral), R(rbl));
             printf2("ld %c%d, 0\n", R(rcl)); //preload low zero
-
-            switch(node->token) {
-            case tokEQ:
-                printf2("jnz\n"); // ==jne
-                break;
-            case tokNEQ:
-                printf2("jz\n"); // ==je
-                break;
-            case tokLEQ:
-                printf2("jg\n");
-                break;
-            case tokGEQ:
-                printf2("jl\n");
-                break;
-            case tokULEQ:
-                printf2("ja\n");
-                break;
-            case tokUGEQ:
-                printf2("jc\n"); // ==jb
-                break;
-            case tokULess:
-                printf2("jnc\n"); // ==jae
-                break;
-            case tokUGreater:
-                printf2("jbe\n");
-                break;
-            case '<':
-                printf2("jge\n");
-                break;
-            case '>':
-                printf2("jle\n");
-                break;
-                
-                
-            default: 
-                error("");
-                return;
-            }
-
+        }
+        switch(node->token) {
+        case tokEQ:
+            printf2("jnz\n"); // ==jne
+            break;
+        case tokNEQ:
+            printf2("jz\n"); // ==je
+            break;
+        case tokLEQ:
+            printf2("jg\n");
+            break;
+        case tokGEQ:
+            printf2("jl\n");
+            break;
+        case tokULEQ:
+            printf2("ja\n");
+            break;
+        case tokUGEQ:
+            printf2("jc\n"); // ==jb
+            break;
+        case tokULess:
+            printf2("jnc\n"); // ==jae
+            break;
+        case tokUGreater:
+            printf2("jbe\n");
+            break;
+        case '<':
+            printf2("jge\n");
+            break;
+        case '>':
+            printf2("jle\n");
+            break;
+            
+            
+        default: 
+            error("");
+            return;
         }
 
-        GenNumLabel(labelTrue);
         printf2("ld %c%d, 1\n", R(rcl));
 
         printf2("; --- end of comparison:\n");
@@ -434,10 +337,10 @@ void emit_tokReturn(Node * node) {
     }
 
     if(node->kids->target_register != to_R('r',0)) {
-        printf2("mov a,%c%d\n", R(node->kids->target_register));
-        printf2("mov %c%d,a\n", R(node->target_register));
-        printf2("mov a,%c%d\n", R(node->kids->target_register+1));
-        printf2("mov %c%d,a\n", R(node->target_register+1));
+        printf2("mov A,%c%d\n", R(node->kids->target_register));
+        printf2("mov %c%d,A\n", R(node->target_register));
+        printf2("mov A,%c%d\n", R(node->kids->target_register+1));
+        printf2("mov %c%d,A\n", R(node->target_register+1));
     }
 
     if(node->kids->size == 1) {
@@ -456,9 +359,18 @@ void emit_tokReturn(Node * node) {
 
 
 void emit_tokSequential(Node * node) {
-    if(node->target_register != to_R('r',0) || node->kids->target_register != to_R('r',0)) {
+    if(node->target_register != to_R('r',0)) {
         error("Internal Error: Unexpected tokReturn contents\n");
     }
+
+    if(node->kids->target_register != to_R('r',0)) {
+        printf2(" ; XXX Remove this if no return need\n");
+        printf2("mov A,%c%d\n", R(node->kids->target_register));
+        printf2("mov %c%d,A\n", R(node->target_register));
+        printf2("mov A,%c%d\n", R(node->kids->target_register+1));
+        printf2("mov %c%d,A\n", R(node->target_register+1));
+    }
+
     /* pass */
     printf2(" ; tokSequential\n");
 }
@@ -578,7 +490,7 @@ void emit_inc_x() {
 int off_to_reg(int off) {
     int s_reg = 0;
     if(off <= 0) {
-        s_reg = to_R('l',off+1);
+        s_reg = to_R('l',off);
     } else {
         s_reg = to_R('a',off-4);
     }
@@ -978,7 +890,7 @@ void opt_suppressDereferences(Node ** node, Node ** head) {
         if(!(*node)->kids || !(*node)->kids->next) {
             error("Too few kids for assign!\n");
         }
-        if((*node)->kids->token == tokIdent)  { // XXX add tokNumInt for constant addrs
+        if((*node)->kids->token == tokIdent || ok_for_reg_addr((*node)->kids))  { // XXX add tokNumInt for constant addrs
             (*node)->kids->suppress_emit = 1;
         }
 
@@ -987,7 +899,9 @@ void opt_suppressDereferences(Node ** node, Node ** head) {
             printf2(" ; replace assign with kid->next with correct regs\n");
             Node * tmp = (*node);
             (*node)->kids->next->target_register = off_to_reg((*node)->kids->value);
+            (*node)->kids->next->next = (*node)->next;
             *node = (*node)->kids->next;
+            tmp->next = NULL;
             tmp->kids->next = NULL;
             node_free(tmp);
         }
