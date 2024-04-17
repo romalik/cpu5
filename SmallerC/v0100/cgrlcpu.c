@@ -944,11 +944,11 @@ STATIC void GenFxnEpilog(void) {
 
   int n_adjusts = abs(CurFxnMinLocalOfs)/8 + ((abs(CurFxnMinLocalOfs)%8)?1:0);
   for(int i = 0; i<n_adjusts; i++) {
-    puts2("SP-=8");
+    puts2("SP+=8");
   }
 
   //gen_pop_used_regs();
-  adjust_sp(-CurFxnMinLocalOfs);
+  //adjust_sp(-CurFxnMinLocalOfs);
   puts2("movsm");
   puts2("pop MX");
 
@@ -964,11 +964,11 @@ STATIC void GenFxnEpilog(void) {
   fgetpos(OutFile, &pos);
   fsetpos(OutFile, &GenPrologPos);
 
-  adjust_sp(CurFxnMinLocalOfs);
+  //adjust_sp(CurFxnMinLocalOfs);
   //gen_push_used_regs();
 
   for(int i = 0; i<n_adjusts; i++) {
-    puts2("SP+=8");
+    puts2("SP-=8");
   }
 
 

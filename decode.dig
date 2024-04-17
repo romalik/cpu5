@@ -1867,7 +1867,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>off_imm</string>
+          <string>sel_high</string>
         </entry>
       </elementAttributes>
       <pos x="2120" y="1600"/>

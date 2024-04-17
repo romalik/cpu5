@@ -23,7 +23,7 @@ section control_word
 11  H       mwrite
 12  H       sel_a
 13  H       iv_o
-14  H       imm_off_a
+14  H       sel_high
 15  H       not_used_4
 
 end
@@ -161,29 +161,7 @@ section code
 -       ----    ----    1101    seq_rst
 
 
-######################### 011 A->(M+IMM)      ######################### opcode: 0x2X-0x3X
-#                                                            #A->(M+#) mov [m+#], a
-#-       001*    ****    0001    imm_off_a a_o mwrite
-#-       ---*    ****    0010    pc++ seq_rst
-#
-######################### 011 A<-(M+IMM)      ######################### opcode: 0x4X-0x5X
-#                                                            #A<-(M+#) mov a, [m+#]
-#-       010*    ****    0001    imm_off_a a_i mread
-#-       ---*    ****    0010    pc++ seq_rst
-#
-#
-#
-######################### 011 A->(MREG)      ######################### opcode: 0x6X-0x7X
-#                                                            #A->(MREG)  mov r0..31, a
-#-       011*    ****    0001    ir_a a_o mwrite
-#-       ---*    ****    0010    pc++ seq_rst
-#
-#
-######################### 100 A<-(MREG)      ######################### opcode: 0x8X-0x9X
-#                                                            #A<-(MREG)  mov a, r0..31
-#-       100*    ****   0001    ir_a a_i mread
-#-       ---*    ****   0010    pc++ seq_rst
-#
+
 
 ######################## 101 JUMP           ######################### opcode: 0xAX
                                                             #JUMP       jc, jnc, jz, jnz, jmp
@@ -323,7 +301,7 @@ section code
 -       ----    0100    0001    mh_o a_i
 -       ----    ----    0010    pc++ seq_rst
 
-                                                            #A<-(M+#)  a, mov [m+#]
+                                                            #A<-(M+#)   mov a, [m+#]
 -       ----    0101    0001    pc++
 -       ----    ----    0010    pc_a off_i mread
 -       ----    ----    0011    mf_a a_i mread
@@ -432,6 +410,78 @@ section code
 -       ----    ----    0111    sl--
 -       ----    ----    1000    sl--
 -       ----    ----    1001    pc++ seq_rst
+
+
+
+                                                            # push [m+#]
+-       ----    0110    0001    pc++
+-       ----    ----    0010    pc_a off_i mread
+-       ----    ----    0011    mf_a a_i mread
+-       ----    ----    0100    s_a a_o mwrite
+-       ----    ----    0101    sl--
+-       ----    ----    0110    pc++ seq_rst
+
+                                                            # pop [m+#]
+-       ----    0111    0001    sl++
+-       ----    ----    0010    s_a mread a_i
+-       ----    ----    0011    pc++
+-       ----    ----    0100    pc_a off_i mread
+-       ----    ----    0101    mf_a a_o mwrite
+-       ----    ----    0110    pc++ seq_rst
+
+                                                            # pushw [m+#]
+-       ----    1000    0001    pc++
+-       ----    ----    0010    pc_a off_i mread
+-       ----    ----    0011    mf_a a_i mread
+-       ----    ----    0100    s_a a_o mwrite
+-       ----    ----    0101    sl--
+
+-       ----    ----    0110    pc_a off_i mread sel_high
+-       ----    ----    0111    mf_a a_i mread
+-       ----    ----    1000    s_a a_o mwrite
+-       ----    ----    1001    sl--
+-       ----    ----    1010    pc++ seq_rst
+
+                                                            # popw [m+#]
+
+-       ----    1001    0001    sl++
+-       ----    ----    0010    s_a mread a_i
+-       ----    ----    0011    pc++
+-       ----    ----    0100    pc_a off_i mread
+-       ----    ----    0101    mf_a a_o mwrite
+
+-       ----    ----    0110    sl++
+-       ----    ----    0111    s_a mread a_i
+-       ----    ----    1000    pc_a off_i mread sel_high
+-       ----    ----    1001    mf_a a_o mwrite
+
+-       ----    ----    1010    pc++ seq_rst
+
+                                                            # mov [m+#],[m+#]
+-       ----    1010    0001    pc++
+-       ----    ----    0010    pc_a off_i mread
+-       ----    ----    0011    mf_a a_i mread
+-       ----    ----    0100    pc++
+-       ----    ----    0101    pc_a off_i mread
+-       ----    ----    0110    mf_a a_o mwrite
+-       ----    ----    0111    pc++ seq_rst
+                                                            # mov2 [m+#],[m+#]
+
+
+                                                            # movw x, [m+#]
+
+-       ----    1110    0001    pc++
+-       ----    ----    0010    pc_a off_i mread
+-       ----    ----    0011    mf_a a_i mread
+-       ----    ----    0100    xl_i a_o
+
+-       ----    ----    0101    mf_a a_i mread sel_high
+-       ----    ----    0110    xh_i a_o
+-       ----    ----    0111    pc++ seq_rst
+
+
+
+
 
 ######################## INTERRUPTS        #########################
 

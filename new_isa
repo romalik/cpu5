@@ -130,8 +130,10 @@ target 3300
 
 total 8494
 
-push-pop 700
-adjust sp 528
-                  =7266
-alu_t 1228 (-614 if 2 bytes vs 4)
-                  ~6700
+
+total: 6220
+
+push-pop [m+#] : -250b (+hw: -500b)
+movd x, r1r2 : -200b (-150 - no hw changes [movx][r0][r1])
+
+mov2 d# s# : - ~200b (hw: select high)

@@ -108,6 +108,7 @@ int parse_relative_arg(char * token, uint8_t * value) {
   } else if(token[0] == '[' && token[1] == 'M') {
     *value = strtol(token+1,0,0);
   } else {
+    panic("Bad relative arg!\n");
     return 0;
   }
   return 1;
@@ -124,6 +125,30 @@ void parse_mov_arg(char * token, uint8_t * value, uint8_t * type) {
     *value = reg;
     *type = 0;
   }
+}
+
+
+void generate_movw() {
+  uint8_t src = 0;
+  uint8_t src_type = 0; //0 - reg, 1 - mreg, 2 - m+imm
+
+
+  get_next_token();
+  if(strcmp(token, "X")) {
+    panic("Bad movw arg!");
+  }
+
+  get_next_token();
+  parse_mov_arg(token, &src, &src_type);
+
+  if(src_type != 2) {
+    panic("Bad movw arg!");
+  }
+
+  emit(0xFE);
+  emit(src);
+
+  count("movw_x", 2);
 }
 
 void generate_mov() {
@@ -162,6 +187,11 @@ void generate_mov() {
     } else {
       panic("Bad mov arg type");
     }
+  } else if(dest_type == 2 && src_type == 2) { // r# -> r#
+      emit(0xFA);
+      emit(src);
+      emit(dest);
+      count("mov_rr", 3);
   } else {
     panic("Bad move instruction\n");
   }
@@ -169,42 +199,83 @@ void generate_mov() {
 
 }
 
-void generate_push() {
+void generate_push(uint8_t is_word) {
   uint8_t reg = 0;
   get_next_token();
   if(!strcmp(token, "XM")) {
     emit(0xF0);
     count("push_xm", 1);
   } else {
-    reg = find_keyword(regs, token);
+    uint8_t src;
+    uint8_t src_type;
+    parse_mov_arg(token, &src, &src_type);
 
-    if(reg != 0x0f) {
-      panic("Try push other than A reg");
+    if(src_type == 0) {
+      if(src != 0x0f) {
+        panic("Try push bad reg");
+      }
+      if(is_word) {
+        panic("Try push bad word reg");
+      }
+
+      count("push", 1);
+
+      emit(0xD9);
+    } else if(src_type == 2) {
+      if(is_word) {
+        emit(0xF8);
+        count("pushw_r", 2);
+      } else {
+        emit(0xF6);
+        count("push_r", 2);
+      }
+      emit(src);
+
+    } else {
+      panic("Bad push arg");
     }
-    count("push", 1);
 
-    emit(0xD9);
   }
 }
 
-void generate_pop() {
+void generate_pop(uint8_t is_word) {
   uint8_t reg = 0;
   get_next_token();
   if(!strcmp(token, "MX")) {
     emit(0xF1);
     count("pop_mx", 1);
   } else {
-    reg = find_keyword(regs, token);
+    uint8_t dst;
+    uint8_t dst_type;
+    parse_mov_arg(token, &dst, &dst_type);
 
-    if(reg != 0x0f) {
-      panic("Try pop other than A reg");
+    if(dst_type == 0) {
+      if(dst != 0x0f) {
+        panic("Try push bad reg");
+      }
+      if(is_word) {
+        panic("Try pop bad word reg");
+      }
+      count("pop", 1);
+
+      emit(0xE9);
+    } else if(dst_type == 2) {
+
+      if(is_word) {
+        emit(0xF9);
+        count("popw_r", 2);
+      } else {
+        emit(0xF7);
+        count("pop_r", 2);
+      }
+
+      emit(dst);
+    } else {
+      panic("Bad pop arg");
     }
-
-    count("pop", 1);
-
-    emit(0xE9);
   }
 }
+
 
 void generate_ld() {
   uint8_t dest = 0;
@@ -298,10 +369,16 @@ void gen_instruction() {
     generate_nop();
   } else if(!strcmp(token, "mov")) {
     generate_mov();
+  } else if(!strcmp(token, "movw")) {
+    generate_movw();
   } else if(!strcmp(token, "push")) {
-    generate_push();
+    generate_push(0);
   } else if(!strcmp(token, "pop")) {
-    generate_pop();
+    generate_pop(0);
+  } else if(!strcmp(token, "pushw")) {
+    generate_push(1);
+  } else if(!strcmp(token, "popw")) {
+    generate_pop(1);
   } else if(!strcmp(token, "ld")) {
     generate_ld();
   } else if(!strcmp(token, "ldd")) {

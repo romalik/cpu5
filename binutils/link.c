@@ -501,6 +501,10 @@ int main(int argc, char ** argv) {
   }
 */
 
+
+  linker_link();
+
+
   if(dump_labels) {
     for(i = 0; i < sects_sz; i++) {
       struct section_list_entry * node;
@@ -513,10 +517,7 @@ int main(int argc, char ** argv) {
       }    
     }
   }
-  linker_link();
-
-
-
+  
   if(output_hex) {
     f_out = fopen(output_fname, "w");
     fprintf(f_out, "v2.0 raw");

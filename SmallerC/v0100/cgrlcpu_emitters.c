@@ -94,30 +94,30 @@ void emit_tokShift(Node * node) {
             for(int i = 0; i<k; i++) {
                 if(node->token == tokLShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
-                        printf2("tshlc %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
+                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
+                        printf2("tshlc %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 'r',0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshl %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
                     } else {
                         error("");
                     }
 
                 } else if(node->token == tokRShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
-                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 'r',0);
+                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
                     } else {
                         error("");
                     }
 
                 } else if(node->token == tokURShift) {
                     if(abs(node->size) == 2) {
-                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 0);
-                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register+1), R(node->kids->target_register+1), 'r',0);
+                        printf2("tshrc %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
                     } else if (abs(node->size) == 1) {
-                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 0);
+                        printf2("tshr %c%d, %c%d, %c%d\n", R(node->target_register), R(node->kids->target_register), 'r',0);
                     } else {
                         error("");
                     }
@@ -414,8 +414,7 @@ void emit_tokCall(Node * node) {
 
     if(n_args == 0) {
         printf2(" ; no args, reserve 2 bytes for retval\n");
-        printf2("push A\n");
-        printf2("push A\n");
+        printf2("SP-=2\n");
         n_args = 1;
     }
     if(kid->token == tokIdent && kid->suppress_emit) {
@@ -424,11 +423,16 @@ void emit_tokCall(Node * node) {
     } else {
 
         printf2(" ; Call not by tokIdent - load address\n");
+        /*
         printf2("mov A, %c%d\n", R(kid->target_register));
         printf2("mov XL, A\n", R(kid->target_register));
 
         printf2("mov A, %c%d\n", R(kid->target_register+1));
         printf2("mov XH, A\n", R(kid->target_register+1));
+        */
+
+        printf2("movw X, %c%d\n", R(kid->target_register));
+
         printf2("jmp\n");
     }
 
@@ -437,8 +441,20 @@ void emit_tokCall(Node * node) {
     printf2("pop A\n");
     printf2("mov %c%d,A\n", R(node->target_register+1));
 
-    adjust_sp((n_args-1)*2);
+    //adjust_sp((n_args-1)*2);
 
+    int to_remove = (n_args-1)*2;
+    while(to_remove) {
+        if(to_remove >= 8) {
+            printf2("SP+=8\n");
+            to_remove -= 8;
+        } else if(to_remove >= 2) {
+            printf2("SP+=2\n");
+            to_remove -= 2;
+        } else {
+            printf2("pop A\n");
+        }
+    }
 }
 
 
@@ -522,10 +538,13 @@ void emit_tokUnaryStar(Node * node) {
     } else {
         //we assign to something else
         printf2(" ; deref from non-ident non-local tok : %s suppress %d\n", get_token_name(node->kids->token), node->kids->suppress_emit);
+        /*
         printf2("mov A, %c%d\n", R(kid->target_register));
         printf2("mov XL, A\n");
         printf2("mov A, %c%d\n", R(kid->target_register + 1));
         printf2("mov XH, A\n");
+        */
+        printf2("movw X, %c%d\n", R(kid->target_register));
         printf2("mov A, [X]\n");
     }
 
@@ -545,15 +564,17 @@ void emit_tokUnaryStar(Node * node) {
 }
 
 void emit_tokIdent(Node * node) {
-    emit_ldd_x_with_ident(node->value);
-
-    printf2("mov A, XL\n");
-    printf2("mov %c%d, A\n", R(node->target_register));
-    printf2("mov A, XH\n");
-    printf2("mov %c%d, A\n", R(node->target_register+1));
+    char *p = IdentTable + node->value;
+    printf2("ld %c%d, $(l)%s%s\n", R(node->target_register), isdigit(*p)?"L":"", p);
+    printf2("ld %c%d, $(h)%s%s\n", R(node->target_register+1), isdigit(*p)?"L":"", p);
 }
 
 void emit_convType(Node * node) {
+    if(node->kids->target_register != node->target_register) {
+        printf2("mov A, %c%d\n", R(node->kids->target_register));
+        printf2("mov %c%d, A\n", R(node->target_register));
+    }
+    
     if(abs(node->size) == 2) {
         if(node->token == tokInt) {
             if(node->kids->size < 0) {
@@ -599,10 +620,13 @@ void emit_tokAssign(Node * node) {
     } else {
         //we assign to something else
         printf2(" ; assign to non-ident non-local lvalue\n");
+        /*
         printf2("mov A, %c%d\n", R(ral));
         printf2("mov XL, A\n");
         printf2("mov A, %c%d\n", R(rah));
         printf2("mov XH, A\n");
+        */
+        printf2("movw X, %c%d\n", R(ral));
         printf2("mov A, %c%d\n", R(rvl));
         printf2("mov [X], A\n");
     }

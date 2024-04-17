@@ -873,20 +873,6 @@
       <pos x="4520" y="1540"/>
     </visualElement>
     <visualElement>
-      <elementName>Or</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="2"/>
-        </entry>
-        <entry>
-          <string>wideShape</string>
-          <boolean>true</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="3560" y="1500"/>
-    </visualElement>
-    <visualElement>
       <elementName>Not</elementName>
       <elementAttributes>
         <entry>
@@ -905,20 +891,6 @@
         </entry>
       </elementAttributes>
       <pos x="3800" y="1540"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Or</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="2"/>
-        </entry>
-        <entry>
-          <string>wideShape</string>
-          <boolean>true</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="3560" y="1580"/>
     </visualElement>
     <visualElement>
       <elementName>Or</elementName>
@@ -1007,6 +979,34 @@
         </entry>
       </elementAttributes>
       <pos x="540" y="2120"/>
+    </visualElement>
+    <visualElement>
+      <elementName>And</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>wideShape</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="3560" y="1500"/>
+    </visualElement>
+    <visualElement>
+      <elementName>And</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>wideShape</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="3560" y="1580"/>
     </visualElement>
   </visualElements>
   <wires>
