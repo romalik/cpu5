@@ -395,8 +395,12 @@ void emit_tokCall(Node * node) {
             printf2("mov A, %c%d\n", R(kid->target_register));
             printf2("push A\n");
             */
+           /*
            printf2("push %c%d\n", R(kid->target_register + 1));
            printf2("push %c%d\n", R(kid->target_register));
+           */
+           
+           printf2("pushw %c%d\n", R(kid->target_register));
         } else {
             if(kid->size == 1) {
                 printf2("ld A,0\n");
@@ -415,9 +419,11 @@ void emit_tokCall(Node * node) {
                 printf2("mov A, %c%d\n", R(kid->target_register));
                 printf2("push A\n");
                 */
+            /*
                printf2("push %c%d\n", R(kid->target_register+1));
                printf2("push %c%d\n", R(kid->target_register));
-
+            */
+                printf2("pushw %c%d\n", R(kid->target_register));
             }
         }
         kid = kid->next;
@@ -456,8 +462,13 @@ void emit_tokCall(Node * node) {
     printf2("mov %c%d,A\n", R(node->target_register+1));
 */
 
+/*
     printf2("pop %c%d\n", R(node->target_register));
     printf2("pop %c%d\n", R(node->target_register + 1));
+    */
+
+    printf2("popw %c%d\n", R(node->target_register));
+
     //adjust_sp((n_args-1)*2);
 
     int to_remove = (n_args-1)*2;

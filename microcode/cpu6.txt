@@ -432,11 +432,11 @@ section code
                                                             # pushw [m+#]
 -       ----    1000    0001    pc++
 -       ----    ----    0010    pc_a off_i mread
--       ----    ----    0011    mf_a a_i mread
+-       ----    ----    0011    mf_a a_i mread sel_high
 -       ----    ----    0100    s_a a_o mwrite
 -       ----    ----    0101    sl--
 
--       ----    ----    0110    pc_a off_i mread sel_high
+-       ----    ----    0110    pc_a off_i mread
 -       ----    ----    0111    mf_a a_i mread
 -       ----    ----    1000    s_a a_o mwrite
 -       ----    ----    1001    sl--
@@ -452,8 +452,8 @@ section code
 
 -       ----    ----    0110    sl++
 -       ----    ----    0111    s_a mread a_i
--       ----    ----    1000    pc_a off_i mread sel_high
--       ----    ----    1001    mf_a a_o mwrite
+-       ----    ----    1000    pc_a off_i mread
+-       ----    ----    1001    mf_a a_o mwrite sel_high
 
 -       ----    ----    1010    pc++ seq_rst
 
