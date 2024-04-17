@@ -645,6 +645,10 @@ void emit_tokAssign(Node * node) {
         use_m_off = 1;
         printf2("mov A, %c%d\n", R(rvl));
         printf2("mov %c%d, A\n", R(off_to_reg(off))); 
+    } else if((node->kids->token == tokNumInt || node->kids->token == tokNumUint) && node->kids->suppress_emit) {
+        printf2("ldd X, 0x%04X\n", node->kids->value);
+        printf2("mov A, %c%d\n", R(rvl));
+        printf2("mov [X], A\n");
     } else {
         //we assign to something else
         printf2(" ; assign to non-ident non-local lvalue\n");
@@ -870,12 +874,19 @@ void opt_deriveSizes(Node ** node, Node ** head) {
     (*node)->size = get_max_size_subtree((*node), 0);
 }
 
+
 void opt_deriveNumSizes(Node ** node, Node ** head) {
     Node * kid = (*node)->kids;
     while(kid) {
         if(kid->token == tokNumInt || kid->token == tokNumUint) {
-            printf2(" ; !! Optimize NumInt/NumUint size!\n");
-            kid->size = 2;//(*node)->size;
+            kid->size = (*node)->size;
+
+            /* override for exceptions */
+            if(kid == (*node)->kids) { /* is first kid */
+                if(((*node)->token == '=') || ((*node)->token == tokUnaryStar)) {
+                    kid->size = 2;
+                }
+            }
         }
         kid = kid->next;
     }
@@ -944,10 +955,8 @@ void opt_suppressDereferences(Node ** node, Node ** head) {
         }
         if((*node)->kids->token == tokIdent || ok_for_reg_addr((*node)->kids))  { // XXX add tokNumInt for constant addrs
             (*node)->kids->suppress_emit = 1;
-        }
-
+        } else if(ok_for_reg_addr((*node)->kids)  && (*node)->kids->next->target_register == NO_REG) {
         /* first kid is local ofs, second kid has no register assigned */
-        if(ok_for_reg_addr((*node)->kids)  && (*node)->kids->next->target_register == NO_REG) {
             printf2(" ; replace assign with kid->next with correct regs\n");
             Node * tmp = (*node);
             (*node)->kids->next->target_register = off_to_reg((*node)->kids->value);
@@ -956,6 +965,9 @@ void opt_suppressDereferences(Node ** node, Node ** head) {
             tmp->next = NULL;
             tmp->kids->next = NULL;
             node_free(tmp);
+        } else if(((*node)->kids->token == tokNumInt) || ((*node)->kids->token == tokNumUint))  { // XXX add tokNumInt for constant addrs
+        /*first kid is a constant address*/
+            (*node)->kids->suppress_emit = 1;
         }
     }
 

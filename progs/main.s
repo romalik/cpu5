@@ -65,18 +65,15 @@ jz
  ;  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "1" size(1) REG: r0  
- ;  - 001<tokNumInt> "18435" size(2) REG: r0  *
+ ;  - 001<tokNumInt> "18435" size(1) REG: r0 SUPPRESSED *
  ;  - 078<tokUnaryStar> "-1" size(-1) REG: r2  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokNumInt]-  value(18435) size (2)
- ; possible optimization - pass size
-ld r0, 3
-ld r1, 72
+ ; r0 <-[tokNumInt]-  value(18435) size (1)
+ ; !!! emit suppressed
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
@@ -87,8 +84,7 @@ movw X, a0
 mov A, [X]
 mov r2, A
  ; r0 <-[tokAssign]- r0 r2  value(1) size (1)
- ; assign to non-ident non-local lvalue
-movw X, r0
+ldd X, 0x4803
 mov A, r2
 mov [X], A
  ; load to retval
@@ -112,24 +108,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; a0 <-[tokAdd]- a0 r2  value(2) size (2)
-tadd a0, a0, r2
-tadc a1, a1, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- a0 r4  value(2) size (2)
+tadd r2, a0, r4
+tadc r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -138,7 +146,6 @@ tadc a1, a1, r3
 ldd X, $L3
 jmp
 L4:
-
 L1:
  ; epilog
 mov A,r0
@@ -147,7 +154,6 @@ mov A,r1
 mov a1,A
 movsm
 pop MX
-hlt
 jmp
  ; epilog end
 
@@ -177,24 +183,20 @@ SP-=8
  ;  - 001<tokNumInt> "18435" size(0) REG: z0  *
  ;  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "1" size(1) REG: r0  
- ;  - 001<tokNumInt> "18435" size(2) REG: r0  *
+ ;  - 001<tokNumInt> "18435" size(1) REG: r0 SUPPRESSED *
  ;  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokNumInt]-  value(18435) size (2)
- ; possible optimization - pass size
-ld r0, 3
-ld r1, 72
+ ; r0 <-[tokNumInt]-  value(18435) size (1)
+ ; !!! emit suppressed
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
  ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(1) size (1)
- ; assign to non-ident non-local lvalue
-movw X, r0
+ldd X, 0x4803
 mov A, a0
 mov [X], A
  ; load to retval
@@ -246,8 +248,6 @@ SP-=8
  ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "57" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 019<tokInt> "0" size(2) REG: r0  
@@ -256,20 +256,19 @@ SP-=8
  ;  -  -  -  - 011<tokGEQ> "0" size(-1) REG: r0  
  ;  -  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
  ;  -  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  -  - 001<tokNumInt> "48" size(2) REG: r4  *
+ ;  -  -  -  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
  ;  -  -  - 010<tokLEQ> "0" size(-1) REG: r0  
  ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "57" size(2) REG: r4  *
+ ;  -  -  -  - 001<tokNumInt> "57" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
  ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (2)
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r4, 48
-ld r5, 0
  ; r0 <-[tokGEQ]- a0 r4  value(0) size (-1)
 ldd X, $L12
 tsub r0, a0, r4
@@ -289,10 +288,9 @@ jz
  ; !!! emit suppressed
  ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(57) size (2)
+ ; r4 <-[tokNumInt]-  value(57) size (-1)
  ; possible optimization - pass size
 ld r4, 57
-ld r5, 0
  ; r0 <-[tokLEQ]- a0 r4  value(0) size (-1)
 ldd X, $L13
 tsub r0, a0, r4
@@ -349,21 +347,35 @@ SP-=8
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 078<tokUnaryStar> "1" size(0) REG: z0  
  ;  -  - 001<tokNumInt> "18435" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 078<tokUnaryStar> "1" size(1) REG: l-2  
- ;  - 001<tokNumInt> "18435" size(2) REG: r0  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 019<tokInt> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "1" size(1) REG: r2  
+ ;  -  -  - 001<tokNumInt> "18435" size(1) REG: r2  *
 
- ; r0 <-[tokNumInt]-  value(18435) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(18435) size (1)
  ; possible optimization - pass size
-ld r0, 3
-ld r1, 72
- ; l-2 <-[tokUnaryStar]- r0  value(1) size (1)
+ld r2, 3
+ ; r2 <-[tokUnaryStar]- r2  value(1) size (1)
  ; deref from non-ident non-local tok : tokNumInt suppress 0
-movw X, r0
+movw X, r2
 mov A, [X]
+mov r2, A
+ ; r2 <-[tokInt]- r2  value(0) size (2)
+ld A, 0x00
+mov r3, A
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
 mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -377,22 +389,20 @@ mov l-2, A
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "255" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "17" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "255" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "255" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(255) size (2)
+ ; r4 <-[tokNumInt]-  value(255) size (-1)
  ; possible optimization - pass size
 ld r4, 255
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L19
 tsub r0, l-2, r4
@@ -420,15 +430,21 @@ jz
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -500,15 +516,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -549,17 +576,11 @@ mov r1, A
  ; r2 <-[tokIdent]-  value(20) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $isdigit
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
  ; r0 <-[tokReturn]- r0  value(0) size (2)
  ; tokReturn
 
@@ -581,47 +602,49 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 041<tokCall> "0" size(2) REG: l-2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "10" size(2) REG: r2  *
- ;  - 019<tokInt> "0" size(2) REG: r4  
- ;  -  - 016<tokIdent> "50" size(0) REG: r4 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 041<tokCall> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  - 019<tokInt> "0" size(2) REG: r6  
+ ;  -  -  - 016<tokIdent> "50" size(0) REG: r6 SUPPRESSED *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(10) size (2)
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(10) size (2)
  ; possible optimization - pass size
-ld r2, 10
-ld r3, 0
- ; r4 <-[tokIdent]-  value(50) size (0)
+ld r4, 10
+ld r5, 0
+ ; r6 <-[tokIdent]-  value(50) size (0)
  ; !!! emit suppressed
- ; r4 <-[tokInt]- r4  value(0) size (2)
+ ; r6 <-[tokInt]- r6  value(0) size (2)
 ld A, 0x00
-mov r5, A
- ; l-2 <-[tokCall]- l-2 r2 r4  value(0) size (2)
-mov A, l-1
-push A
-mov A, l-2
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+mov r7, A
+ ; r2 <-[tokCall]- l-2 r4 r6  value(0) size (2)
+pushw l-2
+pushw r4
  ; pushed 2 args
  ; Call not by tokIdent - load address
-movw X, r4
+movw X, r6
 jmp
-pop A
-mov l-2,A
-pop A
-mov l-1,A
+popw r2
 SP+=2
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -636,7 +659,6 @@ SP+=2
  ;  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 068<tokAssignAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
@@ -644,7 +666,7 @@ SP+=2
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: z0  
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
- ;  -  - 001<tokNumInt> "48" size(2) REG: z0  *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: z0  *
  ; After replace
  ; 061<tokAssign> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
@@ -655,45 +677,56 @@ SP+=2
  ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: z0  
  ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
- ;  -  -  - 001<tokNumInt> "48" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
+ ;  -  -  - 001<tokNumInt> "48" size(-1) REG: z0  *
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 019<tokInt> "0" size(2) REG: r2  
- ;  -  - 045<tokSub> "0" size(-1) REG: r2  
- ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r2  
- ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "48" size(2) REG: r4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 019<tokInt> "0" size(2) REG: r4  
+ ;  -  -  - 045<tokSub> "0" size(-1) REG: r4  
+ ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r4  
+ ;  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  -  - 001<tokNumInt> "48" size(-1) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(4) size (2)
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokUnaryStar]- a0  value(-1) size (-1)
+ ; a0 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokUnaryStar]- a0  value(-1) size (-1)
  ; deref from non-ident non-local tok : tokUnaryStar suppress 1
 movw X, a0
 mov A, [X]
-mov r2, A
- ; r4 <-[tokNumInt]-  value(48) size (2)
+mov r4, A
+ ; r6 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
-ld r4, 48
-ld r5, 0
- ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
-tsub r2, r2, r4
- ; r2 <-[tokInt]- r2  value(0) size (2)
+ld r6, 48
+ ; r4 <-[tokSub]- r4 r6  value(0) size (-1)
+tsub r4, r4, r6
+ ; r4 <-[tokInt]- r4  value(0) size (2)
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
-mov r3, A
- ; l-2 <-[tokAdd]- l-2 r2  value(2) size (2)
-tadd l-2, l-2, r2
-tadc l-1, l-1, r3
+mov r5, A
+ ; r2 <-[tokAdd]- l-2 r4  value(2) size (2)
+tadd r2, l-2, r4
+tadc r3, l-1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -713,24 +746,36 @@ tadc l-1, l-1, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; a0 <-[tokAdd]- a0 r2  value(2) size (2)
-tadd a0, a0, r2
-tadc a1, a1, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- a0 r4  value(2) size (2)
+tadd r2, a0, r4
+tadc r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -874,15 +919,26 @@ mov r1, A
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-8" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-8  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-8" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-8 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-8) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-8, 0
-ld l-7, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-8, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-7, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -921,76 +977,119 @@ L28:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
- ;  - 045<tokSub> "0" size(1) REG: l-8  
- ;  -  - 078<tokUnaryStar> "1" size(1) REG: l-6  
+ ;  - 061<tokAssign> "2" size(2) REG: r0  
+ ;  -  - 089<tokLocalOfs> "-8" size(2) REG: r0 SUPPRESSED *
+ ;  -  - 019<tokInt> "0" size(2) REG: r2  
+ ;  -  -  - 045<tokSub> "0" size(1) REG: r2  
+ ;  -  -  -  - 061<tokAssign> "1" size(1) REG: r2  
+ ;  -  -  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  -  - 078<tokUnaryStar> "1" size(1) REG: r4  
+ ;  -  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  -  - 078<tokUnaryStar> "1" size(1) REG: r4  
+ ;  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  -  - 078<tokUnaryStar> "1" size(1) REG: r2  
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  - 061<tokAssign> "2" size(2) REG: r4  
+ ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r6  
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
- ;  - 043<tokAdd> "2" size(2) REG: l-4  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r6 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r8  *
 
- ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-8) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; l-6 <-[tokUnaryStar]- l-2  value(1) size (1)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokUnaryStar]- l-2  value(1) size (1)
  ; deref from non-ident non-local tok : tokUnaryStar suppress 1
 movw X, l-2
 mov A, [X]
+mov r4, A
+ ; r2 <-[tokAssign]- r2 r4  value(1) size (1)
+mov A, r4
 mov l-6, A
- ; r2 <-[tokLocalOfs]-  value(-4) size (2)
- ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
- ; !!! emit suppressed
- ; r2 <-[tokUnaryStar]- l-4  value(1) size (1)
- ; deref from non-ident non-local tok : tokUnaryStar suppress 1
-movw X, l-4
-mov A, [X]
+ ; load to retval
 mov r2, A
- ; l-8 <-[tokSub]- l-6 r2  value(0) size (1)
-tsub l-8, l-6, r2
- ; r2 <-[tokLocalOfs]-  value(-2) size (2)
- ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
  ; l-4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokUnaryStar]- l-4  value(1) size (1)
+ ; deref from non-ident non-local tok : tokUnaryStar suppress 1
+movw X, l-4
+mov A, [X]
+mov r4, A
+ ; r2 <-[tokSub]- r2 r4  value(0) size (1)
+tsub r2, r2, r4
+ ; r2 <-[tokInt]- r2  value(0) size (2)
+ld A, 0x00
+mov r3, A
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-8, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-7, A
+ ; load to retval
+mov r1, A
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
  ; !!! emit suppressed
  ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
 ld r6, 1
 ld r7, 0
- ; l-4 <-[tokAdd]- l-4 r6  value(2) size (2)
-tadd l-4, l-4, r6
-tadc l-3, l-3, r7
- ; r0 <-[tokSequential]- l-8 l-2 l-4  value(0) size (0)
- ; XXX Remove this if no return need
-mov A,l-8
-mov r0,A
-mov A,l-7
-mov r1,A
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r4 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; l-4 <-[tokUnaryStar]- r6  value(2) size (2)
+ ; !!! emit suppressed
+ ; r8 <-[tokNumInt]-  value(1) size (2)
+ ; possible optimization - pass size
+ld r8, 1
+ld r9, 0
+ ; r6 <-[tokAdd]- l-4 r8  value(2) size (2)
+tadd r6, l-4, r8
+tadc r7, l-3, r9
+ ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
+mov A, r6
+mov l-4, A
+ ; load to retval
+mov r4, A
+mov A, r7
+mov l-3, A
+ ; load to retval
+mov r5, A
+ ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
  ; tokSequential
 
 
@@ -1010,7 +1109,6 @@ mov r1,A
  ;  -  -  - 078<tokUnaryStar> "1" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 007<tokLogOr> "34" size(2) REG: r0  
@@ -1022,7 +1120,7 @@ mov r1,A
  ;  -  -  - 008<tokEQ> "0" size(1) REG: r0  
  ;  -  -  -  - 078<tokUnaryStar> "1" size(1) REG: l-6 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  -  -  - 001<tokNumInt> "0" size(1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-8) size (2)
  ; !!! emit suppressed
@@ -1044,10 +1142,9 @@ jnz
  ; !!! emit suppressed
  ; l-6 <-[tokUnaryStar]- r2  value(1) size (1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-6 r4  value(0) size (1)
 ldd X, $L35
 tsub r0, l-6, r4
@@ -1234,69 +1331,101 @@ L38:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 061<tokAssign> "-1" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6  
+ ;  -  - 061<tokAssign> "-1" size(-1) REG: r2  
+ ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r4  
+ ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  - 061<tokAssign> "2" size(2) REG: r4  
+ ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r6  
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
- ;  - 043<tokAdd> "2" size(2) REG: l-4  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r6 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r8  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-4) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-6 <-[tokUnaryStar]- l-4  value(-1) size (-1)
+ ; l-4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokUnaryStar]- l-4  value(-1) size (-1)
  ; deref from non-ident non-local tok : tokUnaryStar suppress 1
 movw X, l-4
 mov A, [X]
+mov r4, A
+ ; r2 <-[tokAssign]- r2 r4  value(-1) size (-1)
+mov A, r4
 mov l-6, A
- ; r0 <-[tokAssign]- l-2 l-6  value(-1) size (-1)
+ ; load to retval
+mov r2, A
+ ; r0 <-[tokAssign]- l-2 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-2
-mov A, l-6
+mov A, r2
 mov [X], A
  ; load to retval
 mov r0, A
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r4 <-[tokLocalOfs]-  value(-4) size (2)
- ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
  ; !!! emit suppressed
  ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
 ld r6, 1
 ld r7, 0
- ; l-4 <-[tokAdd]- l-4 r6  value(2) size (2)
-tadd l-4, l-4, r6
-tadc l-3, l-3, r7
- ; r0 <-[tokSequential]- r0 l-2 l-4  value(0) size (0)
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r4 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; l-4 <-[tokUnaryStar]- r6  value(2) size (2)
+ ; !!! emit suppressed
+ ; r8 <-[tokNumInt]-  value(1) size (2)
+ ; possible optimization - pass size
+ld r8, 1
+ld r9, 0
+ ; r6 <-[tokAdd]- l-4 r8  value(2) size (2)
+tadd r6, l-4, r8
+tadc r7, l-3, r9
+ ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
+mov A, r6
+mov l-4, A
+ ; load to retval
+mov r4, A
+mov A, r7
+mov l-3, A
+ ; load to retval
+mov r5, A
+ ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
  ; tokSequential
 
 
@@ -1436,15 +1565,26 @@ mov r1, A
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-4 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-4, 0
-ld l-3, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -1505,24 +1645,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-2 <-[tokAdd]- l-2 r2  value(2) size (2)
-tadd l-2, l-2, r2
-tadc l-1, l-1, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-2 r4  value(2) size (2)
+tadd r2, l-2, r4
+tadc r3, l-1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -1542,24 +1694,36 @@ tadc l-1, l-1, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokAdd]- l-4 r2  value(2) size (2)
-tadd l-4, l-4, r2
-tadc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-4 r4  value(2) size (2)
+tadd r2, l-4, r4
+tadc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -1645,53 +1809,69 @@ SP-=8
  ;  -  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  -  -  - 016<tokIdent> "75" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 048<tokComma> "0" size(2) REG: r0  
  ;  - 017<tokVoid> "0" size(2) REG: r0  
- ;  -  - 001<tokNumInt> "0" size(2) REG: l-2  *
- ;  - 045<tokSub> "0" size(2) REG: l-4  
- ;  -  - 041<tokCall> "2" size(2) REG: r0  
- ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  -  -  - 016<tokIdent> "75" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ;  -  - 061<tokAssign> "2" size(2) REG: r0  
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "0" size(2) REG: r2  *
+ ;  - 061<tokAssign> "2" size(2) REG: r0  
+ ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  -  - 045<tokSub> "0" size(2) REG: r2  
+ ;  -  -  - 041<tokCall> "2" size(2) REG: r2  
+ ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  - 016<tokIdent> "75" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
- ; r0 <-[tokVoid]- l-2  value(0) size (2)
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
+ ; r0 <-[tokVoid]- r0  value(0) size (2)
  ; tokVoid
- ; r0 <-[tokLocalOfs]-  value(4) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokIdent]-  value(75) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokCall]- a0 r2  value(2) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
+ ; r4 <-[tokIdent]-  value(75) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokCall]- a0 r4  value(2) size (2)
+pushw a0
  ; pushed 1 args
 ldd X, $strlen
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
- ; r2 <-[tokNumInt]-  value(1) size (2)
+popw r2
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokSub]- r0 r2  value(0) size (2)
-tsub l-4, r0, r2
-tsbc l-3, r1, r3
- ; r0 <-[tokComma]- r0 l-4  value(0) size (2)
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- r2 r4  value(0) size (2)
+tsub r2, r2, r4
+tsbc r3, r3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
+ ; r0 <-[tokComma]- r0 r0  value(0) size (2)
  ; tokComma
 
 
@@ -1757,31 +1937,39 @@ jz
  ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 078<tokUnaryStar> "-1" size(-1) REG: l-6  
- ;  - 043<tokAdd> "0" size(2) REG: r0  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 078<tokUnaryStar> "-1" size(-1) REG: r2  
+ ;  -  - 043<tokAdd> "0" size(2) REG: r2  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
 
- ; r0 <-[tokLocalOfs]-  value(4) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-2) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokAdd]- a0 l-2  value(0) size (2)
-tadd r0, a0, l-2
-tadc r1, a1, l-1
- ; l-6 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokAdd]- a0 l-2  value(0) size (2)
+tadd r2, a0, l-2
+tadc r3, a1, l-1
+ ; r2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; deref from non-ident non-local tok : tokAdd suppress 0
-movw X, r0
+movw X, r2
 mov A, [X]
+mov r2, A
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
 mov l-6, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -1921,8 +2109,6 @@ L49:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 048<tokComma> "0" size(2) REG: r0  
@@ -1931,14 +2117,18 @@ L49:
  ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
- ;  - 045<tokSub> "2" size(2) REG: l-4  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  - 061<tokAssign> "2" size(2) REG: r4  
+ ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  -  - 045<tokSub> "2" size(2) REG: r6  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r6 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r8  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -1954,27 +2144,49 @@ L49:
  ; tokComma
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r4 <-[tokLocalOfs]-  value(-4) size (2)
- ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
  ; !!! emit suppressed
  ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
 ld r6, 1
 ld r7, 0
- ; l-4 <-[tokSub]- l-4 r6  value(2) size (2)
-tsub l-4, l-4, r6
-tsbc l-3, l-3, r7
- ; r0 <-[tokSequential]- r0 l-2 l-4  value(0) size (0)
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r4 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; l-4 <-[tokUnaryStar]- r6  value(2) size (2)
+ ; !!! emit suppressed
+ ; r8 <-[tokNumInt]-  value(1) size (2)
+ ; possible optimization - pass size
+ld r8, 1
+ld r9, 0
+ ; r6 <-[tokSub]- l-4 r8  value(2) size (2)
+tsub r6, l-4, r8
+tsbc r7, l-3, r9
+ ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
+mov A, r6
+mov l-4, A
+ ; load to retval
+mov r4, A
+mov A, r7
+mov l-3, A
+ ; load to retval
+mov r5, A
+ ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
  ; tokSequential
 
 
@@ -2024,15 +2236,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-4 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-4, 0
-ld l-3, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -2046,7 +2269,6 @@ ld l-3, 0
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "55" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -2092,15 +2314,13 @@ jz
  ;  -  -  - 089<tokLocalOfs> "6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ;  - 001<tokNumInt> "45" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 043<tokAdd> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: a2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
  ;  -  - 001<tokNumInt> "0" size(2) REG: r2  *
- ;  - 001<tokNumInt> "45" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "45" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
@@ -2113,10 +2333,9 @@ ld r3, 0
  ; r0 <-[tokAdd]- a2 r2  value(0) size (2)
 tadd r0, a2, r2
 tadc r1, a3, r3
- ; r2 <-[tokNumInt]-  value(45) size (2)
+ ; r2 <-[tokNumInt]-  value(45) size (-1)
  ; possible optimization - pass size
 ld r2, 45
-ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, r0
@@ -2140,7 +2359,6 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  - 016<tokIdent> "92" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "4" size(2) REG: r0  
  ;  - 043<tokAdd> "0" size(2) REG: r0  
@@ -2181,21 +2399,12 @@ mov r3, A
  ; r4 <-[tokIdent]-  value(92) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+pushw r0
+pushw r2
  ; pushed 2 args
 ldd X, $itoa
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 SP+=2
 
 
@@ -2213,15 +2422,26 @@ L55:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -2244,15 +2464,12 @@ L58:
  ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 081<tokPostInc> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 061<tokAssign> "-1" size(-1) REG: r0  
@@ -2269,10 +2486,12 @@ L58:
  ;  -  -  -  - 019<tokInt> "0" size(2) REG: r6  
  ;  -  -  -  -  - 016<tokIdent> "114" size(0) REG: r6 SUPPRESSED *
  ;  -  -  - 001<tokNumInt> "48" size(2) REG: r4  *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
@@ -2299,22 +2518,13 @@ ld r5, 0
 ld A, 0x00
 mov r7, A
  ; r2 <-[tokCall]- a0 r4 r6  value(0) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
-mov A, r5
-push A
-mov A, r4
-push A
+pushw a0
+pushw r4
  ; pushed 2 args
  ; Call not by tokIdent - load address
 movw X, r6
 jmp
-pop A
-mov r2,A
-pop A
-mov r3,A
+popw r2
 SP+=2
  ; r4 <-[tokNumInt]-  value(48) size (2)
  ; possible optimization - pass size
@@ -2332,16 +2542,27 @@ mov [X], A
 mov r0, A
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -2359,8 +2580,6 @@ L59:
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 066<tokAssignDiv> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(2) REG: z0  *
@@ -2372,57 +2591,60 @@ L59:
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 022<tokIf> "58" size(2) REG: r0  
  ;  - 062<tokMore> "0" size(2) REG: r0  
- ;  -  - 041<tokCall> "2" size(2) REG: a0  
- ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "10" size(2) REG: r4  *
- ;  -  -  - 019<tokInt> "0" size(2) REG: r6  
- ;  -  -  -  - 016<tokIdent> "114" size(0) REG: r6 SUPPRESSED *
+ ;  -  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 041<tokCall> "2" size(2) REG: r4  
+ ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  -  - 001<tokNumInt> "10" size(2) REG: r6  *
+ ;  -  -  -  - 019<tokInt> "0" size(2) REG: r8  
+ ;  -  -  -  -  - 016<tokIdent> "114" size(0) REG: r8 SUPPRESSED *
  ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(10) size (2)
+ ; a0 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(10) size (2)
  ; possible optimization - pass size
-ld r4, 10
-ld r5, 0
- ; r6 <-[tokIdent]-  value(114) size (0)
+ld r6, 10
+ld r7, 0
+ ; r8 <-[tokIdent]-  value(114) size (0)
  ; !!! emit suppressed
- ; r6 <-[tokInt]- r6  value(0) size (2)
+ ; r8 <-[tokInt]- r8  value(0) size (2)
 ld A, 0x00
-mov r7, A
- ; a0 <-[tokCall]- a0 r4 r6  value(2) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
-mov A, r5
-push A
-mov A, r4
-push A
+mov r9, A
+ ; r4 <-[tokCall]- a0 r6 r8  value(2) size (2)
+pushw a0
+pushw r6
  ; pushed 2 args
  ; Call not by tokIdent - load address
-movw X, r6
+movw X, r8
 jmp
-pop A
-mov a0,A
-pop A
-mov a1,A
+popw r4
 SP+=2
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov a0, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov a1, A
+ ; load to retval
+mov r3, A
  ; r4 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
 ld r4, 0
 ld r5, 0
- ; r0 <-[tokMore]- a0 r4  value(0) size (2)
+ ; r0 <-[tokMore]- r2 r4  value(0) size (2)
 ldd X, $L61
-tsub r0, a0, r4
-tsbc r1, a1, r5
+tsub r0, r2, r4
+tsbc r1, r3, r5
 ld r1, 0
 ld r0, 0
 jle
@@ -2449,7 +2671,6 @@ L60:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "62" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -2496,14 +2717,12 @@ jz
  ;  -  - 081<tokPostInc> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "45" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 081<tokPostInc> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 061<tokAssign> "-1" size(-1) REG: r0  
@@ -2512,11 +2731,13 @@ jz
  ;  -  -  -  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "45" size(2) REG: r2  *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "45" size(-1) REG: r2  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
@@ -2529,10 +2750,9 @@ jz
  ; r0 <-[tokAdd]- a2 l-2  value(0) size (2)
 tadd r0, a2, l-2
 tadc r1, a3, l-1
- ; r2 <-[tokNumInt]-  value(45) size (2)
+ ; r2 <-[tokNumInt]-  value(45) size (-1)
  ; possible optimization - pass size
 ld r2, 45
-ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, r0
@@ -2542,16 +2762,27 @@ mov [X], A
 mov r0, A
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -2569,7 +2800,6 @@ L62:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 043<tokAdd> "0" size(2) REG: r0  
@@ -2577,7 +2807,7 @@ L62:
  ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  - 001<tokNumInt> "0" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
@@ -2590,10 +2820,9 @@ L62:
  ; r0 <-[tokAdd]- a2 l-2  value(0) size (2)
 tadd r0, a2, l-2
 tadc r1, a3, l-1
- ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r2, 0
-ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, r0
@@ -2625,17 +2854,11 @@ mov r0, A
  ; r2 <-[tokIdent]-  value(83) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- a2 r2  value(2) size (2)
-mov A, a3
-push A
-mov A, a2
-push A
+pushw a2
  ; pushed 1 args
 ldd X, $reverse
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -2788,24 +3011,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "8" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: a4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "8" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "8" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "8" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; a4 <-[tokSub]- a4 r2  value(2) size (2)
-tsub a4, a4, r2
-tsbc a5, a5, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- a4 r4  value(2) size (2)
+tsub r2, a4, r4
+tsbc r3, a5, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -2823,7 +3058,6 @@ tsbc a5, a5, r3
  ;  -  -  -  - 081<tokPostInc> "2" size(0) REG: z0  
  ;  -  -  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 081<tokPostInc> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
@@ -2836,8 +3070,6 @@ tsbc a5, a5, r3
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 076<tokIfNot> "69" size(-1) REG: r0  
@@ -2848,15 +3080,19 @@ tsbc a5, a5, r3
  ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r4  
  ;  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  -  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "0" size(2) REG: r4  *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
- ;  - 043<tokAdd> "2" size(2) REG: l-4  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  -  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
+ ;  - 061<tokAssign> "2" size(2) REG: r4  
+ ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r4 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r6  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r6 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r8  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -2878,10 +3114,9 @@ mov A, r4
 mov [X], A
  ; load to retval
 mov r2, A
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- r2 r4  value(0) size (-1)
 ldd X, $L71
 tsub r0, r2, r4
@@ -2901,27 +3136,49 @@ ldd X, $L69
 jz
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r4 <-[tokLocalOfs]-  value(-4) size (2)
- ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
  ; !!! emit suppressed
  ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
 ld r6, 1
 ld r7, 0
- ; l-4 <-[tokAdd]- l-4 r6  value(2) size (2)
-tadd l-4, l-4, r6
-tadc l-3, l-3, r7
- ; r0 <-[tokSequential]- r0 l-2 l-4  value(0) size (0)
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r4 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; l-4 <-[tokUnaryStar]- r6  value(2) size (2)
+ ; !!! emit suppressed
+ ; r8 <-[tokNumInt]-  value(1) size (2)
+ ; possible optimization - pass size
+ld r8, 1
+ld r9, 0
+ ; r6 <-[tokAdd]- l-4 r8  value(2) size (2)
+tadd r6, l-4, r8
+tadc r7, l-3, r9
+ ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
+mov A, r6
+mov l-4, A
+ ; load to retval
+mov r4, A
+mov A, r7
+mov l-3, A
+ ; load to retval
+mov r5, A
+ ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
  ; tokSequential
 
 
@@ -2947,14 +3204,12 @@ L72:
  ;  -  - 082<tokPostDec> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "8" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 082<tokPostDec> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "8" size(2) REG: z0  *
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "8" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 076<tokIfNot> "73" size(2) REG: r0  
@@ -2962,10 +3217,12 @@ L72:
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
  ;  -  -  -  - 089<tokLocalOfs> "8" size(2) REG: r2 SUPPRESSED *
  ;  -  -  - 001<tokNumInt> "0" size(2) REG: r4  *
- ;  - 045<tokSub> "2" size(2) REG: a4  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "8" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "8" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 045<tokSub> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "8" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r2 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
@@ -2993,16 +3250,27 @@ ldd X, $L73
 jz
  ; r2 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; a4 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; a4 <-[tokSub]- a4 r4  value(2) size (2)
-tsub a4, a4, r4
-tsbc a5, a5, r5
- ; r0 <-[tokSequential]- r0 a4  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokSub]- a4 r6  value(2) size (2)
+tsub r4, a4, r6
+tsbc r5, a5, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov a4, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov a5, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -3015,33 +3283,32 @@ tsbc a5, a5, r5
  ;  - 081<tokPostInc> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 081<tokPostInc> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 061<tokAssign> "-1" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r2  *
- ;  - 043<tokAdd> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r2  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 043<tokAdd> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r2, 0
-ld r3, 0
  ; r0 <-[tokAssign]- l-2 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-2
@@ -3051,16 +3318,27 @@ mov [X], A
 mov r0, A
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokAdd]- l-2 r4  value(2) size (2)
-tadd l-2, l-2, r4
-tadc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokAdd]- l-2 r6  value(2) size (2)
+tadd r4, l-2, r6
+tadc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -3177,16 +3455,17 @@ L77:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 020<tokReturn> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 045<tokSub> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 045<tokSub> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -3200,16 +3479,27 @@ mov r1,A
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokSub]- l-2 r4  value(2) size (2)
-tsub l-2, l-2, r4
-tsbc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokSub]- l-2 r6  value(2) size (2)
+tsub r4, l-2, r6
+tsbc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -3267,7 +3557,6 @@ mov r1, A
  ; 083<tokPostAdd> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 083<tokPostAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(2) REG: z0  *
@@ -3279,24 +3568,36 @@ mov r1, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "2" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(2) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(2) size (2)
  ; possible optimization - pass size
-ld r2, 2
-ld r3, 0
- ; a0 <-[tokAdd]- a0 r2  value(2) size (2)
-tadd a0, a0, r2
-tadc a1, a1, r3
+ld r4, 2
+ld r5, 0
+ ; r2 <-[tokAdd]- a0 r4  value(2) size (2)
+tadd r2, a0, r4
+tadc r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -3413,16 +3714,17 @@ L81:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 020<tokReturn> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 045<tokSub> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 045<tokSub> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -3436,16 +3738,27 @@ mov r1,A
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokSub]- l-2 r4  value(2) size (2)
-tsub l-2, l-2, r4
-tsbc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokSub]- l-2 r6  value(2) size (2)
+tsub r4, l-2, r6
+tsbc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -3514,7 +3827,6 @@ mov r1, A
  ; 083<tokPostAdd> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 083<tokPostAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(2) REG: z0  *
@@ -3526,24 +3838,36 @@ mov r1, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "2" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(2) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(2) size (2)
  ; possible optimization - pass size
-ld r2, 2
-ld r3, 0
- ; a0 <-[tokAdd]- a0 r2  value(2) size (2)
-tadd a0, a0, r2
-tadc a1, a1, r3
+ld r4, 2
+ld r5, 0
+ ; r2 <-[tokAdd]- a0 r4  value(2) size (2)
+tadd r2, a0, r4
+tadc r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -3554,7 +3878,6 @@ tadc a1, a1, r3
  ; 083<tokPostAdd> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 083<tokPostAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "6" size(2) REG: z0  *
@@ -3566,24 +3889,36 @@ tadc a1, a1, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "2" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
- ; a2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(2) size (2)
+ ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(2) size (2)
  ; possible optimization - pass size
-ld r2, 2
-ld r3, 0
- ; a2 <-[tokAdd]- a2 r2  value(2) size (2)
-tadd a2, a2, r2
-tadc a3, a3, r3
+ld r4, 2
+ld r5, 0
+ ; r2 <-[tokAdd]- a2 r4  value(2) size (2)
+tadd r2, a2, r4
+tadc r3, a3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -3700,16 +4035,17 @@ L85:
  ; After replace
  ; 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 254<tokSequential> "0" size(0) REG: r0  
  ;  - 020<tokReturn> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 045<tokSub> "2" size(2) REG: l-2  
- ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  - 061<tokAssign> "2" size(2) REG: r2  
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 045<tokSub> "2" size(2) REG: r4  
+ ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r4 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "1" size(2) REG: r6  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -3723,16 +4059,27 @@ mov r1,A
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; r4 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r4  value(2) size (2)
+ ; !!! emit suppressed
+ ; r6 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
- ; l-2 <-[tokSub]- l-2 r4  value(2) size (2)
-tsub l-2, l-2, r4
-tsbc l-1, l-1, r5
- ; r0 <-[tokSequential]- r0 l-2  value(0) size (0)
+ld r6, 1
+ld r7, 0
+ ; r4 <-[tokSub]- l-2 r6  value(2) size (2)
+tsub r4, l-2, r6
+tsbc r5, l-1, r7
+ ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
+mov A, r4
+mov l-2, A
+ ; load to retval
+mov r2, A
+mov A, r5
+mov l-1, A
+ ; load to retval
+mov r3, A
+ ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
  ; tokSequential
 
 
@@ -3801,7 +4148,6 @@ mov r1, A
  ; 083<tokPostAdd> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 083<tokPostAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "4" size(2) REG: z0  *
@@ -3813,24 +4159,36 @@ mov r1, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "2" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(2) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(2) size (2)
  ; possible optimization - pass size
-ld r2, 2
-ld r3, 0
- ; a0 <-[tokAdd]- a0 r2  value(2) size (2)
-tadd a0, a0, r2
-tadc a1, a1, r3
+ld r4, 2
+ld r5, 0
+ ; r2 <-[tokAdd]- a0 r4  value(2) size (2)
+tadd r2, a0, r4
+tadc r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -3841,7 +4199,6 @@ tadc a1, a1, r3
  ; 083<tokPostAdd> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Found tokPostInc/Dec/Add/Sub
  ; 083<tokPostAdd> "2" size(2) REG: z0  
  ;  - 089<tokLocalOfs> "6" size(2) REG: z0  *
@@ -3853,24 +4210,36 @@ tadc a1, a1, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: a2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "2" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "6" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "6" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
- ; a2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(6) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(2) size (2)
+ ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(2) size (2)
  ; possible optimization - pass size
-ld r2, 2
-ld r3, 0
- ; a2 <-[tokAdd]- a2 r2  value(2) size (2)
-tadd a2, a2, r2
-tadc a3, a3, r3
+ld r4, 2
+ld r5, 0
+ ; r2 <-[tokAdd]- a2 r4  value(2) size (2)
+tadd r2, a2, r4
+tadc r3, a3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4015,7 +4384,6 @@ mov r1, A
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "8" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "89" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -4058,7 +4426,6 @@ jz
  ; Expr tree before optim: 
  ; 020<tokReturn> "0" size(0) REG: z0  
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 001<tokNumInt> "0" size(2) REG: r0  *
@@ -4105,16 +4472,17 @@ L92:
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "8" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 006<tokLogAnd> "94" size(2) REG: r0  
  ;  -  - 090<tokShortCirc> "94" size(2) REG: r0  
  ;  -  -  - 120<tok_Bool> "0" size(2) REG: r0  
- ;  -  -  -  - 045<tokSub> "2" size(2) REG: a4  
- ;  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
- ;  -  -  -  -  -  - 089<tokLocalOfs> "8" size(2) REG: r0 SUPPRESSED *
- ;  -  -  -  -  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ;  -  -  -  - 061<tokAssign> "2" size(2) REG: r0  
+ ;  -  -  -  -  - 089<tokLocalOfs> "8" size(2) REG: r0 SUPPRESSED *
+ ;  -  -  -  -  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a4 SUPPRESSED 
+ ;  -  -  -  -  -  -  - 089<tokLocalOfs> "8" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4  *
  ;  -  - 019<tokInt> "0" size(2) REG: r0  
  ;  -  -  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r2  
@@ -4126,19 +4494,30 @@ L92:
 
  ; r0 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(8) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; a4 <-[tokSub]- a4 r2  value(2) size (2)
-tsub a4, a4, r2
-tsbc a5, a5, r3
- ; r0 <-[tok_Bool]- a4  value(0) size (2)
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- a4 r4  value(2) size (2)
+tsub r2, a4, r4
+tsbc r3, a5, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a5, A
+ ; load to retval
+mov r1, A
+ ; r0 <-[tok_Bool]- r0  value(0) size (2)
 ; maybe omit it all? Why convert to bool?
 ; XXX Optimize size!
-tor r0, a4, a5
+tor r0, r0, r1
 ld r1, 0
 ;;;;;; ; r0 <-[tokShortCirc]- r0  value(94) size (2)
  ; tokShortCirc
@@ -4207,24 +4586,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-2 <-[tokAdd]- l-2 r2  value(2) size (2)
-tadd l-2, l-2, r2
-tadc l-1, l-1, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-2 r4  value(2) size (2)
+tadd r2, l-2, r4
+tadc r3, l-1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4244,24 +4635,36 @@ tadc l-1, l-1, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokAdd]- l-4 r2  value(2) size (2)
-tadd l-4, l-4, r2
-tadc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-4 r4  value(2) size (2)
+tadd r2, l-4, r4
+tadc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4370,15 +4773,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4392,23 +4806,34 @@ ld l-1, 0
  ;  - 043<tokAdd> "0" size(0) REG: z0  
  ;  -  - 016<tokIdent> "178" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "7" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "0" size(2) REG: l-4  
- ;  - 016<tokIdent> "178" size(2) REG: r0  *
- ;  - 001<tokNumInt> "7" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "0" size(2) REG: r2  
+ ;  -  - 016<tokIdent> "178" size(2) REG: r2  *
+ ;  -  - 001<tokNumInt> "7" size(2) REG: r4  *
 
- ; r0 <-[tokIdent]-  value(178) size (2)
-ld r0, $(l)printnum_buffer
-ld r1, $(h)printnum_buffer
- ; r2 <-[tokNumInt]-  value(7) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokIdent]-  value(178) size (2)
+ld r2, $(l)printnum_buffer
+ld r3, $(h)printnum_buffer
+ ; r4 <-[tokNumInt]-  value(7) size (2)
  ; possible optimization - pass size
-ld r2, 7
-ld r3, 0
- ; l-4 <-[tokAdd]- r0 r2  value(0) size (2)
-tadd l-4, r0, r2
-tadc l-3, r1, r3
+ld r4, 7
+ld r5, 0
+ ; r2 <-[tokAdd]- r2 r4  value(0) size (2)
+tadd r2, r2, r4
+tadc r3, r3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4421,21 +4846,19 @@ tadc l-3, r1, r3
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "0" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
  ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r2, 0
-ld r3, 0
  ; r0 <-[tokAssign]- l-4 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-4
@@ -4456,7 +4879,6 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "98" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -4508,24 +4930,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokSub]- l-4 r2  value(2) size (2)
-tsub l-4, l-4, r2
-tsbc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-4 r4  value(2) size (2)
+tsub r2, l-4, r4
+tsbc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4537,21 +4971,19 @@ tsbc l-3, l-3, r3
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
  ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (2)
+ ; r2 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r2, 48
-ld r3, 0
  ; r0 <-[tokAssign]- l-4 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-4
@@ -4574,7 +5006,6 @@ L98:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "101" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -4617,15 +5048,21 @@ jz
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "1" size(2) REG: l-2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "1" size(-1) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(1) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(1) size (-1)
  ; possible optimization - pass size
-ld l-2, 1
-ld l-1, 0
+ld r2, 1
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -4638,27 +5075,39 @@ ld l-1, 0
  ;  - 080<tokUnaryMinus> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 080<tokUnaryMinus> "0" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 080<tokUnaryMinus> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryMinus]- a0  value(0) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokUnaryMinus]- a0  value(0) size (2)
  ;; optimize this
 mov A, a0
 not
 inc
-mov a0, A
+mov r2, A
 ld A,0
 mov B,A
 mov A, a1
 adc
+mov r3, A
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
 mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4713,24 +5162,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokSub]- l-4 r2  value(2) size (2)
-tsub l-4, l-4, r2
-tsbc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-4 r4  value(2) size (2)
+tsub r2, l-4, r4
+tsbc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4744,47 +5205,45 @@ tsbc l-3, l-3, r3
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 041<tokCall> "0" size(2) REG: l-6  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "10" size(2) REG: r2  *
- ;  - 019<tokInt> "0" size(2) REG: r4  
- ;  -  - 016<tokIdent> "221" size(0) REG: r4 SUPPRESSED *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 041<tokCall> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  - 019<tokInt> "0" size(2) REG: r6  
+ ;  -  -  - 016<tokIdent> "221" size(0) REG: r6 SUPPRESSED *
 
- ; r0 <-[tokLocalOfs]-  value(4) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(10) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(10) size (2)
  ; possible optimization - pass size
-ld r2, 10
-ld r3, 0
- ; r4 <-[tokIdent]-  value(221) size (0)
+ld r4, 10
+ld r5, 0
+ ; r6 <-[tokIdent]-  value(221) size (0)
  ; !!! emit suppressed
- ; r4 <-[tokInt]- r4  value(0) size (2)
+ ; r6 <-[tokInt]- r6  value(0) size (2)
 ld A, 0x00
-mov r5, A
- ; l-6 <-[tokCall]- a0 r2 r4  value(0) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+mov r7, A
+ ; r2 <-[tokCall]- a0 r4 r6  value(0) size (2)
+pushw a0
+pushw r4
  ; pushed 2 args
  ; Call not by tokIdent - load address
-movw X, r4
+movw X, r6
 jmp
-pop A
-mov l-6,A
-pop A
-mov l-5,A
+popw r2
 SP+=2
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -4799,7 +5258,6 @@ SP+=2
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
@@ -4807,7 +5265,7 @@ SP+=2
  ;  - 043<tokAdd> "0" size(-1) REG: r2  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "48" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
@@ -4817,10 +5275,9 @@ SP+=2
  ; !!! emit suppressed
  ; l-6 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (2)
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r4, 48
-ld r5, 0
  ; r2 <-[tokAdd]- l-6 r4  value(0) size (-1)
 tadd r2, l-6, r4
  ; r0 <-[tokAssign]- l-4 r2  value(-1) size (-1)
@@ -4843,47 +5300,49 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 041<tokCall> "0" size(2) REG: a0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "10" size(2) REG: r2  *
- ;  - 019<tokInt> "0" size(2) REG: r4  
- ;  -  - 016<tokIdent> "229" size(0) REG: r4 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
+ ;  - 041<tokCall> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  - 019<tokInt> "0" size(2) REG: r6  
+ ;  -  -  - 016<tokIdent> "229" size(0) REG: r6 SUPPRESSED *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(10) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(10) size (2)
  ; possible optimization - pass size
-ld r2, 10
-ld r3, 0
- ; r4 <-[tokIdent]-  value(229) size (0)
+ld r4, 10
+ld r5, 0
+ ; r6 <-[tokIdent]-  value(229) size (0)
  ; !!! emit suppressed
- ; r4 <-[tokInt]- r4  value(0) size (2)
+ ; r6 <-[tokInt]- r6  value(0) size (2)
 ld A, 0x00
-mov r5, A
- ; a0 <-[tokCall]- a0 r2 r4  value(0) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+mov r7, A
+ ; r2 <-[tokCall]- a0 r4 r6  value(0) size (2)
+pushw a0
+pushw r4
  ; pushed 2 args
  ; Call not by tokIdent - load address
-movw X, r4
+movw X, r6
 jmp
-pop A
-mov a0,A
-pop A
-mov a1,A
+popw r2
 SP+=2
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov a0, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov a1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4943,24 +5402,36 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokSub]- l-4 r2  value(2) size (2)
-tsub l-4, l-4, r2
-tsbc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-4 r4  value(2) size (2)
+tsub r2, l-4, r4
+tsbc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -4972,21 +5443,19 @@ tsbc l-3, l-3, r3
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "45" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "45" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "45" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
  ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(45) size (2)
+ ; r2 <-[tokNumInt]-  value(45) size (-1)
  ; possible optimization - pass size
 ld r2, 45
-ld r3, 0
  ; r0 <-[tokAssign]- l-4 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-4
@@ -5020,17 +5489,11 @@ L106:
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- l-4 r2  value(2) size (2)
-mov A, l-3
-push A
-mov A, l-4
-push A
+pushw l-4
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -5077,22 +5540,34 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 089<tokLocalOfs> "-1" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 089<tokLocalOfs> "-1" size(2) REG: l-10  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 089<tokLocalOfs> "-1" size(2) REG: r2  *
 
- ; l-10 <-[tokLocalOfs]-  value(-1) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-1) size (2)
  ; localOfs: -1, fix for [m+off] to -16
 ld A, 16
 mov B,A
 mov A,ML
 sub
-mov l-10,A
+mov r2,A
 ld A, 0
 mov B,A
 mov A,MH
 sbc
-mov l-9,A
+mov r3,A
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -5106,21 +5581,19 @@ mov l-9,A
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "0" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r2, 0
-ld r3, 0
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -5147,24 +5620,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -5206,22 +5691,20 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "110" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
  ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-14 r4  value(0) size (-1)
 ldd X, $L112
 tsub r0, l-14, r4
@@ -5251,21 +5734,19 @@ jz
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (2)
+ ; r2 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r2, 48
-ld r3, 0
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -5292,24 +5773,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -5361,24 +5854,30 @@ jz
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 038<tokAnd> "0" size(-1) REG: l-12  
- ;  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "15" size(2) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-12" size(2) REG: r0 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "15" size(-1) REG: r4  *
 
- ; r0 <-[tokLocalOfs]-  value(-14) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-12) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(15) size (2)
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(15) size (-1)
  ; possible optimization - pass size
-ld r2, 15
-ld r3, 0
- ; l-12 <-[tokAnd]- l-14 r2  value(0) size (-1)
-tand l-12, l-14, r2
+ld r4, 15
+ ; r2 <-[tokAnd]- l-14 r4  value(0) size (-1)
+tand r2, l-14, r4
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-12, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -5392,22 +5891,20 @@ tand l-12, l-14, r2
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "115" size(-1) REG: r0  
  ;  - 062<tokMore> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "9" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-12) size (2)
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(9) size (2)
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
  ; possible optimization - pass size
 ld r4, 9
-ld r5, 0
  ; r0 <-[tokMore]- l-12 r4  value(0) size (-1)
 ldd X, $L117
 tsub r0, l-12, r4
@@ -5442,8 +5939,6 @@ jz
  ;  -  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "65" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
@@ -5452,8 +5947,8 @@ jz
  ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
  ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "65" size(2) REG: r4  *
- ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  -  - 001<tokNumInt> "65" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
@@ -5463,16 +5958,14 @@ jz
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(65) size (2)
+ ; r4 <-[tokNumInt]-  value(65) size (-1)
  ; possible optimization - pass size
 ld r4, 65
-ld r5, 0
  ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
 tadd r2, l-12, r4
- ; r4 <-[tokNumInt]-  value(10) size (2)
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
  ; possible optimization - pass size
 ld r4, 10
-ld r5, 0
  ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
 tsub r2, r2, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
@@ -5503,7 +5996,6 @@ L115:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
@@ -5511,7 +6003,7 @@ L115:
  ;  - 043<tokAdd> "0" size(-1) REG: r2  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "48" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
@@ -5521,10 +6013,9 @@ L115:
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (2)
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r4, 48
-ld r5, 0
  ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
 tadd r2, l-12, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
@@ -5549,27 +6040,33 @@ L116:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "4" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 005<tokRShift> "0" size(-1) REG: l-14  
- ;  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "4" size(2) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 005<tokRShift> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "4" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(4) size (2)
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(4) size (-1)
  ; possible optimization - pass size
-ld r2, 4
-ld r3, 0
- ; l-14 <-[tokRShift]- l-14 r2  value(0) size (-1)
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
+ld r4, 4
+ ; r2 <-[tokRShift]- l-14 r4  value(0) size (-1)
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-14, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -5589,24 +6086,36 @@ tshr l-14, l-14, r0
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -5625,27 +6134,34 @@ L114:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "8" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 005<tokRShift> "0" size(2) REG: l-14  
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "8" size(2) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 005<tokRShift> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "8" size(2) REG: r4  *
 
- ; r0 <-[tokLocalOfs]-  value(4) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(8) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(8) size (2)
  ; possible optimization - pass size
-ld r2, 8
-ld r3, 0
- ; l-14 <-[tokRShift]- a0 r2  value(0) size (2)
+ld r4, 8
+ld r5, 0
+ ; r2 <-[tokRShift]- a0 r4  value(0) size (2)
 mov A, a1
-mov l-14, A
+mov r2, A
 ld A,0
-mov l-13, A
+mov r3, A
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-14, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -5659,22 +6175,20 @@ mov l-13, A
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "118" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
  ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-14 r4  value(0) size (-1)
 ldd X, $L120
 tsub r0, l-14, r4
@@ -5704,21 +6218,19 @@ jz
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (2)
+ ; r2 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r2, 48
-ld r3, 0
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -5745,24 +6257,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -5814,24 +6338,30 @@ jz
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 038<tokAnd> "0" size(-1) REG: l-12  
- ;  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "15" size(2) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-12" size(2) REG: r0 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "15" size(-1) REG: r4  *
 
- ; r0 <-[tokLocalOfs]-  value(-14) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-12) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(15) size (2)
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(15) size (-1)
  ; possible optimization - pass size
-ld r2, 15
-ld r3, 0
- ; l-12 <-[tokAnd]- l-14 r2  value(0) size (-1)
-tand l-12, l-14, r2
+ld r4, 15
+ ; r2 <-[tokAnd]- l-14 r4  value(0) size (-1)
+tand r2, l-14, r4
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-12, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -5845,22 +6375,20 @@ tand l-12, l-14, r2
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "123" size(-1) REG: r0  
  ;  - 062<tokMore> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "9" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-12) size (2)
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(9) size (2)
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
  ; possible optimization - pass size
 ld r4, 9
-ld r5, 0
  ; r0 <-[tokMore]- l-12 r4  value(0) size (-1)
 ldd X, $L125
 tsub r0, l-12, r4
@@ -5895,8 +6423,6 @@ jz
  ;  -  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "65" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
@@ -5905,8 +6431,8 @@ jz
  ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
  ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "65" size(2) REG: r4  *
- ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  -  - 001<tokNumInt> "65" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
@@ -5916,16 +6442,14 @@ jz
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(65) size (2)
+ ; r4 <-[tokNumInt]-  value(65) size (-1)
  ; possible optimization - pass size
 ld r4, 65
-ld r5, 0
  ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
 tadd r2, l-12, r4
- ; r4 <-[tokNumInt]-  value(10) size (2)
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
  ; possible optimization - pass size
 ld r4, 10
-ld r5, 0
  ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
 tsub r2, r2, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
@@ -5956,7 +6480,6 @@ L123:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
@@ -5964,7 +6487,7 @@ L123:
  ;  - 043<tokAdd> "0" size(-1) REG: r2  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "48" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
@@ -5974,10 +6497,9 @@ L123:
  ; !!! emit suppressed
  ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (2)
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r4, 48
-ld r5, 0
  ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
 tadd r2, l-12, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
@@ -6002,27 +6524,33 @@ L124:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "4" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 005<tokRShift> "0" size(-1) REG: l-14  
- ;  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "4" size(2) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 005<tokRShift> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "4" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(4) size (2)
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(4) size (-1)
  ; possible optimization - pass size
-ld r2, 4
-ld r3, 0
- ; l-14 <-[tokRShift]- l-14 r2  value(0) size (-1)
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
-tshr l-14, l-14, r0
+ld r4, 4
+ ; r2 <-[tokRShift]- l-14 r4  value(0) size (-1)
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+tshr r2, l-14, r0
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-14, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -6042,24 +6570,36 @@ tshr l-14, l-14, r0
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6076,21 +6616,19 @@ L122:
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 001<tokNumInt> "120" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "120" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "120" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(120) size (2)
+ ; r2 <-[tokNumInt]-  value(120) size (-1)
  ; possible optimization - pass size
 ld r2, 120
-ld r3, 0
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -6117,24 +6655,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 045<tokSub> "2" size(2) REG: l-10  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-10" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-10 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-10 <-[tokSub]- l-10 r2  value(2) size (2)
-tsub l-10, l-10, r2
-tsbc l-9, l-9, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokSub]- l-10 r4  value(2) size (2)
+tsub r2, l-10, r4
+tsbc r3, l-9, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-10, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-9, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6146,21 +6696,19 @@ tsbc l-9, l-9, r3
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
  ;  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (2)
+ ; r2 <-[tokNumInt]-  value(48) size (-1)
  ; possible optimization - pass size
 ld r2, 48
-ld r3, 0
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -6192,17 +6740,11 @@ mov r0, A
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- l-10 r2  value(2) size (2)
-mov A, l-9
-push A
-mov A, l-10
-push A
+pushw l-10
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -6252,15 +6794,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-4 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-4, 0
-ld l-3, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6272,13 +6825,25 @@ ld l-3, 0
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 016<tokIdent> "218" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 016<tokIdent> "218" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 016<tokIdent> "218" size(2) REG: r2  *
 
- ; l-6 <-[tokIdent]-  value(218) size (2)
-ld l-6, $(l)in_str
-ld l-5, $(h)in_str
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokIdent]-  value(218) size (2)
+ld r2, $(l)in_str
+ld r3, $(h)in_str
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6296,23 +6861,28 @@ L128:
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 041<tokCall> "0" size(0) REG: z0  
  ;  -  - 016<tokIdent> "29" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 041<tokCall> "0" size(2) REG: l-2  
- ;  - 016<tokIdent> "29" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 041<tokCall> "0" size(2) REG: r2  
+ ;  -  - 016<tokIdent> "29" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(29) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokCall]- r0  value(0) size (2)
+ ; r2 <-[tokIdent]-  value(29) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokCall]- r2  value(0) size (2)
  ; pushed 0 args
  ; no args, reserve 2 bytes for retval
 SP-=2
 ldd X, $getc
 jmp
-pop A
-mov l-2,A
-pop A
-mov l-1,A
+popw r2
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -6326,22 +6896,20 @@ mov l-1,A
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "130" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L132
 tsub r0, l-2, r4
@@ -6383,8 +6951,6 @@ L130:
  ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  -  - 001<tokNumInt> "13" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 019<tokInt> "0" size(2) REG: r0  
@@ -6393,20 +6959,19 @@ L130:
  ;  -  -  -  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  -  -  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
  ;  -  -  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "13" size(2) REG: r4  *
+ ;  -  -  -  - 001<tokNumInt> "13" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(10) size (2)
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
  ; possible optimization - pass size
 ld r4, 10
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L136
 tsub r0, l-2, r4
@@ -6426,10 +6991,9 @@ jnz
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(13) size (2)
+ ; r4 <-[tokNumInt]-  value(13) size (-1)
  ; possible optimization - pass size
 ld r4, 13
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L137
 tsub r0, l-2, r4
@@ -6464,21 +7028,19 @@ jz
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "0" size(2) REG: r2  *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
  ; l-6 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r2, 0
-ld r3, 0
  ; r0 <-[tokAssign]- l-6 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-6
@@ -6510,7 +7072,6 @@ L133:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "126" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "138" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -6596,24 +7157,36 @@ mov r0, A
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-6  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; l-6 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-6 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-6 <-[tokAdd]- l-6 r2  value(2) size (2)
-tadd l-6, l-6, r2
-tadc l-5, l-5, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-6 r4  value(2) size (2)
+tadd r2, l-6, r4
+tadc r3, l-5, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6633,24 +7206,36 @@ tadc l-5, l-5, r3
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-4  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-4) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-4 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-4 <-[tokAdd]- l-4 r2  value(2) size (2)
-tadd l-4, l-4, r2
-tadc l-3, l-3, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-4 r4  value(2) size (2)
+tadd r2, l-4, r4
+tadc r3, l-3, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6734,17 +7319,11 @@ ld r1, $(h)L143
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -6816,17 +7395,11 @@ ld r1, $(h)L146
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -6919,15 +7492,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6939,15 +7523,26 @@ ld l-1, 0
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -6961,7 +7556,6 @@ L151:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "154" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -7039,17 +7633,11 @@ ld r1, $(h)L156
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7066,7 +7654,6 @@ mov r1,A
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  -  -  - 001<tokNumInt> "2" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: r0  
@@ -7107,17 +7694,11 @@ mov r1, A
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7149,17 +7730,11 @@ ld r1, $(h)L157
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7182,8 +7757,6 @@ mov r1,A
  ;  -  -  -  -  -  - 001<tokNumInt> "2" size(0) REG: z0  *
  ;  -  -  - 016<tokIdent> "41" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "158" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -7233,21 +7806,12 @@ mov r5, A
  ; r6 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokCall]- a0 r4 r6  value(4) size (2)
-mov A, a1
-push A
-mov A, a0
-push A
-mov A, r5
-push A
-mov A, r4
-push A
+pushw a0
+pushw r4
  ; pushed 2 args
 ldd X, $strcmp
 jmp
-pop A
-mov r2,A
-pop A
-mov r3,A
+popw r2
 SP+=2
  ; r4 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
@@ -7306,17 +7870,11 @@ ld r1, $(h)L161
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7386,17 +7944,11 @@ ld r1, $(h)L162
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7418,24 +7970,36 @@ L152:
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-2  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-2 <-[tokAdd]- l-2 r2  value(2) size (2)
-tadd l-2, l-2, r2
-tadc l-1, l-1, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-2 r4  value(2) size (2)
+tadd r2, l-2, r4
+tadc r3, l-1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -7451,7 +8015,6 @@ L154:
  ; Expr tree before optim: 
  ; 020<tokReturn> "0" size(0) REG: z0  
  ;  - 001<tokNumInt> "-1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 001<tokNumInt> "-1" size(2) REG: r0  *
@@ -7500,15 +8063,26 @@ SP-=8
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "1" size(2) REG: l-2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "1" size(2) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(1) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld l-2, 1
-ld l-1, 0
+ld r2, 1
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -7522,22 +8096,20 @@ ld l-1, 0
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "165" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L167
 tsub r0, l-2, r4
@@ -7593,17 +8165,11 @@ ld r1, $(h)L168
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7648,17 +8214,11 @@ ld r1, $(h)L169
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7671,15 +8231,21 @@ L166:
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(-1) REG: r2  *
 
- ; l-2 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
-ld l-2, 0
-ld l-1, 0
+ld r2, 0
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -7693,22 +8259,20 @@ ld l-1, 0
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "170" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (2)
+ ; r4 <-[tokNumInt]-  value(0) size (-1)
  ; possible optimization - pass size
 ld r4, 0
-ld r5, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
 ldd X, $L172
 tsub r0, l-2, r4
@@ -7764,17 +8328,11 @@ ld r1, $(h)L173
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7819,17 +8377,11 @@ ld r1, $(h)L174
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7843,15 +8395,26 @@ L171:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "4096" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "4096" size(2) REG: l-4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "4096" size(2) REG: r2  *
 
- ; l-4 <-[tokNumInt]-  value(4096) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(4096) size (2)
  ; possible optimization - pass size
-ld l-4, 0
-ld l-3, 16
+ld r2, 0
+ld r3, 16
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -7865,7 +8428,6 @@ ld l-3, 16
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "175" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -7935,17 +8497,11 @@ ld r1, $(h)L178
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -7990,17 +8546,11 @@ ld r1, $(h)L179
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8013,15 +8563,26 @@ L176:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-4  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-4" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-4 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-4) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-4, 0
-ld l-3, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-4, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-3, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -8035,7 +8596,6 @@ ld l-3, 0
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "180" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -8105,17 +8665,11 @@ ld r1, $(h)L183
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8160,17 +8714,11 @@ ld r1, $(h)L184
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8232,17 +8780,11 @@ ld r1, $(h)L185
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8255,15 +8797,26 @@ mov r1,A
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-6 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-6, 0
-ld l-5, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -8277,22 +8830,20 @@ L186:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "189" size(-1) REG: r0  
  ;  - 060<tokLess> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "10" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
  ; l-6 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(10) size (2)
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
  ; possible optimization - pass size
 ld r4, 10
-ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (-1)
 ldd X, $L190
 tsub r0, l-6, r4
@@ -8326,22 +8877,20 @@ jz
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "191" size(-1) REG: r0  
  ;  - 060<tokLess> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "5" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "5" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
  ; l-6 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(5) size (2)
+ ; r4 <-[tokNumInt]-  value(5) size (-1)
  ; possible optimization - pass size
 ld r4, 5
-ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (-1)
 ldd X, $L193
 tsub r0, l-6, r4
@@ -8370,7 +8919,6 @@ jz
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "65" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "65" size(2) REG: r0  *
@@ -8383,17 +8931,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8411,7 +8953,6 @@ L191:
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "66" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "66" size(2) REG: r0  *
@@ -8424,17 +8965,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8456,22 +8991,30 @@ L187:
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(-1) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(-1) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "-1" size(-1) REG: l-6  
- ;  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-6" size(-1) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(-1) REG: r2  *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(-1) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "-1" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-6" size(-1) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-6) size (-1)
  ; !!! emit suppressed
- ; l-6 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-6) size (-1)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (-1)
+ ; l-6 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (-1)
  ; possible optimization - pass size
-ld r2, 1
- ; l-6 <-[tokAdd]- l-6 r2  value(-1) size (-1)
-tadd l-6, l-6, r2
+ld r4, 1
+ ; r2 <-[tokAdd]- l-6 r4  value(-1) size (-1)
+tadd r2, l-6, r4
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
 
 
 
@@ -8486,7 +9029,6 @@ L189:
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "10" size(2) REG: r0  *
@@ -8499,17 +9041,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8522,15 +9058,26 @@ mov r1,A
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "0" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; l-6 <-[tokNumInt]-  value(0) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
-ld l-6, 0
-ld l-5, 0
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -8544,7 +9091,6 @@ L194:
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "197" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -8592,7 +9138,6 @@ jz
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "199" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -8635,7 +9180,6 @@ jz
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "65" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "65" size(2) REG: r0  *
@@ -8648,17 +9192,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8676,7 +9214,6 @@ L199:
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "66" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "66" size(2) REG: r0  *
@@ -8689,17 +9226,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8721,24 +9252,36 @@ L195:
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: z0  *
  ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 043<tokAdd> "2" size(2) REG: l-6  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "1" size(2) REG: r2  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; l-6 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; r2 <-[tokLocalOfs]-  value(-6) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(1) size (2)
+ ; l-6 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
  ; possible optimization - pass size
-ld r2, 1
-ld r3, 0
- ; l-6 <-[tokAdd]- l-6 r2  value(2) size (2)
-tadd l-6, l-6, r2
-tadc l-5, l-5, r3
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-6 r4  value(2) size (2)
+tadd r2, l-6, r4
+tadc r3, l-5, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -8753,7 +9296,6 @@ L197:
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "10" size(2) REG: r0  *
@@ -8766,17 +9308,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8819,17 +9355,11 @@ ld r1, $(h)L202
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8840,7 +9370,6 @@ mov r1,A
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "4660" size(0) REG: z0  *
  ;  - 016<tokIdent> "205" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "4660" size(2) REG: r0  *
@@ -8853,17 +9382,11 @@ ld r1, 18
  ; r2 <-[tokIdent]-  value(205) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $printhex
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8874,7 +9397,6 @@ mov r1,A
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "10" size(2) REG: r0  *
@@ -8887,17 +9409,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -8975,17 +9491,11 @@ ld r1, $(h)L203
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9038,36 +9548,21 @@ ld r3, $(h)L204
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+pushw r0
+pushw r2
  ; pushed 2 args
 ldd X, $strcmp
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 SP+=2
  ; r2 <-[tokIdent]-  value(205) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $printhex
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9078,7 +9573,6 @@ mov r1,A
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "10" size(2) REG: r0  *
@@ -9091,17 +9585,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9175,17 +9663,11 @@ ld r1, $(h)L206
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9238,36 +9720,21 @@ ld r3, $(h)L207
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+pushw r0
+pushw r2
  ; pushed 2 args
 ldd X, $strcmp
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 SP+=2
  ; r2 <-[tokIdent]-  value(205) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $printhex
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9278,7 +9745,6 @@ mov r1,A
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
  ;  - 016<tokIdent> "11" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
  ;  - 001<tokNumInt> "10" size(2) REG: r0  *
@@ -9291,17 +9757,11 @@ ld r1, 0
  ; r2 <-[tokIdent]-  value(11) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $putc
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9339,7 +9799,6 @@ L212:
  ;  -  -  - 016<tokIdent> "340" size(0) REG: z0  *
  ;  -  -  - 016<tokIdent> "41" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "209" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
@@ -9358,21 +9817,12 @@ ld r5, $(h)L211
  ; r6 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokCall]- r2 r4 r6  value(4) size (2)
-mov A, r3
-push A
-mov A, r2
-push A
-mov A, r5
-push A
-mov A, r4
-push A
+pushw r2
+pushw r4
  ; pushed 2 args
 ldd X, $strcmp
 jmp
-pop A
-mov r2,A
-pop A
-mov r3,A
+popw r2
 SP+=2
  ; r4 <-[tokNumInt]-  value(0) size (2)
  ; possible optimization - pass size
@@ -9455,17 +9905,11 @@ ld r1, $(h)L214
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9519,21 +9963,12 @@ ld r3, $(h)L217
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
-mov A, r3
-push A
-mov A, r2
-push A
+pushw r0
+pushw r2
  ; pushed 2 args
 ldd X, $strcmp
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 SP+=2
  ; r0 <-[tokReturn]- r0  value(0) size (2)
  ; tokReturn
@@ -9599,17 +10034,11 @@ ld r1, $(h)L219
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9623,15 +10052,26 @@ L215:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "10" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "10" size(2) REG: r2  *
 
- ; l-6 <-[tokNumInt]-  value(10) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(10) size (2)
  ; possible optimization - pass size
-ld l-6, 10
-ld l-5, 0
+ld r2, 10
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -9645,7 +10085,6 @@ ld l-5, 0
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "50" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "220" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -9713,17 +10152,11 @@ ld r1, $(h)L223
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9766,17 +10199,11 @@ ld r1, $(h)L224
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9789,15 +10216,26 @@ L221:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "100" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "100" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "100" size(2) REG: r2  *
 
- ; l-6 <-[tokNumInt]-  value(100) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(100) size (2)
  ; possible optimization - pass size
-ld l-6, 100
-ld l-5, 0
+ld r2, 100
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -9811,7 +10249,6 @@ ld l-5, 0
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "50" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "225" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -9879,17 +10316,11 @@ ld r1, $(h)L228
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9932,17 +10363,11 @@ ld r1, $(h)L229
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -9955,15 +10380,26 @@ L226:
  ; 061<tokAssign> "2" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  - 001<tokNumInt> "-1" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 001<tokNumInt> "-1" size(2) REG: l-6  *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-6" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "-1" size(2) REG: r2  *
 
- ; l-6 <-[tokNumInt]-  value(-1) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-6) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokNumInt]-  value(-1) size (2)
  ; possible optimization - pass size
-ld l-6, 255
-ld l-5, 255
+ld r2, 255
+ld r3, 255
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-6, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-5, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -9977,7 +10413,6 @@ ld l-5, 255
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "230" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -10045,17 +10480,11 @@ ld r1, $(h)L233
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10098,17 +10527,11 @@ ld r1, $(h)L234
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10179,21 +10602,13 @@ ld r1, $(h)L237
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
-
-hlt
 
 
 .section rodata
@@ -10242,17 +10657,11 @@ ld r1, $(h)L238
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10274,10 +10683,7 @@ mov r1,A
 SP-=2
 ldd X, $tests
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10324,17 +10730,11 @@ ld r1, $(h)L239
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10372,17 +10772,11 @@ ld r1, $(h)L242
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10404,10 +10798,7 @@ mov r1,A
 SP-=2
 ldd X, $getline
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10442,17 +10833,11 @@ ld r1, $(h)L243
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10474,17 +10859,11 @@ ld r1, $(h)in_str
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10514,17 +10893,11 @@ ld r1, $(h)L244
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10537,29 +10910,35 @@ mov r1,A
  ;  - 041<tokCall> "2" size(0) REG: z0  
  ;  -  - 016<tokIdent> "218" size(0) REG: z0  *
  ;  -  - 016<tokIdent> "272" size(0) REG: z0  *
- ; replace assign with kid->next with correct regs
  ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: l-2  
- ;  - 016<tokIdent> "218" size(2) REG: r0  *
- ;  - 016<tokIdent> "272" size(2) REG: r2 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 041<tokCall> "2" size(2) REG: r2  
+ ;  -  - 016<tokIdent> "218" size(2) REG: r2  *
+ ;  -  - 016<tokIdent> "272" size(2) REG: r4 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(218) size (2)
-ld r0, $(l)in_str
-ld r1, $(h)in_str
- ; r2 <-[tokIdent]-  value(272) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; l-2 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+ ; r2 <-[tokIdent]-  value(218) size (2)
+ld r2, $(l)in_str
+ld r3, $(h)in_str
+ ; r4 <-[tokIdent]-  value(272) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokCall]- r2 r4  value(2) size (2)
+pushw r2
  ; pushed 1 args
 ldd X, $get_cmd_idx
 jmp
-pop A
-mov l-2,A
-pop A
-mov l-1,A
+popw r2
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov A, r2
+mov l-2, A
+ ; load to retval
+mov r0, A
+mov A, r3
+mov l-1, A
+ ; load to retval
+mov r1, A
 
 
 
@@ -10573,7 +10952,6 @@ mov l-1,A
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 076<tokIfNot> "245" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
@@ -10650,17 +11028,11 @@ ld r1, $(h)L248
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-mov A, r1
-push A
-mov A, r0
-push A
+pushw r0
  ; pushed 1 args
 ldd X, $puts
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10683,7 +11055,6 @@ L245:
  ;  -  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  -  -  - 001<tokNumInt> "2" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 041<tokCall> "0" size(2) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: r0  
@@ -10727,10 +11098,7 @@ SP-=2
  ; Call not by tokIdent - load address
 movw X, r0
 jmp
-pop A
-mov r0,A
-pop A
-mov r1,A
+popw r0
 
 
 
@@ -10747,7 +11115,6 @@ hlt
  ; Expr tree before optim: 
  ; 020<tokReturn> "0" size(0) REG: z0  
  ;  - 001<tokNumInt> "0" size(0) REG: z0  *
- ; !! Optimize NumInt/NumUint size!
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 001<tokNumInt> "0" size(2) REG: r0  *

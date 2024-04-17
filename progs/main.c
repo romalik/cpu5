@@ -1,3 +1,6 @@
+
+//#define FULL
+
 void puts(char * s) {
     while(*s) {
         *(unsigned char *)(0x4803) = *s;
@@ -200,8 +203,7 @@ void printnum(int n) {
 }
 
 
-
-/*
+#ifdef FULL
 static void printchar(char **str, int c) {
     if (str) {
         **str = c;
@@ -377,7 +379,7 @@ int sprintf(char *out, const char *format, ...) {
     int *varg = (int *)(&format);
     return print(&out, varg);
 }
-*/
+#endif
 
 void printhex(int i) {
     char printnum_buffer[8];
