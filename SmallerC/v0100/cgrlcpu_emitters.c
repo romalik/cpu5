@@ -389,22 +389,35 @@ void emit_tokCall(Node * node) {
     int n_args = 0;
     while(kid->next) {
         if(abs(kid->size) == 2) {
+            /*
             printf2("mov A, %c%d\n", R(kid->target_register + 1));
             printf2("push A\n");
             printf2("mov A, %c%d\n", R(kid->target_register));
             printf2("push A\n");
+            */
+           printf2("push %c%d\n", R(kid->target_register + 1));
+           printf2("push %c%d\n", R(kid->target_register));
         } else {
             if(kid->size == 1) {
                 printf2("ld A,0\n");
                 printf2("push A\n");
+    /*
                 printf2("mov A, %c%d\n", R(kid->target_register));
                 printf2("push A\n");
+    */
+               printf2("push %c%d\n", R(kid->target_register));
+
             } else {
                 convert_signed_char_to_signed_int(kid->target_register, kid->target_register);
+/*
                 printf2("mov A, %c%d\n", R(kid->target_register + 1));
                 printf2("push A\n");
                 printf2("mov A, %c%d\n", R(kid->target_register));
                 printf2("push A\n");
+                */
+               printf2("push %c%d\n", R(kid->target_register+1));
+               printf2("push %c%d\n", R(kid->target_register));
+
             }
         }
         kid = kid->next;
@@ -436,11 +449,15 @@ void emit_tokCall(Node * node) {
         printf2("jmp\n");
     }
 
+/*
     printf2("pop A\n");
     printf2("mov %c%d,A\n", R(node->target_register));
     printf2("pop A\n");
     printf2("mov %c%d,A\n", R(node->target_register+1));
+*/
 
+    printf2("pop %c%d\n", R(node->target_register));
+    printf2("pop %c%d\n", R(node->target_register + 1));
     //adjust_sp((n_args-1)*2);
 
     int to_remove = (n_args-1)*2;
@@ -574,7 +591,7 @@ void emit_convType(Node * node) {
         printf2("mov A, %c%d\n", R(node->kids->target_register));
         printf2("mov %c%d, A\n", R(node->target_register));
     }
-    
+
     if(abs(node->size) == 2) {
         if(node->token == tokInt) {
             if(node->kids->size < 0) {

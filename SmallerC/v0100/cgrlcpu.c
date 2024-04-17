@@ -183,6 +183,7 @@ void gen_push_used_regs() {
 }
 
 void gen_pop_used_regs() {
+  error("");
   unsigned char r = 0;
   for(;r<32;r++) {
     if(get_reg_use(r)) {
