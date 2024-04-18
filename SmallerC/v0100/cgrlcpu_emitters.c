@@ -967,14 +967,16 @@ void opt_insertConvs(Node ** node, Node ** head) {
 
         while((*kid)) {
             if((*kid)->size != (*node)->size) {
-                Node * moving_node = (*kid);
-                Node * conv_node = node_create(tokInt, 0, (*node)->size);
+                if((*kid)->token != tokIdent) {
+                    Node * moving_node = (*kid);
+                    Node * conv_node = node_create(tokInt, 0, (*node)->size);
 
-                
-                *kid = conv_node;
-                conv_node->next = moving_node->next;
-                moving_node->next = NULL;
-                conv_node->kids = moving_node;
+                    
+                    *kid = conv_node;
+                    conv_node->next = moving_node->next;
+                    moving_node->next = NULL;
+                    conv_node->kids = moving_node;
+                }
             }
             kid = &((*kid)->next);
         }
@@ -1099,7 +1101,7 @@ Node * gen_replacePostOps_subtree(Node * op, Node ** head) {
 
     // fill tree from new_op
     n = node_add_kid(new_op, node_create(tokUnaryStar, op->value, op->size));
-    node_add_kid(n, node_create(op->kids->token, op->kids->value, op->size));    
+    node_add_kid(n, node_copy_subtree(op->kids));    
 
 
     if(!on_top) {
@@ -1109,7 +1111,7 @@ Node * gen_replacePostOps_subtree(Node * op, Node ** head) {
 
     new_asgn = node_create('=',op->value, op->size);
     node_add_kid(new_asgn, new_op);
-    node_add_kid(new_asgn, node_create(op->kids->token, op->kids->value, op->size));
+    node_add_kid(new_asgn, node_copy_subtree(op->kids));
 
 
     if(!on_top) {

@@ -441,7 +441,7 @@ void gen_op_info() {
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
   add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc); //-
   add_token_info(tokSChar      ,  "tokSChar"        ,  1, -1, emit_not_impl);
-  add_token_info(tokUChar      ,  "tokUChar"        ,  1, -1, emit_not_impl);
+  add_token_info(tokUChar      ,  "tokUChar"        ,  1, -1, emit_convType);
   add_token_info(tokUShort     ,  "tokUShort"       ,  1, -1, emit_not_impl);
   add_token_info(tokULong      ,  "tokULong"        ,  1, -1, emit_not_impl);
   add_token_info(tokGotoLabel  ,  "tokGotoLabel"    , -1, -1, emit_not_impl);
@@ -602,6 +602,7 @@ void GenRunOptimizers(Node ** head) {
   OptimizerInfo * opt = optimizers;
   while(opt) {
     GenOptimizeTree(head, head, opt->optimizer);
+    fflush2();
     opt = opt->next;
   }
 }

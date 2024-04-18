@@ -144,7 +144,7 @@ total: 6220
 
 [ ] suppress assignment of constant - load constant directly to reg
 
-[!] tokInt inserted between Call and tokIdent - ERROR
+[done] tokInt inserted between Call and tokIdent - ERROR
 
 [!] not all Assigns replaced with direct register reroute (after post replace)
 

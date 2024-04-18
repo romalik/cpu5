@@ -25,7 +25,9 @@ int isdigit(char c) {
     return (c >= '0' && c <= '9');
 }
 
-
+int fxnMul() {return 0;}
+int fxnMod() {return 0;}
+int fxnDiv() {return 0;}
 
 int atoi(const char *s) {
     int res = 0;
@@ -491,9 +493,29 @@ int get_cmd_idx(char * s) {
    return -1;
 }
 
+typedef struct TestStruct {
+   int field;
+   int field2;
+} TestStruct_t;
+
+TestStruct_t s2;
 
 void tests() {
    char k = 1;
+
+   TestStruct_t s;
+
+   s.field = 0x11AA;
+   s.field2 = 0x22BB;
+
+
+   s.field++;
+   asm(";checkme!\n");
+   s2.field++;
+
+   printhex(s.field); putc('\n');
+   printhex(s.field2); putc('\n');
+
    if(k == 0) {
       puts("0.0.Fail\n");
    } else {
