@@ -729,20 +729,6 @@
       <pos x="1960" y="2100"/>
     </visualElement>
     <visualElement>
-      <elementName>Or</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="3"/>
-        </entry>
-        <entry>
-          <string>wideShape</string>
-          <boolean>true</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="2600" y="2100"/>
-    </visualElement>
-    <visualElement>
       <elementName>74573.dig</elementName>
       <elementAttributes>
         <entry>
@@ -1215,10 +1201,6 @@
       <p2 x="680" y="2060"/>
     </wire>
     <wire>
-      <p1 x="1960" y="2060"/>
-      <p2 x="2600" y="2060"/>
-    </wire>
-    <wire>
       <p1 x="1720" y="780"/>
       <p2 x="3860" y="780"/>
     </wire>
@@ -1281,10 +1263,6 @@
     <wire>
       <p1 x="1920" y="2200"/>
       <p2 x="1940" y="2200"/>
-    </wire>
-    <wire>
-      <p1 x="2560" y="2200"/>
-      <p2 x="2580" y="2200"/>
     </wire>
     <wire>
       <p1 x="3460" y="1560"/>
@@ -2100,10 +2078,6 @@
     </wire>
     <wire>
       <p1 x="2560" y="1900"/>
-      <p2 x="2560" y="2100"/>
-    </wire>
-    <wire>
-      <p1 x="2560" y="2200"/>
       <p2 x="2560" y="2260"/>
     </wire>
     <wire>
@@ -2227,10 +2201,6 @@
       <p2 x="1300" y="680"/>
     </wire>
     <wire>
-      <p1 x="2580" y="2180"/>
-      <p2 x="2580" y="2200"/>
-    </wire>
-    <wire>
       <p1 x="2580" y="1640"/>
       <p2 x="2580" y="1760"/>
     </wire>
@@ -2325,10 +2295,6 @@
     <wire>
       <p1 x="2600" y="-280"/>
       <p2 x="2600" y="300"/>
-    </wire>
-    <wire>
-      <p1 x="2600" y="2060"/>
-      <p2 x="2600" y="2100"/>
     </wire>
     <wire>
       <p1 x="2600" y="1840"/>

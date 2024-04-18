@@ -10,7 +10,7 @@ push XM
 movms
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
  ; prolog end
 
  ; loc     s : (@4) : * char
@@ -67,12 +67,12 @@ jz
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "1" size(1) REG: r0  
- ;  - 001<tokNumInt> "18435" size(1) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "18435" size(2) REG: r0 SUPPRESSED *
  ;  - 078<tokUnaryStar> "-1" size(-1) REG: r2  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokNumInt]-  value(18435) size (1)
+ ; r0 <-[tokNumInt]-  value(18435) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
@@ -130,12 +130,10 @@ ld r5, 0
 tadd r2, a0, r4
 tadc r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -148,10 +146,10 @@ jmp
 L4:
 L1:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 movsm
 pop MX
 jmp
@@ -170,7 +168,7 @@ push XM
 movms
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
  ; prolog end
 
  ; loc     c : (@4) : char
@@ -185,11 +183,11 @@ SP-=8
  ;  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "1" size(1) REG: r0  
- ;  - 001<tokNumInt> "18435" size(1) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "18435" size(2) REG: r0 SUPPRESSED *
  ;  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokNumInt]-  value(18435) size (1)
+ ; r0 <-[tokNumInt]-  value(18435) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
@@ -206,117 +204,10 @@ mov r0, A
 
 L6:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
-movsm
-pop MX
-jmp
- ; epilog end
+mov a0,r0
 
- ; end of function 
+mov a1,r1
 
- ; glb isdigit : (
- ; prm     c : char
- ;     ) int
-.section text
-isdigit:
-.export isdigit
- ; prolog
-push XM
-movms
-SP-=8
-SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
- ; prolog end
-
- ; loc     c : (@4) : char
- ; return
- ; RPN'ized expression: "c 48 >= c 57 <= && "
- ; Expanded expression: "(@4) *(-1) 48 >= [sh&&->11] (@4) *(-1) 57 <= &&[11] "
- ; Expression stack:    "(@4) *(-1) 48 >= [sh&&->11] (@4) *(-1) 57 <= &&[11] return "
- ; Expr tree before optim: 
- ; 020<tokReturn> "0" size(0) REG: z0  
- ;  - 006<tokLogAnd> "11" size(0) REG: z0  
- ;  -  - 090<tokShortCirc> "11" size(0) REG: z0  
- ;  -  -  - 011<tokGEQ> "0" size(0) REG: z0  
- ;  -  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ;  -  -  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ;  -  - 010<tokLEQ> "0" size(0) REG: z0  
- ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ;  -  -  - 001<tokNumInt> "57" size(0) REG: z0  *
- ; Expr tree: 
- ; 020<tokReturn> "0" size(2) REG: r0  
- ;  - 019<tokInt> "0" size(2) REG: r0  
- ;  -  - 006<tokLogAnd> "11" size(-1) REG: r0  
- ;  -  -  - 090<tokShortCirc> "11" size(-1) REG: r0  
- ;  -  -  -  - 011<tokGEQ> "0" size(-1) REG: r0  
- ;  -  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
- ;  -  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
- ;  -  -  - 010<tokLEQ> "0" size(-1) REG: r0  
- ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
- ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "57" size(-1) REG: r4  *
-
- ; r2 <-[tokLocalOfs]-  value(4) size (2)
- ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (-1)
- ; possible optimization - pass size
-ld r4, 48
- ; r0 <-[tokGEQ]- a0 r4  value(0) size (-1)
-ldd X, $L12
-tsub r0, a0, r4
-ld r0, 0
-jl
-ld r0, 1
-; --- end of comparison:
-L12:
- ; r0 <-[tokShortCirc]- r0  value(11) size (-1)
- ; tokShortCirc
- ; Jump if zero to L11
- ; 16 bit for now, optimize
-tor r0,r0,r1
-ldd X, $L11
-jz
- ; r2 <-[tokLocalOfs]-  value(4) size (2)
- ; !!! emit suppressed
- ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(57) size (-1)
- ; possible optimization - pass size
-ld r4, 57
- ; r0 <-[tokLEQ]- a0 r4  value(0) size (-1)
-ldd X, $L13
-tsub r0, a0, r4
-ld r0, 0
-jg
-ld r0, 1
-; --- end of comparison:
-L13:
- ; r0 <-[tokLogAnd]- r0 r0  value(11) size (-1)
- ; tokLogAndOr
-L11:
- ; r0 <-[tokInt]- r0  value(0) size (2)
- ; XXX DO PROPER SIGN EXTEND HERE
-ld A, 0x00
-mov r1, A
- ; r0 <-[tokReturn]- r0  value(0) size (2)
- ; tokReturn
-
-
-
-L9:
- ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
 movsm
 pop MX
 jmp
@@ -334,12 +225,12 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     c : (@-2) : char
  ; loc     <something> : * unsigned char
- ; RPN'ized expression: "c 18435 (something16) *u = "
+ ; RPN'ized expression: "c 18435 (something11) *u = "
  ; Expanded expression: "(@-2) 18435 *(1) =(-1) "
  ; Expression stack:    "(@-2) 18435 *(1) =(2) "
  ; Expr tree before optim: 
@@ -352,13 +243,14 @@ SP-=8
  ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
  ;  - 019<tokInt> "0" size(2) REG: r2  
  ;  -  - 078<tokUnaryStar> "1" size(1) REG: r2  
- ;  -  -  - 001<tokNumInt> "18435" size(1) REG: r2  *
+ ;  -  -  - 001<tokNumInt> "18435" size(2) REG: r2  *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(18435) size (1)
+ ; r2 <-[tokNumInt]-  value(18435) size (2)
  ; possible optimization - pass size
 ld r2, 3
+ld r3, 72
  ; r2 <-[tokUnaryStar]- r2  value(1) size (1)
  ; deref from non-ident non-local tok : tokNumInt suppress 0
 movw X, r2
@@ -368,12 +260,10 @@ mov r2, A
 ld A, 0x00
 mov r3, A
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -382,15 +272,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "c 255 == "
  ; Expanded expression: "(@-2) *(-1) 255 == "
- ; Expression stack:    "(@-2) *(-1) 255 == IF![17] "
+ ; Expression stack:    "(@-2) *(-1) 255 == IF![12] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "17" size(0) REG: z0  
+ ; 076<tokIfNot> "12" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "255" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "17" size(-1) REG: r0  
+ ; 076<tokIfNot> "12" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -404,21 +294,21 @@ mov r1, A
  ; possible optimization - pass size
 ld r4, 255
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L19
+ldd X, $L14
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L19:
- ; r0 <-[tokIfNot]- r0  value(17) size (-1)
+L14:
+ ; r0 <-[tokIfNot]- r0  value(12) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L17
+ ; Jump if zero to L12
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L17
+ldd X, $L12
 jz
 
 
@@ -441,14 +331,13 @@ jz
  ; possible optimization - pass size
 ld r2, 0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
 
 
 
-L17:
+L12:
  ; return
  ; RPN'ized expression: "c "
  ; Expanded expression: "(@-2) *(-1) "
@@ -468,8 +357,7 @@ L17:
  ; l-2 <-[tokUnaryStar]- r0  value(-1) size (-1)
  ; !!! emit suppressed
  ; r0 <-[tokInt]- l-2  value(0) size (2)
-mov A, l-2
-mov r0, A
+mov r0, l-2
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
 mov r1, A
@@ -478,13 +366,120 @@ mov r1, A
 
 
 
-L14:
+L9:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
+movsm
+pop MX
+jmp
+ ; epilog end
+
+ ; end of function 
+
+ ; glb isdigit : (
+ ; prm     c : char
+ ;     ) int
+.section text
+isdigit:
+.export isdigit
+ ; prolog
+push XM
+movms
+SP-=8
+SP-=8
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ ; prolog end
+
+ ; loc     c : (@4) : char
+ ; return
+ ; RPN'ized expression: "c 48 >= c 57 <= && "
+ ; Expanded expression: "(@4) *(-1) 48 >= [sh&&->17] (@4) *(-1) 57 <= &&[17] "
+ ; Expression stack:    "(@4) *(-1) 48 >= [sh&&->17] (@4) *(-1) 57 <= &&[17] return "
+ ; Expr tree before optim: 
+ ; 020<tokReturn> "0" size(0) REG: z0  
+ ;  - 006<tokLogAnd> "17" size(0) REG: z0  
+ ;  -  - 090<tokShortCirc> "17" size(0) REG: z0  
+ ;  -  -  - 011<tokGEQ> "0" size(0) REG: z0  
+ ;  -  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  -  -  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ;  -  - 010<tokLEQ> "0" size(0) REG: z0  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  -  - 001<tokNumInt> "57" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 020<tokReturn> "0" size(2) REG: r0  
+ ;  - 019<tokInt> "0" size(2) REG: r0  
+ ;  -  - 006<tokLogAnd> "17" size(-1) REG: r0  
+ ;  -  -  - 090<tokShortCirc> "17" size(-1) REG: r0  
+ ;  -  -  -  - 011<tokGEQ> "0" size(-1) REG: r0  
+ ;  -  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
+ ;  -  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
+ ;  -  -  - 010<tokLEQ> "0" size(-1) REG: r0  
+ ;  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: a0 SUPPRESSED 
+ ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  - 001<tokNumInt> "57" size(-1) REG: r4  *
+
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
+ ; !!! emit suppressed
+ ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
+ ; possible optimization - pass size
+ld r4, 48
+ ; r0 <-[tokGEQ]- a0 r4  value(0) size (-1)
+ldd X, $L18
+tsub r0, a0, r4
+ld r0, 0
+jl
+ld r0, 1
+; --- end of comparison:
+L18:
+ ; r0 <-[tokShortCirc]- r0  value(17) size (-1)
+ ; tokShortCirc
+ ; Jump if zero to L17
+ ; 16 bit for now, optimize
+tor r0,r0,r1
+ldd X, $L17
+jz
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
+ ; !!! emit suppressed
+ ; a0 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(57) size (-1)
+ ; possible optimization - pass size
+ld r4, 57
+ ; r0 <-[tokLEQ]- a0 r4  value(0) size (-1)
+ldd X, $L19
+tsub r0, a0, r4
+ld r0, 0
+jg
+ld r0, 1
+; --- end of comparison:
+L19:
+ ; r0 <-[tokLogAnd]- r0 r0  value(17) size (-1)
+ ; tokLogAndOr
+L17:
+ ; r0 <-[tokInt]- r0  value(0) size (2)
+ ; XXX DO PROPER SIGN EXTEND HERE
+ld A, 0x00
+mov r1, A
+ ; r0 <-[tokReturn]- r0  value(0) size (2)
+ ; tokReturn
+
+
+
+L15:
+ ; epilog
+mov a0,r0
+
+mov a1,r1
+
 movsm
 pop MX
 jmp
@@ -504,7 +499,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     s : (@4) : * char
@@ -528,12 +523,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -550,7 +543,7 @@ L22:
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
- ;  -  - 016<tokIdent> "20" size(0) REG: z0  *
+ ;  -  - 016<tokIdent> "26" size(0) REG: z0  *
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 041<tokCall> "2" size(2) REG: r0  
@@ -558,7 +551,7 @@ L22:
  ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: r0  
  ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
- ;  -  - 016<tokIdent> "20" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 016<tokIdent> "26" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
@@ -573,7 +566,7 @@ mov r0, A
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
 mov r1, A
- ; r2 <-[tokIdent]-  value(20) size (2)
+ ; r2 <-[tokIdent]-  value(26) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
 pushw r0
@@ -637,12 +630,10 @@ jmp
 popw r2
 SP+=2
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -719,12 +710,10 @@ mov r5, A
 tadd r2, l-2, r4
 tadc r3, l-1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -768,12 +757,10 @@ ld r5, 0
 tadd r2, a0, r4
 tadc r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -802,20 +789,18 @@ L23:
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-2  value(0) size (2)
-mov A,l-2
-mov r0,A
-mov A,l-1
-mov r1,A
+mov r0, l-2
+mov r1, l-1
  ; tokReturn
 
 
 
 L20:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -837,7 +822,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     s1 : (@4) : * char
@@ -865,12 +850,10 @@ SP-=8
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(2) size (2)
-mov A, a0
-mov l-2, A
+mov l-2, a0
  ; load to retval
 mov r0, A
-mov A, a1
-mov l-1, A
+mov l-1, a1
  ; load to retval
 mov r1, A
 
@@ -899,12 +882,10 @@ mov r1, A
  ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a2  value(2) size (2)
-mov A, a2
-mov l-4, A
+mov l-4, a2
  ; load to retval
 mov r0, A
-mov A, a3
-mov l-3, A
+mov l-3, a3
  ; load to retval
 mov r1, A
 
@@ -931,12 +912,10 @@ mov r1, A
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-8, A
+mov l-8, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-7, A
+mov l-7, r3
  ; load to retval
 mov r1, A
 
@@ -1018,8 +997,7 @@ movw X, l-2
 mov A, [X]
 mov r4, A
  ; r2 <-[tokAssign]- r2 r4  value(1) size (1)
-mov A, r4
-mov l-6, A
+mov l-6, r4
  ; load to retval
 mov r2, A
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
@@ -1037,12 +1015,10 @@ tsub r2, r2, r4
 ld A, 0x00
 mov r3, A
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-8, A
+mov l-8, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-7, A
+mov l-7, r3
  ; load to retval
 mov r1, A
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
@@ -1059,12 +1035,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
@@ -1081,12 +1055,10 @@ ld r9, 0
 tadd r6, l-4, r8
 tadc r7, l-3, r9
  ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
-mov A, r6
-mov l-4, A
+mov l-4, r6
  ; load to retval
 mov r4, A
-mov A, r7
-mov l-3, A
+mov l-3, r7
  ; load to retval
 mov r5, A
  ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
@@ -1197,20 +1169,18 @@ L29:
  ; l-8 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-8  value(0) size (2)
-mov A,l-8
-mov r0,A
-mov A,l-7
-mov r1,A
+mov r0, l-8
+mov r1, l-7
  ; tokReturn
 
 
 
 L24:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -1232,7 +1202,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     dst : (@4) : * char
@@ -1259,12 +1229,10 @@ SP-=8
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(2) size (2)
-mov A, a0
-mov l-2, A
+mov l-2, a0
  ; load to retval
 mov r0, A
-mov A, a1
-mov l-1, A
+mov l-1, a1
  ; load to retval
 mov r1, A
 
@@ -1292,12 +1260,10 @@ mov r1, A
  ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a2  value(2) size (2)
-mov A, a2
-mov l-4, A
+mov l-4, a2
  ; load to retval
 mov r0, A
-mov A, a3
-mov l-3, A
+mov l-3, a3
  ; load to retval
 mov r1, A
 
@@ -1370,8 +1336,7 @@ movw X, l-4
 mov A, [X]
 mov r4, A
  ; r2 <-[tokAssign]- r2 r4  value(-1) size (-1)
-mov A, r4
-mov l-6, A
+mov l-6, r4
  ; load to retval
 mov r2, A
  ; r0 <-[tokAssign]- l-2 r2  value(-1) size (-1)
@@ -1395,12 +1360,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
@@ -1417,12 +1380,10 @@ ld r9, 0
 tadd r6, l-4, r8
 tadc r7, l-3, r9
  ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
-mov A, r6
-mov l-4, A
+mov l-4, r6
  ; load to retval
 mov r4, A
-mov A, r7
-mov l-3, A
+mov l-3, r7
  ; load to retval
 mov r5, A
  ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
@@ -1451,8 +1412,7 @@ L39:
  ; l-6 <-[tokUnaryStar]- r0  value(-1) size (-1)
  ; !!! emit suppressed
  ; r0 <-[tokInt]- l-6  value(0) size (2)
-mov A, l-6
-mov r0, A
+mov r0, l-6
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
 mov r1, A
@@ -1485,20 +1445,18 @@ L40:
  ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a0  value(0) size (2)
-mov A,a0
-mov r0,A
-mov A,a1
-mov r1,A
+mov r0, a0
+mov r1, a1
  ; tokReturn
 
 
 
 L36:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -1519,7 +1477,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     s : (@4) : * void
@@ -1546,12 +1504,10 @@ SP-=8
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(2) size (2)
-mov A, a0
-mov l-2, A
+mov l-2, a0
  ; load to retval
 mov r0, A
-mov A, a1
-mov l-1, A
+mov l-1, a1
  ; load to retval
 mov r1, A
 
@@ -1577,12 +1533,10 @@ mov r1, A
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -1667,12 +1621,10 @@ ld r5, 0
 tadd r2, l-2, r4
 tadc r3, l-1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -1716,12 +1668,10 @@ ld r5, 0
 tadd r2, l-4, r4
 tadc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -1750,20 +1700,18 @@ L45:
  ; l-4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-4  value(0) size (2)
-mov A,l-4
-mov r0,A
-mov A,l-3
-mov r1,A
+mov r0, l-4
+mov r1, l-3
  ; tokReturn
 
 
 
 L41:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -1784,7 +1732,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     s : (@4) : * char
@@ -1831,12 +1779,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
  ; r0 <-[tokVoid]- r0  value(0) size (2)
@@ -1863,12 +1809,10 @@ ld r5, 0
 tsub r2, r2, r4
 tsbc r3, r3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
  ; r0 <-[tokComma]- r0 r0  value(0) size (2)
@@ -1966,8 +1910,7 @@ movw X, r2
 mov A, [X]
 mov r2, A
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
 
@@ -2156,12 +2099,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
@@ -2178,12 +2119,10 @@ ld r9, 0
 tsub r6, l-4, r8
 tsbc r7, l-3, r9
  ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
-mov A, r6
-mov l-4, A
+mov l-4, r6
  ; load to retval
 mov r4, A
-mov A, r7
-mov l-3, A
+mov l-3, r7
  ; load to retval
 mov r5, A
  ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
@@ -2197,10 +2136,10 @@ jmp
 L51:
 L46:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -2222,7 +2161,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     n : (@4) : int
@@ -2248,12 +2187,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -2434,12 +2371,10 @@ L55:
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -2554,12 +2489,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -2629,12 +2562,10 @@ jmp
 popw r4
 SP+=2
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov a0, A
+mov a0, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov a1, A
+mov a1, r5
  ; load to retval
 mov r3, A
  ; r4 <-[tokNumInt]-  value(0) size (2)
@@ -2774,12 +2705,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -2864,10 +2793,10 @@ popw r0
 
 L53:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -2890,7 +2819,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     d : (@4) : * char
@@ -2918,12 +2847,10 @@ SP-=8
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(2) size (2)
-mov A, a0
-mov l-2, A
+mov l-2, a0
  ; load to retval
 mov r0, A
-mov A, a1
-mov l-1, A
+mov l-1, a1
  ; load to retval
 mov r1, A
 
@@ -2951,12 +2878,10 @@ mov r1, A
  ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a2  value(2) size (2)
-mov A, a2
-mov l-4, A
+mov l-4, a2
  ; load to retval
 mov r0, A
-mov A, a3
-mov l-3, A
+mov l-3, a3
  ; load to retval
 mov r1, A
 
@@ -2981,10 +2906,8 @@ L67:
  ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a4  value(0) size (2)
-mov A,a4
-mov r0,A
-mov A,a5
-mov r1,A
+mov r0, a4
+mov r1, a5
  ; tokReturn
 
 
@@ -3033,12 +2956,10 @@ ld r5, 0
 tsub r2, a4, r4
 tsbc r3, a5, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a4, A
+mov a4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a5, A
+mov a5, r3
  ; load to retval
 mov r1, A
 
@@ -3148,12 +3069,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r4 <-[tokLocalOfs]-  value(-4) size (2)
@@ -3170,12 +3089,10 @@ ld r9, 0
 tadd r6, l-4, r8
 tadc r7, l-3, r9
  ; r4 <-[tokAssign]- r4 r6  value(2) size (2)
-mov A, r6
-mov l-4, A
+mov l-4, r6
  ; load to retval
 mov r4, A
-mov A, r7
-mov l-3, A
+mov l-3, r7
  ; load to retval
 mov r5, A
  ; r0 <-[tokSequential]- r0 r2 r4  value(0) size (0)
@@ -3262,12 +3179,10 @@ ld r7, 0
 tsub r4, a4, r6
 tsbc r5, a5, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov a4, A
+mov a4, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov a5, A
+mov a5, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -3330,12 +3245,10 @@ ld r7, 0
 tadd r4, l-2, r6
 tadc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -3365,20 +3278,18 @@ L73:
  ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a0  value(0) size (2)
-mov A,a0
-mov r0,A
-mov A,a1
-mov r1,A
+mov r0, a0
+mov r1, a1
  ; tokReturn
 
 
 
 L65:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -3401,7 +3312,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     dest : (@4) : * unsigned
@@ -3429,12 +3340,10 @@ SP-=8
  ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a4  value(2) size (2)
-mov A, a4
-mov l-2, A
+mov l-2, a4
  ; load to retval
 mov r0, A
-mov A, a5
-mov l-1, A
+mov l-1, a5
  ; load to retval
 mov r1, A
 
@@ -3472,10 +3381,8 @@ L77:
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-2  value(0) size (2)
-mov A,l-2
-mov r0,A
-mov A,l-1
-mov r1,A
+mov r0, l-2
+mov r1, l-1
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -3491,12 +3398,10 @@ ld r7, 0
 tsub r4, l-2, r6
 tsbc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -3590,12 +3495,10 @@ ld r5, 0
 tadd r2, a0, r4
 tadc r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -3624,20 +3527,18 @@ L78:
  ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a4  value(0) size (2)
-mov A,a4
-mov r0,A
-mov A,a5
-mov r1,A
+mov r0, a4
+mov r1, a5
  ; tokReturn
 
 
 
 L75:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -3660,7 +3561,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     dest : (@4) : * unsigned
@@ -3688,12 +3589,10 @@ SP-=8
  ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a4  value(2) size (2)
-mov A, a4
-mov l-2, A
+mov l-2, a4
  ; load to retval
 mov r0, A
-mov A, a5
-mov l-1, A
+mov l-1, a5
  ; load to retval
 mov r1, A
 
@@ -3731,10 +3630,8 @@ L81:
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-2  value(0) size (2)
-mov A,l-2
-mov r0,A
-mov A,l-1
-mov r1,A
+mov r0, l-2
+mov r1, l-1
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -3750,12 +3647,10 @@ ld r7, 0
 tsub r4, l-2, r6
 tsbc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -3860,12 +3755,10 @@ ld r5, 0
 tadd r2, a0, r4
 tadc r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -3911,12 +3804,10 @@ ld r5, 0
 tadd r2, a2, r4
 tadc r3, a3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a2, A
+mov a2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a3, A
+mov a3, r3
  ; load to retval
 mov r1, A
 
@@ -3945,20 +3836,18 @@ L82:
  ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a4  value(0) size (2)
-mov A,a4
-mov r0,A
-mov A,a5
-mov r1,A
+mov r0, a4
+mov r1, a5
  ; tokReturn
 
 
 
 L79:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -3981,7 +3870,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     dest : (@4) : * unsigned
@@ -4009,12 +3898,10 @@ SP-=8
  ; a4 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a4  value(2) size (2)
-mov A, a4
-mov l-2, A
+mov l-2, a4
  ; load to retval
 mov r0, A
-mov A, a5
-mov l-1, A
+mov l-1, a5
  ; load to retval
 mov r1, A
 
@@ -4052,10 +3939,8 @@ L85:
  ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- l-2  value(0) size (2)
-mov A,l-2
-mov r0,A
-mov A,l-1
-mov r1,A
+mov r0, l-2
+mov r1, l-1
  ; tokReturn
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -4071,12 +3956,10 @@ ld r7, 0
 tsub r4, l-2, r6
 tsbc r5, l-1, r7
  ; r2 <-[tokAssign]- r2 r4  value(2) size (2)
-mov A, r4
-mov l-2, A
+mov l-2, r4
  ; load to retval
 mov r2, A
-mov A, r5
-mov l-1, A
+mov l-1, r5
  ; load to retval
 mov r3, A
  ; r0 <-[tokSequential]- r0 r2  value(0) size (0)
@@ -4181,12 +4064,10 @@ ld r5, 0
 tadd r2, a0, r4
 tadc r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -4232,12 +4113,10 @@ ld r5, 0
 tadd r2, a2, r4
 tadc r3, a3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a2, A
+mov a2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a3, A
+mov a3, r3
  ; load to retval
 mov r1, A
 
@@ -4266,20 +4145,18 @@ L86:
  ; a4 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a4  value(0) size (2)
-mov A,a4
-mov r0,A
-mov A,a5
-mov r1,A
+mov r0, a4
+mov r1, a5
  ; tokReturn
 
 
 
 L83:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -4302,7 +4179,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     mem1 : (@4) : * void
@@ -4330,12 +4207,10 @@ SP-=8
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a0  value(2) size (2)
-mov A, a0
-mov l-2, A
+mov l-2, a0
  ; load to retval
 mov r0, A
-mov A, a1
-mov l-1, A
+mov l-1, a1
  ; load to retval
 mov r1, A
 
@@ -4363,12 +4238,10 @@ mov r1, A
  ; a2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokAssign]- r0 a2  value(2) size (2)
-mov A, a2
-mov l-4, A
+mov l-4, a2
  ; load to retval
 mov r0, A
-mov A, a3
-mov l-3, A
+mov l-3, a3
  ; load to retval
 mov r1, A
 
@@ -4506,12 +4379,10 @@ ld r5, 0
 tsub r2, a4, r4
 tsbc r3, a5, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a4, A
+mov a4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a5, A
+mov a5, r3
  ; load to retval
 mov r1, A
  ; r0 <-[tok_Bool]- r0  value(0) size (2)
@@ -4608,12 +4479,10 @@ ld r5, 0
 tadd r2, l-2, r4
 tadc r3, l-1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -4657,12 +4526,10 @@ ld r5, 0
 tadd r2, l-4, r4
 tadc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -4728,10 +4595,10 @@ mov r1, A
 
 L87:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -4761,7 +4628,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     n : (@4) : int
@@ -4785,12 +4652,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -4826,12 +4691,10 @@ ld r5, 0
 tadd r2, r2, r4
 tadc r3, r3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -4952,12 +4815,10 @@ ld r5, 0
 tsub r2, l-4, r4
 tsbc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -5059,8 +4920,7 @@ jz
  ; possible optimization - pass size
 ld r2, 1
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
 
@@ -5100,12 +4960,10 @@ mov A, a1
 adc
 mov r3, A
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -5132,10 +4990,8 @@ L104:
  ; a0 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokReturn]- a0  value(0) size (2)
-mov A,a0
-mov r0,A
-mov A,a1
-mov r1,A
+mov r0, a0
+mov r1, a1
  ; tokReturn
 
 
@@ -5184,12 +5040,10 @@ ld r5, 0
 tsub r2, l-4, r4
 tsbc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -5240,8 +5094,7 @@ jmp
 popw r2
 SP+=2
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
 
@@ -5335,12 +5188,10 @@ jmp
 popw r2
 SP+=2
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov a0, A
+mov a0, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov a1, A
+mov a1, r3
  ; load to retval
 mov r1, A
 
@@ -5370,8 +5221,7 @@ L105:
  ; l-2 <-[tokUnaryStar]- r0  value(-1) size (-1)
  ; !!! emit suppressed
  ; r0 <-[tokInt]- l-2  value(0) size (2)
-mov A, l-2
-mov r0, A
+mov r0, l-2
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
 mov r1, A
@@ -5424,12 +5274,10 @@ ld r5, 0
 tsub r2, l-4, r4
 tsbc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -5499,10 +5347,10 @@ popw r0
 
 L96:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -5524,7 +5372,7 @@ SP-=8
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
  ; prolog end
 
  ; loc     i : (@4) : int
@@ -5560,12 +5408,10 @@ mov A,MH
 sbc
 mov r3,A
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
@@ -5642,30 +5488,32 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
 
 
- ; RPN'ized expression: "n i = "
- ; Expanded expression: "(@-14) (@4) *(2) =(-1) "
- ; Expression stack:    "(@-14) (@4) *(2) =(-1) "
+ ; RPN'ized expression: "n i 15 & = "
+ ; Expanded expression: "(@-14) (@4) *(2) 15 & =(-1) "
+ ; Expression stack:    "(@-14) (@4) *(2) 15 & =(-1) "
  ; Expr tree before optim: 
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  - 038<tokAnd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
- ;  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "15" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
@@ -5673,43 +5521,49 @@ mov r1, A
  ; !!! emit suppressed
  ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokAssign]- r0 a0  value(-1) size (-1)
-mov A, a0
-mov l-14, A
+ ; r4 <-[tokNumInt]-  value(15) size (2)
+ ; possible optimization - pass size
+ld r4, 15
+ld r5, 0
+ ; r2 <-[tokAnd]- a0 r4  value(0) size (2)
+tand r2, a0, r4
+tand r3, a1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
  ; if
- ; RPN'ized expression: "n 0 == "
- ; Expanded expression: "(@-14) *(-1) 0 == "
- ; Expression stack:    "(@-14) *(-1) 0 == IF![110] "
+ ; RPN'ized expression: "n 9 > "
+ ; Expanded expression: "(@-14) *(-1) 9 > "
+ ; Expression stack:    "(@-14) *(-1) 9 > IF![110] "
  ; Expr tree before optim: 
  ; 076<tokIfNot> "110" size(0) REG: z0  
- ;  - 008<tokEQ> "0" size(0) REG: z0  
+ ;  - 062<tokMore> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
  ; Expr tree: 
  ; 076<tokIfNot> "110" size(-1) REG: r0  
- ;  - 008<tokEQ> "0" size(-1) REG: r0  
+ ;  - 062<tokMore> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
  ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (-1)
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
  ; possible optimization - pass size
-ld r4, 0
- ; r0 <-[tokEQ]- l-14 r4  value(0) size (-1)
+ld r4, 9
+ ; r0 <-[tokMore]- l-14 r4  value(0) size (-1)
 ldd X, $L112
 tsub r0, l-14, r4
 ld r0, 0
-jnz
+jle
 ld r0, 1
 ; --- end of comparison:
 L112:
@@ -5726,27 +5580,48 @@ jz
 
 
  ; {
- ; RPN'ized expression: "s *u 48 = "
- ; Expanded expression: "(@-10) *(2) 48 =(-1) "
- ; Expression stack:    "(@-10) *(2) 48 =(-1) "
+ ; RPN'ized expression: "s *u n 97 + 10 - = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
  ; Expr tree before optim: 
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ;  - 045<tokSub> "0" size(0) REG: z0  
+ ;  -  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  -  - 001<tokNumInt> "97" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
+ ;  - 045<tokSub> "0" size(-1) REG: r2  
+ ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "97" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(97) size (-1)
  ; possible optimization - pass size
-ld r2, 48
+ld r4, 97
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
+ ; possible optimization - pass size
+ld r4, 10
+ ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
+tsub r2, r2, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -5757,6 +5632,58 @@ mov r0, A
 
 
 
+ ; }
+ ; Unconditional jump to L111
+ldd X, $L111
+jmp
+L110:
+ ; else
+ ; {
+ ; RPN'ized expression: "s *u n 48 + = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
+ ; possible optimization - pass size
+ld r4, 48
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+L111:
  ; RPN'ized expression: "s --p "
  ; Expanded expression: "(@-10) --p(2) "
  ; Expression stack:    "(@-10) --p(2) "
@@ -5795,241 +5722,53 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
 
 
- ; }
-L110:
- ; while
- ; RPN'ized expression: "n "
- ; Expanded expression: "(@-14) *(-1) "
-L113:
- ; Expression stack:    "(@-14) *(-1) return "
+ ; RPN'ized expression: "n i 240 & = "
+ ; Expanded expression: "(@-14) (@4) *(2) 240 & =(-1) "
+ ; Expression stack:    "(@-14) (@4) *(2) 240 & =(-1) "
  ; Expr tree before optim: 
- ; 020<tokReturn> "0" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  - 038<tokAnd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "240" size(0) REG: z0  *
  ; Expr tree: 
- ; 020<tokReturn> "0" size(2) REG: r0  
- ;  - 019<tokInt> "0" size(2) REG: r0  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "240" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokInt]- l-14  value(0) size (2)
-mov A, l-14
-mov r0, A
- ; XXX DO PROPER SIGN EXTEND HERE
-ld A, 0x00
-mov r1, A
- ; r0 <-[tokReturn]- r0  value(0) size (2)
- ; tokReturn
-
-
-
- ; Jump if zero to L114
- ; 16 bit for now, optimize
-tor r0,r0,r1
-ldd X, $L114
-jz
- ; {
- ; RPN'ized expression: "n_rem n 15 & = "
- ; Expanded expression: "(@-12) (@-14) *(-1) 15 & =(-1) "
- ; Expression stack:    "(@-12) (@-14) *(-1) 15 & =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  - 038<tokAnd> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 089<tokLocalOfs> "-12" size(2) REG: r0 SUPPRESSED *
- ;  - 038<tokAnd> "0" size(-1) REG: r2  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "15" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-12) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-14) size (2)
- ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(15) size (-1)
+ ; r4 <-[tokNumInt]-  value(240) size (2)
  ; possible optimization - pass size
-ld r4, 15
- ; r2 <-[tokAnd]- l-14 r4  value(0) size (-1)
-tand r2, l-14, r4
+ld r4, 240
+ld r5, 0
+ ; r2 <-[tokAnd]- a0 r4  value(0) size (2)
+tand r2, a0, r4
+tand r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-12, A
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
- ; if
- ; RPN'ized expression: "n_rem 9 > "
- ; Expanded expression: "(@-12) *(-1) 9 > "
- ; Expression stack:    "(@-12) *(-1) 9 > IF![115] "
- ; Expr tree before optim: 
- ; 076<tokIfNot> "115" size(0) REG: z0  
- ;  - 062<tokMore> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
- ; Expr tree: 
- ; 076<tokIfNot> "115" size(-1) REG: r0  
- ;  - 062<tokMore> "0" size(-1) REG: r0  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
-
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(9) size (-1)
- ; possible optimization - pass size
-ld r4, 9
- ; r0 <-[tokMore]- l-12 r4  value(0) size (-1)
-ldd X, $L117
-tsub r0, l-12, r4
-ld r0, 0
-jle
-ld r0, 1
-; --- end of comparison:
-L117:
- ; r0 <-[tokIfNot]- r0  value(115) size (-1)
- ; !!!!! XXX QUICK HACK
-ld A,0
-mov r1,A
- ; Jump if zero to L115
- ; 16 bit for now, optimize
-tor r0,r0,r1
-ldd X, $L115
-jz
-
-
-
- ; {
- ; RPN'ized expression: "s *u n_rem 65 + 10 - = "
- ; Expanded expression: "(@-10) *(2) (@-12) *(-1) 65 + 10 - =(-1) "
- ; Expression stack:    "(@-10) *(2) (@-12) *(-1) 65 + 10 - =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 045<tokSub> "0" size(0) REG: z0  
- ;  -  - 043<tokAdd> "0" size(0) REG: z0  
- ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  -  - 001<tokNumInt> "65" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 045<tokSub> "0" size(-1) REG: r2  
- ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
- ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "65" size(-1) REG: r4  *
- ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-10) size (2)
- ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
- ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(65) size (-1)
- ; possible optimization - pass size
-ld r4, 65
- ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
-tadd r2, l-12, r4
- ; r4 <-[tokNumInt]-  value(10) size (-1)
- ; possible optimization - pass size
-ld r4, 10
- ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
-tsub r2, r2, r4
- ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
- ; assign to non-ident non-local lvalue
-movw X, l-10
-mov A, r2
-mov [X], A
- ; load to retval
-mov r0, A
-
-
-
- ; }
- ; Unconditional jump to L116
-ldd X, $L116
-jmp
-L115:
- ; else
- ; {
- ; RPN'ized expression: "s *u n_rem 48 + = "
- ; Expanded expression: "(@-10) *(2) (@-12) *(-1) 48 + =(-1) "
- ; Expression stack:    "(@-10) *(2) (@-12) *(-1) 48 + =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 043<tokAdd> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 043<tokAdd> "0" size(-1) REG: r2  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-10) size (2)
- ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
- ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (-1)
- ; possible optimization - pass size
-ld r4, 48
- ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
-tadd r2, l-12, r4
- ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
- ; assign to non-ident non-local lvalue
-movw X, l-10
-mov A, r2
-mov [X], A
- ; load to retval
-mov r0, A
-
-
-
- ; }
-L116:
  ; RPN'ized expression: "n n 4 >> = "
  ; Expanded expression: "(@-14) (@-14) *(-1) 4 >> =(-1) "
  ; Expression stack:    "(@-14) (@-14) *(-1) 4 >> =(-1) "
@@ -6059,17 +5798,165 @@ L116:
 ld r4, 4
  ; r2 <-[tokRShift]- l-14 r4  value(0) size (-1)
 tshr r2, l-14, r0
-tshr r2, l-14, r0
-tshr r2, l-14, r0
-tshr r2, l-14, r0
+tshr r2, r2, r0
+tshr r2, r2, r0
+tshr r2, r2, r0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-14, A
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
+ ; if
+ ; RPN'ized expression: "n 9 > "
+ ; Expanded expression: "(@-14) *(-1) 9 > "
+ ; Expression stack:    "(@-14) *(-1) 9 > IF![113] "
+ ; Expr tree before optim: 
+ ; 076<tokIfNot> "113" size(0) REG: z0  
+ ;  - 062<tokMore> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 076<tokIfNot> "113" size(-1) REG: r0  
+ ;  - 062<tokMore> "0" size(-1) REG: r0  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
+
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
+ ; possible optimization - pass size
+ld r4, 9
+ ; r0 <-[tokMore]- l-14 r4  value(0) size (-1)
+ldd X, $L115
+tsub r0, l-14, r4
+ld r0, 0
+jle
+ld r0, 1
+; --- end of comparison:
+L115:
+ ; r0 <-[tokIfNot]- r0  value(113) size (-1)
+ ; !!!!! XXX QUICK HACK
+ld A,0
+mov r1,A
+ ; Jump if zero to L113
+ ; 16 bit for now, optimize
+tor r0,r0,r1
+ldd X, $L113
+jz
+
+
+
+ ; {
+ ; RPN'ized expression: "s *u n 97 + 10 - = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 045<tokSub> "0" size(0) REG: z0  
+ ;  -  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  -  - 001<tokNumInt> "97" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "0" size(-1) REG: r2  
+ ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "97" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(97) size (-1)
+ ; possible optimization - pass size
+ld r4, 97
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
+ ; possible optimization - pass size
+ld r4, 10
+ ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
+tsub r2, r2, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+ ; Unconditional jump to L114
+ldd X, $L114
+jmp
+L113:
+ ; else
+ ; {
+ ; RPN'ized expression: "s *u n 48 + = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
+ ; possible optimization - pass size
+ld r4, 48
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+L114:
  ; RPN'ized expression: "s --p "
  ; Expanded expression: "(@-10) --p(2) "
  ; Expression stack:    "(@-10) --p(2) "
@@ -6108,41 +5995,34 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
 
 
- ; }
- ; Unconditional jump to L113
-ldd X, $L113
-jmp
-L114:
- ; RPN'ized expression: "n i 8 >> = "
- ; Expanded expression: "(@-14) (@4) *(2) 8 >> =(-1) "
- ; Expression stack:    "(@-14) (@4) *(2) 8 >> =(-1) "
+ ; RPN'ized expression: "i i 8 >> = "
+ ; Expanded expression: "(@4) (@4) *(2) 8 >> =(2) "
+ ; Expression stack:    "(@4) (@4) *(2) 8 >> =(2) "
  ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ; 061<tokAssign> "2" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  - 005<tokRShift> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "8" size(0) REG: z0  *
  ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "4" size(2) REG: r0 SUPPRESSED *
  ;  - 005<tokRShift> "0" size(2) REG: r2  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
  ;  -  - 001<tokNumInt> "8" size(2) REG: r4  *
 
- ; r0 <-[tokLocalOfs]-  value(-14) size (2)
+ ; r0 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
@@ -6153,84 +6033,144 @@ L114:
 ld r4, 8
 ld r5, 0
  ; r2 <-[tokRShift]- a0 r4  value(0) size (2)
-mov A, a1
-mov r2, A
+mov r2, a1
 ld A,0
 mov r3, A
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov a0, r2
+ ; load to retval
+mov r0, A
+mov a1, r3
+ ; load to retval
+mov r1, A
+
+
+
+ ; RPN'ized expression: "n i 15 & = "
+ ; Expanded expression: "(@-14) (@4) *(2) 15 & =(-1) "
+ ; Expression stack:    "(@-14) (@4) *(2) 15 & =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  - 038<tokAnd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "15" size(2) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
+ ; !!! emit suppressed
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(15) size (2)
+ ; possible optimization - pass size
+ld r4, 15
+ld r5, 0
+ ; r2 <-[tokAnd]- a0 r4  value(0) size (2)
+tand r2, a0, r4
+tand r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-14, A
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
  ; if
- ; RPN'ized expression: "n 0 == "
- ; Expanded expression: "(@-14) *(-1) 0 == "
- ; Expression stack:    "(@-14) *(-1) 0 == IF![118] "
+ ; RPN'ized expression: "n 9 > "
+ ; Expanded expression: "(@-14) *(-1) 9 > "
+ ; Expression stack:    "(@-14) *(-1) 9 > IF![116] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "118" size(0) REG: z0  
- ;  - 008<tokEQ> "0" size(0) REG: z0  
+ ; 076<tokIfNot> "116" size(0) REG: z0  
+ ;  - 062<tokMore> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "118" size(-1) REG: r0  
- ;  - 008<tokEQ> "0" size(-1) REG: r0  
+ ; 076<tokIfNot> "116" size(-1) REG: r0  
+ ;  - 062<tokMore> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "0" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
  ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(0) size (-1)
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
  ; possible optimization - pass size
-ld r4, 0
- ; r0 <-[tokEQ]- l-14 r4  value(0) size (-1)
-ldd X, $L120
+ld r4, 9
+ ; r0 <-[tokMore]- l-14 r4  value(0) size (-1)
+ldd X, $L118
 tsub r0, l-14, r4
 ld r0, 0
-jnz
+jle
 ld r0, 1
 ; --- end of comparison:
-L120:
- ; r0 <-[tokIfNot]- r0  value(118) size (-1)
+L118:
+ ; r0 <-[tokIfNot]- r0  value(116) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L118
+ ; Jump if zero to L116
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L118
+ldd X, $L116
 jz
 
 
 
  ; {
- ; RPN'ized expression: "s *u 48 = "
- ; Expanded expression: "(@-10) *(2) 48 =(-1) "
- ; Expression stack:    "(@-10) *(2) 48 =(-1) "
+ ; RPN'ized expression: "s *u n 97 + 10 - = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
  ; Expr tree before optim: 
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ;  - 045<tokSub> "0" size(0) REG: z0  
+ ;  -  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  -  - 001<tokNumInt> "97" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
  ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 001<tokNumInt> "48" size(-1) REG: r2  *
+ ;  - 045<tokSub> "0" size(-1) REG: r2  
+ ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "97" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-10) size (2)
  ; !!! emit suppressed
  ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokNumInt]-  value(48) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(97) size (-1)
  ; possible optimization - pass size
-ld r2, 48
+ld r4, 97
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
+ ; possible optimization - pass size
+ld r4, 10
+ ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
+tsub r2, r2, r4
  ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
  ; assign to non-ident non-local lvalue
 movw X, l-10
@@ -6241,6 +6181,58 @@ mov r0, A
 
 
 
+ ; }
+ ; Unconditional jump to L117
+ldd X, $L117
+jmp
+L116:
+ ; else
+ ; {
+ ; RPN'ized expression: "s *u n 48 + = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
+ ; possible optimization - pass size
+ld r4, 48
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+L117:
  ; RPN'ized expression: "s --p "
  ; Expanded expression: "(@-10) --p(2) "
  ; Expression stack:    "(@-10) --p(2) "
@@ -6279,241 +6271,53 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
 
 
- ; }
-L118:
- ; while
- ; RPN'ized expression: "n "
- ; Expanded expression: "(@-14) *(-1) "
-L121:
- ; Expression stack:    "(@-14) *(-1) return "
+ ; RPN'ized expression: "n i 240 & = "
+ ; Expanded expression: "(@-14) (@4) *(2) 240 & =(-1) "
+ ; Expression stack:    "(@-14) (@4) *(2) 240 & =(-1) "
  ; Expr tree before optim: 
- ; 020<tokReturn> "0" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  - 038<tokAnd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "4" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "240" size(0) REG: z0  *
  ; Expr tree: 
- ; 020<tokReturn> "0" size(2) REG: r0  
- ;  - 019<tokInt> "0" size(2) REG: r0  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 089<tokLocalOfs> "-14" size(2) REG: r0 SUPPRESSED *
+ ;  - 038<tokAnd> "0" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "4" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "240" size(2) REG: r4  *
 
  ; r0 <-[tokLocalOfs]-  value(-14) size (2)
  ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r0  value(-1) size (-1)
+ ; r2 <-[tokLocalOfs]-  value(4) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokInt]- l-14  value(0) size (2)
-mov A, l-14
-mov r0, A
- ; XXX DO PROPER SIGN EXTEND HERE
-ld A, 0x00
-mov r1, A
- ; r0 <-[tokReturn]- r0  value(0) size (2)
- ; tokReturn
-
-
-
- ; Jump if zero to L122
- ; 16 bit for now, optimize
-tor r0,r0,r1
-ldd X, $L122
-jz
- ; {
- ; RPN'ized expression: "n_rem n 15 & = "
- ; Expanded expression: "(@-12) (@-14) *(-1) 15 & =(-1) "
- ; Expression stack:    "(@-12) (@-14) *(-1) 15 & =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  - 038<tokAnd> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "15" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 089<tokLocalOfs> "-12" size(2) REG: r0 SUPPRESSED *
- ;  - 038<tokAnd> "0" size(-1) REG: r2  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "15" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-12) size (2)
+ ; a0 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-14) size (2)
- ; !!! emit suppressed
- ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(15) size (-1)
+ ; r4 <-[tokNumInt]-  value(240) size (2)
  ; possible optimization - pass size
-ld r4, 15
- ; r2 <-[tokAnd]- l-14 r4  value(0) size (-1)
-tand r2, l-14, r4
+ld r4, 240
+ld r5, 0
+ ; r2 <-[tokAnd]- a0 r4  value(0) size (2)
+tand r2, a0, r4
+tand r3, a1, r5
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-12, A
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
- ; if
- ; RPN'ized expression: "n_rem 9 > "
- ; Expanded expression: "(@-12) *(-1) 9 > "
- ; Expression stack:    "(@-12) *(-1) 9 > IF![123] "
- ; Expr tree before optim: 
- ; 076<tokIfNot> "123" size(0) REG: z0  
- ;  - 062<tokMore> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
- ; Expr tree: 
- ; 076<tokIfNot> "123" size(-1) REG: r0  
- ;  - 062<tokMore> "0" size(-1) REG: r0  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
-
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(9) size (-1)
- ; possible optimization - pass size
-ld r4, 9
- ; r0 <-[tokMore]- l-12 r4  value(0) size (-1)
-ldd X, $L125
-tsub r0, l-12, r4
-ld r0, 0
-jle
-ld r0, 1
-; --- end of comparison:
-L125:
- ; r0 <-[tokIfNot]- r0  value(123) size (-1)
- ; !!!!! XXX QUICK HACK
-ld A,0
-mov r1,A
- ; Jump if zero to L123
- ; 16 bit for now, optimize
-tor r0,r0,r1
-ldd X, $L123
-jz
-
-
-
- ; {
- ; RPN'ized expression: "s *u n_rem 65 + 10 - = "
- ; Expanded expression: "(@-10) *(2) (@-12) *(-1) 65 + 10 - =(-1) "
- ; Expression stack:    "(@-10) *(2) (@-12) *(-1) 65 + 10 - =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 045<tokSub> "0" size(0) REG: z0  
- ;  -  - 043<tokAdd> "0" size(0) REG: z0  
- ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  -  - 001<tokNumInt> "65" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 045<tokSub> "0" size(-1) REG: r2  
- ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
- ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  -  - 001<tokNumInt> "65" size(-1) REG: r4  *
- ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-10) size (2)
- ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
- ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(65) size (-1)
- ; possible optimization - pass size
-ld r4, 65
- ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
-tadd r2, l-12, r4
- ; r4 <-[tokNumInt]-  value(10) size (-1)
- ; possible optimization - pass size
-ld r4, 10
- ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
-tsub r2, r2, r4
- ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
- ; assign to non-ident non-local lvalue
-movw X, l-10
-mov A, r2
-mov [X], A
- ; load to retval
-mov r0, A
-
-
-
- ; }
- ; Unconditional jump to L124
-ldd X, $L124
-jmp
-L123:
- ; else
- ; {
- ; RPN'ized expression: "s *u n_rem 48 + = "
- ; Expanded expression: "(@-10) *(2) (@-12) *(-1) 48 + =(-1) "
- ; Expression stack:    "(@-10) *(2) (@-12) *(-1) 48 + =(-1) "
- ; Expr tree before optim: 
- ; 061<tokAssign> "-1" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
- ;  - 043<tokAdd> "0" size(0) REG: z0  
- ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
- ;  -  -  - 089<tokLocalOfs> "-12" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
- ; Expr tree: 
- ; 061<tokAssign> "-1" size(-1) REG: r0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
- ;  - 043<tokAdd> "0" size(-1) REG: r2  
- ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-12 SUPPRESSED 
- ;  -  -  - 089<tokLocalOfs> "-12" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
-
- ; r0 <-[tokLocalOfs]-  value(-10) size (2)
- ; !!! emit suppressed
- ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
- ; !!! emit suppressed
- ; r2 <-[tokLocalOfs]-  value(-12) size (2)
- ; !!! emit suppressed
- ; l-12 <-[tokUnaryStar]- r2  value(-1) size (-1)
- ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(48) size (-1)
- ; possible optimization - pass size
-ld r4, 48
- ; r2 <-[tokAdd]- l-12 r4  value(0) size (-1)
-tadd r2, l-12, r4
- ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
- ; assign to non-ident non-local lvalue
-movw X, l-10
-mov A, r2
-mov [X], A
- ; load to retval
-mov r0, A
-
-
-
- ; }
-L124:
  ; RPN'ized expression: "n n 4 >> = "
  ; Expanded expression: "(@-14) (@-14) *(-1) 4 >> =(-1) "
  ; Expression stack:    "(@-14) (@-14) *(-1) 4 >> =(-1) "
@@ -6543,17 +6347,165 @@ L124:
 ld r4, 4
  ; r2 <-[tokRShift]- l-14 r4  value(0) size (-1)
 tshr r2, l-14, r0
-tshr r2, l-14, r0
-tshr r2, l-14, r0
-tshr r2, l-14, r0
+tshr r2, r2, r0
+tshr r2, r2, r0
+tshr r2, r2, r0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-14, A
+mov l-14, r2
  ; load to retval
 mov r0, A
 
 
 
+ ; if
+ ; RPN'ized expression: "n 9 > "
+ ; Expanded expression: "(@-14) *(-1) 9 > "
+ ; Expression stack:    "(@-14) *(-1) 9 > IF![119] "
+ ; Expr tree before optim: 
+ ; 076<tokIfNot> "119" size(0) REG: z0  
+ ;  - 062<tokMore> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "9" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 076<tokIfNot> "119" size(-1) REG: r0  
+ ;  - 062<tokMore> "0" size(-1) REG: r0  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "9" size(-1) REG: r4  *
+
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(9) size (-1)
+ ; possible optimization - pass size
+ld r4, 9
+ ; r0 <-[tokMore]- l-14 r4  value(0) size (-1)
+ldd X, $L121
+tsub r0, l-14, r4
+ld r0, 0
+jle
+ld r0, 1
+; --- end of comparison:
+L121:
+ ; r0 <-[tokIfNot]- r0  value(119) size (-1)
+ ; !!!!! XXX QUICK HACK
+ld A,0
+mov r1,A
+ ; Jump if zero to L119
+ ; 16 bit for now, optimize
+tor r0,r0,r1
+ldd X, $L119
+jz
+
+
+
+ ; {
+ ; RPN'ized expression: "s *u n 97 + 10 - = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 97 + 10 - =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 045<tokSub> "0" size(0) REG: z0  
+ ;  -  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  -  - 001<tokNumInt> "97" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 045<tokSub> "0" size(-1) REG: r2  
+ ;  -  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  - 001<tokNumInt> "97" size(-1) REG: r4  *
+ ;  -  - 001<tokNumInt> "10" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(97) size (-1)
+ ; possible optimization - pass size
+ld r4, 97
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r4 <-[tokNumInt]-  value(10) size (-1)
+ ; possible optimization - pass size
+ld r4, 10
+ ; r2 <-[tokSub]- r2 r4  value(0) size (-1)
+tsub r2, r2, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+ ; Unconditional jump to L120
+ldd X, $L120
+jmp
+L119:
+ ; else
+ ; {
+ ; RPN'ized expression: "s *u n 48 + = "
+ ; Expanded expression: "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expression stack:    "(@-10) *(2) (@-14) *(-1) 48 + =(-1) "
+ ; Expr tree before optim: 
+ ; 061<tokAssign> "-1" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-10" size(0) REG: z0  *
+ ;  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-14" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "48" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "-1" size(-1) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-10 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-10" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "0" size(-1) REG: r2  
+ ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-14 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-14" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "48" size(-1) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-10) size (2)
+ ; !!! emit suppressed
+ ; l-10 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-14) size (2)
+ ; !!! emit suppressed
+ ; l-14 <-[tokUnaryStar]- r2  value(-1) size (-1)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(48) size (-1)
+ ; possible optimization - pass size
+ld r4, 48
+ ; r2 <-[tokAdd]- l-14 r4  value(0) size (-1)
+tadd r2, l-14, r4
+ ; r0 <-[tokAssign]- l-10 r2  value(-1) size (-1)
+ ; assign to non-ident non-local lvalue
+movw X, l-10
+mov A, r2
+mov [X], A
+ ; load to retval
+mov r0, A
+
+
+
+ ; }
+L120:
  ; RPN'ized expression: "s --p "
  ; Expanded expression: "(@-10) --p(2) "
  ; Expression stack:    "(@-10) --p(2) "
@@ -6592,22 +6544,15 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
 
 
- ; }
- ; Unconditional jump to L121
-ldd X, $L121
-jmp
-L122:
  ; RPN'ized expression: "s *u 120 = "
  ; Expanded expression: "(@-10) *(2) 120 =(-1) "
  ; Expression stack:    "(@-10) *(2) 120 =(-1) "
@@ -6677,12 +6622,10 @@ ld r5, 0
 tsub r2, l-10, r4
 tsbc r3, l-9, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-10, A
+mov l-10, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-9, A
+mov l-9, r3
  ; load to retval
 mov r1, A
 
@@ -6750,10 +6693,10 @@ popw r0
 
 L108:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 SP+=8
 movsm
@@ -6782,7 +6725,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     c : (@-2) : char
@@ -6806,12 +6749,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -6836,12 +6777,10 @@ mov r1, A
 ld r2, $(l)in_str
 ld r3, $(h)in_str
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
@@ -6851,7 +6790,7 @@ mov r1, A
  ; RPN'ized expression: "1 "
  ; Expanded expression: "1 "
  ; Expression value: 1
-L128:
+L124:
  ; {
  ; RPN'ized expression: "c ( getc ) = "
  ; Expanded expression: "(@-2)  getc ()0 =(-1) "
@@ -6860,16 +6799,16 @@ L128:
  ; 061<tokAssign> "-1" size(0) REG: z0  
  ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  - 041<tokCall> "0" size(0) REG: z0  
- ;  -  - 016<tokIdent> "29" size(0) REG: z0  *
+ ;  -  - 016<tokIdent> "20" size(0) REG: z0  *
  ; Expr tree: 
  ; 061<tokAssign> "-1" size(-1) REG: r0  
  ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
  ;  - 041<tokCall> "0" size(2) REG: r2  
- ;  -  - 016<tokIdent> "29" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 016<tokIdent> "20" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r2 <-[tokIdent]-  value(29) size (2)
+ ; r2 <-[tokIdent]-  value(20) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokCall]- r2  value(0) size (2)
  ; pushed 0 args
@@ -6879,8 +6818,7 @@ ldd X, $getc
 jmp
 popw r2
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
 
@@ -6889,15 +6827,15 @@ mov r0, A
  ; if
  ; RPN'ized expression: "c 0 == "
  ; Expanded expression: "(@-2) *(-1) 0 == "
- ; Expression stack:    "(@-2) *(-1) 0 == IF![130] "
+ ; Expression stack:    "(@-2) *(-1) 0 == IF![126] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "130" size(0) REG: z0  
+ ; 076<tokIfNot> "126" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "130" size(-1) REG: r0  
+ ; 076<tokIfNot> "126" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -6911,38 +6849,38 @@ mov r0, A
  ; possible optimization - pass size
 ld r4, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L132
+ldd X, $L128
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L132:
- ; r0 <-[tokIfNot]- r0  value(130) size (-1)
+L128:
+ ; r0 <-[tokIfNot]- r0  value(126) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L130
+ ; Jump if zero to L126
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L130
+ldd X, $L126
 jz
 
 
 
  ; continue
- ; Unconditional jump to L128
-ldd X, $L128
+ ; Unconditional jump to L124
+ldd X, $L124
 jmp
-L130:
+L126:
  ; if
  ; RPN'ized expression: "c 10 == c 13 == || "
- ; Expanded expression: "(@-2) *(-1) 10 == [sh||->135] (@-2) *(-1) 13 == ||[135] "
- ; Expression stack:    "(@-2) *(-1) 10 == [sh||->135] (@-2) *(-1) 13 == ||[135] return "
+ ; Expanded expression: "(@-2) *(-1) 10 == [sh||->131] (@-2) *(-1) 13 == ||[131] "
+ ; Expression stack:    "(@-2) *(-1) 10 == [sh||->131] (@-2) *(-1) 13 == ||[131] return "
  ; Expr tree before optim: 
  ; 020<tokReturn> "0" size(0) REG: z0  
- ;  - 007<tokLogOr> "135" size(0) REG: z0  
- ;  -  - 090<tokShortCirc> "-135" size(0) REG: z0  
+ ;  - 007<tokLogOr> "131" size(0) REG: z0  
+ ;  -  - 090<tokShortCirc> "-131" size(0) REG: z0  
  ;  -  -  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  -  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
@@ -6954,8 +6892,8 @@ L130:
  ; Expr tree: 
  ; 020<tokReturn> "0" size(2) REG: r0  
  ;  - 019<tokInt> "0" size(2) REG: r0  
- ;  -  - 007<tokLogOr> "135" size(-1) REG: r0  
- ;  -  -  - 090<tokShortCirc> "-135" size(-1) REG: r0  
+ ;  -  - 007<tokLogOr> "131" size(-1) REG: r0  
+ ;  -  -  - 090<tokShortCirc> "-131" size(-1) REG: r0  
  ;  -  -  -  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  -  -  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -6973,19 +6911,19 @@ L130:
  ; possible optimization - pass size
 ld r4, 10
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L136
+ldd X, $L132
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L136:
- ; r0 <-[tokShortCirc]- r0  value(-135) size (-1)
+L132:
+ ; r0 <-[tokShortCirc]- r0  value(-131) size (-1)
  ; tokShortCirc
- ; Jump if not zero to L135
+ ; Jump if not zero to L131
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L135
+ldd X, $L131
 jnz
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
@@ -6995,16 +6933,16 @@ jnz
  ; possible optimization - pass size
 ld r4, 13
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L137
+ldd X, $L133
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L137:
- ; r0 <-[tokLogOr]- r0 r0  value(135) size (-1)
+L133:
+ ; r0 <-[tokLogOr]- r0 r0  value(131) size (-1)
  ; tokLogAndOr
-L135:
+L131:
  ; r0 <-[tokInt]- r0  value(0) size (2)
  ; XXX DO PROPER SIGN EXTEND HERE
 ld A, 0x00
@@ -7014,10 +6952,10 @@ mov r1, A
 
 
 
- ; Jump if zero to L133
+ ; Jump if zero to L129
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L133
+ldd X, $L129
 jz
  ; {
  ; RPN'ized expression: "s *u 0 = "
@@ -7052,28 +6990,28 @@ mov r0, A
 
 
  ; return
- ; Unconditional jump to L126
-ldd X, $L126
+ ; Unconditional jump to L122
+ldd X, $L122
 jmp
  ; }
- ; Unconditional jump to L134
-ldd X, $L134
+ ; Unconditional jump to L130
+ldd X, $L130
 jmp
-L133:
+L129:
  ; else
  ; {
  ; if
  ; RPN'ized expression: "count 127 1 - < "
  ; Expanded expression: "(@-4) *(2) 126 < "
- ; Expression stack:    "(@-4) *(2) 126 < IF![138] "
+ ; Expression stack:    "(@-4) *(2) 126 < IF![134] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "138" size(0) REG: z0  
+ ; 076<tokIfNot> "134" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "126" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "138" size(2) REG: r0  
+ ; 076<tokIfNot> "134" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
@@ -7088,7 +7026,7 @@ L133:
 ld r4, 126
 ld r5, 0
  ; r0 <-[tokLess]- l-4 r4  value(0) size (2)
-ldd X, $L140
+ldd X, $L136
 tsub r0, l-4, r4
 tsbc r1, l-3, r5
 ld r1, 0
@@ -7096,12 +7034,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L140:
- ; r0 <-[tokIfNot]- r0  value(138) size (2)
- ; Jump if zero to L138
+L136:
+ ; r0 <-[tokIfNot]- r0  value(134) size (2)
+ ; Jump if zero to L134
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L138
+ldd X, $L134
 jz
 
 
@@ -7179,12 +7117,10 @@ ld r5, 0
 tadd r2, l-6, r4
 tadc r3, l-5, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
@@ -7228,32 +7164,30 @@ ld r5, 0
 tadd r2, l-4, r4
 tadc r3, l-3, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
 
 
  ; }
-L138:
- ; }
 L134:
  ; }
- ; Unconditional jump to L128
-ldd X, $L128
+L130:
+ ; }
+ ; Unconditional jump to L124
+ldd X, $L124
 jmp
-L129:
-L126:
+L125:
+L122:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -7271,12 +7205,12 @@ push XM
 movms
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
  ; prolog end
 
 
 .section rodata
-L143:
+L139:
 .byte 0x74 ; (t)
 .byte 0x68 ; (h)
 .byte 0x69 ; (i)
@@ -7301,9 +7235,9 @@ L143:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L143 puts ) "
- ; Expanded expression: " L143  puts ()2 "
- ; Expression stack:    "( L143 , puts )2 "
+ ; RPN'ized expression: "( L139 puts ) "
+ ; Expanded expression: " L139  puts ()2 "
+ ; Expression stack:    "( L139 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "251" size(0) REG: z0  *
@@ -7314,8 +7248,8 @@ L143:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(251) size (2)
-ld r0, $(l)L143
-ld r1, $(h)L143
+ld r0, $(l)L139
+ld r1, $(h)L139
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -7327,12 +7261,12 @@ popw r0
 
 
 
-L141:
+L137:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 movsm
 pop MX
 jmp
@@ -7349,12 +7283,12 @@ push XM
 movms
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
  ; prolog end
 
 
 .section rodata
-L146:
+L142:
 .byte 0x61 ; (a)
 .byte 0x6e ; (n)
 .byte 0x6f ; (o)
@@ -7377,9 +7311,9 @@ L146:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L146 puts ) "
- ; Expanded expression: " L146  puts ()2 "
- ; Expression stack:    "( L146 , puts )2 "
+ ; RPN'ized expression: "( L142 puts ) "
+ ; Expanded expression: " L142  puts ()2 "
+ ; Expression stack:    "( L142 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "264" size(0) REG: z0  *
@@ -7390,8 +7324,8 @@ L146:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(264) size (2)
-ld r0, $(l)L146
-ld r1, $(h)L146
+ld r0, $(l)L142
+ld r1, $(h)L142
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -7403,12 +7337,12 @@ popw r0
 
 
 
-L144:
+L140:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 movsm
 pop MX
 jmp
@@ -7429,6 +7363,14 @@ funcs:
  ; Expanded expression: "test_func_2 "
  ; GenAddrData
 .word $test_func_2
+ ; RPN'ized expression: "test_func_2 "
+ ; Expanded expression: "test_func_2 "
+ ; GenAddrData
+.word $test_func_2
+ ; RPN'ized expression: "test_func_2 "
+ ; Expanded expression: "test_func_2 "
+ ; GenAddrData
+.word $test_func_2
 
  ; glb cmds : [0u] * char
 .section data
@@ -7437,7 +7379,7 @@ cmds:
  ; =
 
 .section rodata
-L147:
+L143:
 .byte 0x74 ; (t)
 .byte 0x65 ; (e)
 .byte 0x73 ; (s)
@@ -7447,13 +7389,13 @@ L147:
 .skip 1
 
 .section data
- ; RPN'ized expression: "L147 "
- ; Expanded expression: "L147 "
+ ; RPN'ized expression: "L143 "
+ ; Expanded expression: "L143 "
  ; GenAddrData
-.word $L147
+.word $L143
 
 .section rodata
-L148:
+L144:
 .byte 0x74 ; (t)
 .byte 0x65 ; (e)
 .byte 0x73 ; (s)
@@ -7463,10 +7405,72 @@ L148:
 .skip 1
 
 .section data
- ; RPN'ized expression: "L148 "
- ; Expanded expression: "L148 "
+ ; RPN'ized expression: "L144 "
+ ; Expanded expression: "L144 "
  ; GenAddrData
-.word $L148
+.word $L144
+
+.section rodata
+L145:
+.byte 0x61 ; (a)
+.byte 0x6e ; (n)
+.byte 0x6f ; (o)
+.byte 0x74 ; (t)
+.byte 0x68 ; (h)
+.byte 0x65 ; (e)
+.byte 0x72 ; (r)
+.byte 0x5f ; (_)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x72 ; (r)
+.byte 0x69 ; (i)
+.byte 0x6e ; (n)
+.byte 0x67 ; (g)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section data
+ ; RPN'ized expression: "L145 "
+ ; Expanded expression: "L145 "
+ ; GenAddrData
+.word $L145
+
+.section rodata
+L146:
+.byte 0x66 ; (f)
+.byte 0x6f ; (o)
+.byte 0x75 ; (u)
+.byte 0x72 ; (r)
+.byte 0x74 ; (t)
+.byte 0x68 ; (h)
+.byte 0x5f ; (_)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x72 ; (r)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section data
+ ; RPN'ized expression: "L146 "
+ ; Expanded expression: "L146 "
+ ; GenAddrData
+.word $L146
+
+.section rodata
+L147:
+.byte 0x66 ; (f)
+.byte 0x69 ; (i)
+.byte 0x66 ; (f)
+.byte 0x74 ; (t)
+.byte 0x68 ; (h)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section data
+ ; RPN'ized expression: "L147 "
+ ; Expanded expression: "L147 "
+ ; GenAddrData
+.word $L147
 
  ; glb get_cmd_idx : (
  ; prm     s : * char
@@ -7480,7 +7484,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     s : (@4) : * char
@@ -7504,12 +7508,10 @@ SP-=8
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -7535,44 +7537,42 @@ mov r1, A
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
 
 
-L151:
- ; RPN'ized expression: "i 2 < "
- ; Expanded expression: "(@-2) *(2) 2 < "
- ; Expression stack:    "(@-2) *(2) 2 < IF![154] "
+L150:
+ ; RPN'ized expression: "i 5 < "
+ ; Expanded expression: "(@-2) *(2) 5 < "
+ ; Expression stack:    "(@-2) *(2) 5 < IF![153] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "154" size(0) REG: z0  
+ ; 076<tokIfNot> "153" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
- ;  -  - 001<tokNumInt> "2" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "154" size(2) REG: r0  
+ ; 076<tokIfNot> "153" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  - 001<tokNumInt> "2" size(2) REG: r4  *
+ ;  -  - 001<tokNumInt> "5" size(2) REG: r4  *
 
  ; r2 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
  ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
- ; r4 <-[tokNumInt]-  value(2) size (2)
+ ; r4 <-[tokNumInt]-  value(5) size (2)
  ; possible optimization - pass size
-ld r4, 2
+ld r4, 5
 ld r5, 0
  ; r0 <-[tokLess]- l-2 r4  value(0) size (2)
-ldd X, $L155
+ldd X, $L154
 tsub r0, l-2, r4
 tsbc r1, l-1, r5
 ld r1, 0
@@ -7580,12 +7580,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L155:
- ; r0 <-[tokIfNot]- r0  value(154) size (2)
- ; Jump if zero to L154
+L154:
+ ; r0 <-[tokIfNot]- r0  value(153) size (2)
+ ; Jump if zero to L153
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L154
+ldd X, $L153
 jz
 
 
@@ -7595,7 +7595,7 @@ jz
  ; {
 
 .section rodata
-L156:
+L155:
 .byte 0x63 ; (c)
 .byte 0x6f ; (o)
 .byte 0x6d ; (m)
@@ -7615,9 +7615,9 @@ L156:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L156 puts ) "
- ; Expanded expression: " L156  puts ()2 "
- ; Expression stack:    "( L156 , puts )2 "
+ ; RPN'ized expression: "( L155 puts ) "
+ ; Expanded expression: " L155  puts ()2 "
+ ; Expression stack:    "( L155 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "290" size(0) REG: z0  *
@@ -7628,8 +7628,8 @@ L156:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(290) size (2)
-ld r0, $(l)L156
-ld r1, $(h)L156
+ld r0, $(l)L155
+ld r1, $(h)L155
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -7662,7 +7662,7 @@ popw r0
  ;  -  -  - 004<tokLShift> "0" size(2) REG: r2  
  ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4 SUPPRESSED *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(266) size (2)
@@ -7673,9 +7673,7 @@ ld r1, $(h)cmds
  ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
+ ; !!! emit suppressed
  ; r2 <-[tokLShift]- l-2 r4  value(0) size (2)
 tshl r2, l-2, r0
 tshlc r3, l-1, r0
@@ -7704,7 +7702,7 @@ popw r0
 
 
 .section rodata
-L157:
+L156:
 .byte 0x20 ; ( )
 .byte 0x3a ; (:)
 .byte 0x20 ; ( )
@@ -7712,9 +7710,9 @@ L157:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L157 puts ) "
- ; Expanded expression: " L157  puts ()2 "
- ; Expression stack:    "( L157 , puts )2 "
+ ; RPN'ized expression: "( L156 puts ) "
+ ; Expanded expression: " L156  puts ()2 "
+ ; Expression stack:    "( L156 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "295" size(0) REG: z0  *
@@ -7725,8 +7723,8 @@ L157:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(295) size (2)
-ld r0, $(l)L157
-ld r1, $(h)L157
+ld r0, $(l)L156
+ld r1, $(h)L156
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -7741,9 +7739,9 @@ popw r0
  ; if
  ; RPN'ized expression: "( s , cmds i + *u strcmp ) 0 == "
  ; Expanded expression: " (@4) *(2)  cmds (@-2) *(2) 2 * + *(2)  strcmp ()4 0 == "
- ; Expression stack:    "( (@4) *(2) , cmds (@-2) *(2) 2 * + *(2) , strcmp )4 0 == IF![158] "
+ ; Expression stack:    "( (@4) *(2) , cmds (@-2) *(2) 2 * + *(2) , strcmp )4 0 == IF![157] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "158" size(0) REG: z0  
+ ; 076<tokIfNot> "157" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 041<tokCall> "4" size(0) REG: z0  
  ;  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
@@ -7758,7 +7756,7 @@ popw r0
  ;  -  -  - 016<tokIdent> "41" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "158" size(2) REG: r0  
+ ; 076<tokIfNot> "157" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
  ;  -  - 041<tokCall> "4" size(2) REG: r2  
  ;  -  -  - 078<tokUnaryStar> "2" size(2) REG: a0 SUPPRESSED 
@@ -7769,7 +7767,7 @@ popw r0
  ;  -  -  -  -  - 004<tokLShift> "0" size(2) REG: r6  
  ;  -  -  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r6 SUPPRESSED *
- ;  -  -  -  -  -  - 001<tokNumInt> "1" size(2) REG: r8  *
+ ;  -  -  -  -  -  - 001<tokNumInt> "1" size(2) REG: r8 SUPPRESSED *
  ;  -  -  - 016<tokIdent> "41" size(2) REG: r6 SUPPRESSED *
  ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
 
@@ -7785,9 +7783,7 @@ ld r5, $(h)cmds
  ; l-2 <-[tokUnaryStar]- r6  value(2) size (2)
  ; !!! emit suppressed
  ; r8 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r8, 1
-ld r9, 0
+ ; !!! emit suppressed
  ; r6 <-[tokLShift]- l-2 r8  value(0) size (2)
 tshl r6, l-2, r0
 tshlc r7, l-1, r0
@@ -7818,7 +7814,7 @@ SP+=2
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokEQ]- r2 r4  value(0) size (2)
-ldd X, $L160
+ldd X, $L159
 tsub r0, r2, r4
 tsbc r1, r3, r5
 ld r1, 0
@@ -7826,12 +7822,12 @@ ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L160:
- ; r0 <-[tokIfNot]- r0  value(158) size (2)
- ; Jump if zero to L158
+L159:
+ ; r0 <-[tokIfNot]- r0  value(157) size (2)
+ ; Jump if zero to L157
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L158
+ldd X, $L157
 jz
 
 
@@ -7839,7 +7835,7 @@ jz
  ; {
 
 .section rodata
-L161:
+L160:
 .byte 0x73 ; (s)
 .byte 0x75 ; (u)
 .byte 0x63 ; (c)
@@ -7847,6 +7843,78 @@ L161:
 .byte 0x65 ; (e)
 .byte 0x73 ; (s)
 .byte 0x73 ; (s)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L160 puts ) "
+ ; Expanded expression: " L160  puts ()2 "
+ ; Expression stack:    "( L160 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "300" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "300" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(300) size (2)
+ld r0, $(l)L160
+ld r1, $(h)L160
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; return
+ ; RPN'ized expression: "i "
+ ; Expanded expression: "(@-2) *(2) "
+ ; Expression stack:    "(@-2) *(2) return "
+ ; Expr tree before optim: 
+ ; 020<tokReturn> "0" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 020<tokReturn> "0" size(2) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokReturn]- l-2  value(0) size (2)
+mov r0, l-2
+mov r1, l-1
+ ; tokReturn
+
+
+
+ ; Unconditional jump to L148
+ldd X, $L148
+jmp
+ ; }
+ ; Unconditional jump to L158
+ldd X, $L158
+jmp
+L157:
+ ; else
+ ; {
+
+.section rodata
+L161:
+.byte 0x66 ; (f)
+.byte 0x61 ; (a)
+.byte 0x69 ; (i)
+.byte 0x6c ; (l)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -7878,84 +7946,10 @@ popw r0
 
 
 
- ; return
- ; RPN'ized expression: "i "
- ; Expanded expression: "(@-2) *(2) "
- ; Expression stack:    "(@-2) *(2) return "
- ; Expr tree before optim: 
- ; 020<tokReturn> "0" size(0) REG: z0  
- ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
- ;  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
- ; Expr tree: 
- ; 020<tokReturn> "0" size(2) REG: r0  
- ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
- ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
-
- ; r0 <-[tokLocalOfs]-  value(-2) size (2)
- ; !!! emit suppressed
- ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokReturn]- l-2  value(0) size (2)
-mov A,l-2
-mov r0,A
-mov A,l-1
-mov r1,A
- ; tokReturn
-
-
-
- ; Unconditional jump to L149
-ldd X, $L149
-jmp
  ; }
- ; Unconditional jump to L159
-ldd X, $L159
-jmp
 L158:
- ; else
- ; {
-
-.section rodata
-L162:
-.byte 0x66 ; (f)
-.byte 0x61 ; (a)
-.byte 0x69 ; (i)
-.byte 0x6c ; (l)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L162 puts ) "
- ; Expanded expression: " L162  puts ()2 "
- ; Expression stack:    "( L162 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "300" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "300" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L162
-ld r1, $(h)L162
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
  ; }
-L159:
- ; }
-L152:
+L151:
  ; Expression stack:    "(@-2) ++p(2) "
  ; Expr tree before optim: 
  ; 081<tokPostInc> "2" size(0) REG: z0  
@@ -7992,21 +7986,19 @@ ld r5, 0
 tadd r2, l-2, r4
 tadc r3, l-1, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
 
 
- ; Unconditional jump to L151
-ldd X, $L151
+ ; Unconditional jump to L150
+ldd X, $L150
 jmp
-L154:
+L153:
  ; return
  ; RPN'ized expression: "1 -u "
  ; Expanded expression: "-1 "
@@ -8028,12 +8020,12 @@ ld r1, 255
 
 
 
-L149:
+L148:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -8052,7 +8044,7 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
  ; loc     k : (@-2) : char
@@ -8075,12 +8067,10 @@ SP-=8
 ld r2, 1
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -8089,15 +8079,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "k 0 == "
  ; Expanded expression: "(@-2) *(-1) 0 == "
- ; Expression stack:    "(@-2) *(-1) 0 == IF![165] "
+ ; Expression stack:    "(@-2) *(-1) 0 == IF![164] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "165" size(0) REG: z0  
+ ; 076<tokIfNot> "164" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "165" size(-1) REG: r0  
+ ; 076<tokIfNot> "164" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -8111,21 +8101,21 @@ mov r1, A
  ; possible optimization - pass size
 ld r4, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L167
+ldd X, $L166
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L167:
- ; r0 <-[tokIfNot]- r0  value(165) size (-1)
+L166:
+ ; r0 <-[tokIfNot]- r0  value(164) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L165
+ ; Jump if zero to L164
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L165
+ldd X, $L164
 jz
 
 
@@ -8133,7 +8123,7 @@ jz
  ; {
 
 .section rodata
-L168:
+L167:
 .byte 0x30 ; (0)
 .byte 0x2e ; (.)
 .byte 0x30 ; (0)
@@ -8142,6 +8132,55 @@ L168:
 .byte 0x61 ; (a)
 .byte 0x69 ; (i)
 .byte 0x6c ; (l)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L167 puts ) "
+ ; Expanded expression: " L167  puts ()2 "
+ ; Expression stack:    "( L167 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "300" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "300" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(300) size (2)
+ld r0, $(l)L167
+ld r1, $(h)L167
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L165
+ldd X, $L165
+jmp
+L164:
+ ; else
+ ; {
+
+.section rodata
+L168:
+.byte 0x30 ; (0)
+.byte 0x2e ; (.)
+.byte 0x30 ; (0)
+.byte 0x2e ; (.)
+.byte 0x50 ; (P)
+.byte 0x61 ; (a)
+.byte 0x73 ; (s)
+.byte 0x73 ; (s)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -8174,56 +8213,7 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L166
-ldd X, $L166
-jmp
 L165:
- ; else
- ; {
-
-.section rodata
-L169:
-.byte 0x30 ; (0)
-.byte 0x2e ; (.)
-.byte 0x30 ; (0)
-.byte 0x2e ; (.)
-.byte 0x50 ; (P)
-.byte 0x61 ; (a)
-.byte 0x73 ; (s)
-.byte 0x73 ; (s)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L169 puts ) "
- ; Expanded expression: " L169  puts ()2 "
- ; Expression stack:    "( L169 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "300" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "300" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L169
-ld r1, $(h)L169
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L166:
  ; RPN'ized expression: "k 0 = "
  ; Expanded expression: "(@-2) 0 =(-1) "
  ; Expression stack:    "(@-2) 0 =(-1) "
@@ -8242,8 +8232,7 @@ L166:
  ; possible optimization - pass size
 ld r2, 0
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
 
@@ -8252,15 +8241,15 @@ mov r0, A
  ; if
  ; RPN'ized expression: "k 0 == "
  ; Expanded expression: "(@-2) *(-1) 0 == "
- ; Expression stack:    "(@-2) *(-1) 0 == IF![170] "
+ ; Expression stack:    "(@-2) *(-1) 0 == IF![169] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "170" size(0) REG: z0  
+ ; 076<tokIfNot> "169" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "170" size(-1) REG: r0  
+ ; 076<tokIfNot> "169" size(-1) REG: r0  
  ;  - 008<tokEQ> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -8274,21 +8263,21 @@ mov r0, A
  ; possible optimization - pass size
 ld r4, 0
  ; r0 <-[tokEQ]- l-2 r4  value(0) size (-1)
-ldd X, $L172
+ldd X, $L171
 tsub r0, l-2, r4
 ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L172:
- ; r0 <-[tokIfNot]- r0  value(170) size (-1)
+L171:
+ ; r0 <-[tokIfNot]- r0  value(169) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L170
+ ; Jump if zero to L169
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L170
+ldd X, $L169
 jz
 
 
@@ -8296,7 +8285,7 @@ jz
  ; {
 
 .section rodata
-L173:
+L172:
 .byte 0x30 ; (0)
 .byte 0x2e ; (.)
 .byte 0x31 ; (1)
@@ -8305,6 +8294,55 @@ L173:
 .byte 0x61 ; (a)
 .byte 0x73 ; (s)
 .byte 0x73 ; (s)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L172 puts ) "
+ ; Expanded expression: " L172  puts ()2 "
+ ; Expression stack:    "( L172 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "300" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "300" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(300) size (2)
+ld r0, $(l)L172
+ld r1, $(h)L172
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L170
+ldd X, $L170
+jmp
+L169:
+ ; else
+ ; {
+
+.section rodata
+L173:
+.byte 0x30 ; (0)
+.byte 0x2e ; (.)
+.byte 0x31 ; (1)
+.byte 0x2e ; (.)
+.byte 0x46 ; (F)
+.byte 0x61 ; (a)
+.byte 0x69 ; (i)
+.byte 0x6c ; (l)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -8337,56 +8375,7 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L171
-ldd X, $L171
-jmp
 L170:
- ; else
- ; {
-
-.section rodata
-L174:
-.byte 0x30 ; (0)
-.byte 0x2e ; (.)
-.byte 0x31 ; (1)
-.byte 0x2e ; (.)
-.byte 0x46 ; (F)
-.byte 0x61 ; (a)
-.byte 0x69 ; (i)
-.byte 0x6c ; (l)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L174 puts ) "
- ; Expanded expression: " L174  puts ()2 "
- ; Expression stack:    "( L174 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "300" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "300" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L174
-ld r1, $(h)L174
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L171:
  ; loc     l : (@-4) : int
  ; RPN'ized expression: "l 4096 = "
  ; Expanded expression: "(@-4) 4096 =(2) "
@@ -8407,12 +8396,10 @@ L171:
 ld r2, 0
 ld r3, 16
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -8421,15 +8408,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "l 0 == "
  ; Expanded expression: "(@-4) *(2) 0 == "
- ; Expression stack:    "(@-4) *(2) 0 == IF![175] "
+ ; Expression stack:    "(@-4) *(2) 0 == IF![174] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "175" size(0) REG: z0  
+ ; 076<tokIfNot> "174" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "175" size(2) REG: r0  
+ ; 076<tokIfNot> "174" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
@@ -8444,7 +8431,7 @@ mov r1, A
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokEQ]- l-4 r4  value(0) size (2)
-ldd X, $L177
+ldd X, $L176
 tsub r0, l-4, r4
 tsbc r1, l-3, r5
 ld r1, 0
@@ -8452,12 +8439,12 @@ ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L177:
- ; r0 <-[tokIfNot]- r0  value(175) size (2)
- ; Jump if zero to L175
+L176:
+ ; r0 <-[tokIfNot]- r0  value(174) size (2)
+ ; Jump if zero to L174
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L175
+ldd X, $L174
 jz
 
 
@@ -8465,7 +8452,7 @@ jz
  ; {
 
 .section rodata
-L178:
+L177:
 .byte 0x30 ; (0)
 .byte 0x2e ; (.)
 .byte 0x32 ; (2)
@@ -8474,6 +8461,55 @@ L178:
 .byte 0x61 ; (a)
 .byte 0x69 ; (i)
 .byte 0x6c ; (l)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L177 puts ) "
+ ; Expanded expression: " L177  puts ()2 "
+ ; Expression stack:    "( L177 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "300" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "300" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(300) size (2)
+ld r0, $(l)L177
+ld r1, $(h)L177
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L175
+ldd X, $L175
+jmp
+L174:
+ ; else
+ ; {
+
+.section rodata
+L178:
+.byte 0x30 ; (0)
+.byte 0x2e ; (.)
+.byte 0x32 ; (2)
+.byte 0x2e ; (.)
+.byte 0x50 ; (P)
+.byte 0x61 ; (a)
+.byte 0x73 ; (s)
+.byte 0x73 ; (s)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -8506,56 +8542,7 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L176
-ldd X, $L176
-jmp
 L175:
- ; else
- ; {
-
-.section rodata
-L179:
-.byte 0x30 ; (0)
-.byte 0x2e ; (.)
-.byte 0x32 ; (2)
-.byte 0x2e ; (.)
-.byte 0x50 ; (P)
-.byte 0x61 ; (a)
-.byte 0x73 ; (s)
-.byte 0x73 ; (s)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L179 puts ) "
- ; Expanded expression: " L179  puts ()2 "
- ; Expression stack:    "( L179 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "300" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "300" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L179
-ld r1, $(h)L179
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L176:
  ; RPN'ized expression: "l 0 = "
  ; Expanded expression: "(@-4) 0 =(2) "
  ; Expression stack:    "(@-4) 0 =(2) "
@@ -8575,12 +8562,10 @@ L176:
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-4, A
+mov l-4, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-3, A
+mov l-3, r3
  ; load to retval
 mov r1, A
 
@@ -8589,15 +8574,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "l 0 == "
  ; Expanded expression: "(@-4) *(2) 0 == "
- ; Expression stack:    "(@-4) *(2) 0 == IF![180] "
+ ; Expression stack:    "(@-4) *(2) 0 == IF![179] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "180" size(0) REG: z0  
+ ; 076<tokIfNot> "179" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-4" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "180" size(2) REG: r0  
+ ; 076<tokIfNot> "179" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-4 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-4" size(2) REG: r2 SUPPRESSED *
@@ -8612,7 +8597,7 @@ mov r1, A
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokEQ]- l-4 r4  value(0) size (2)
-ldd X, $L182
+ldd X, $L181
 tsub r0, l-4, r4
 tsbc r1, l-3, r5
 ld r1, 0
@@ -8620,12 +8605,12 @@ ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L182:
- ; r0 <-[tokIfNot]- r0  value(180) size (2)
- ; Jump if zero to L180
+L181:
+ ; r0 <-[tokIfNot]- r0  value(179) size (2)
+ ; Jump if zero to L179
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L180
+ldd X, $L179
 jz
 
 
@@ -8633,7 +8618,7 @@ jz
  ; {
 
 .section rodata
-L183:
+L182:
 .byte 0x30 ; (0)
 .byte 0x2e ; (.)
 .byte 0x33 ; (3)
@@ -8642,6 +8627,55 @@ L183:
 .byte 0x61 ; (a)
 .byte 0x73 ; (s)
 .byte 0x73 ; (s)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L182 puts ) "
+ ; Expanded expression: " L182  puts ()2 "
+ ; Expression stack:    "( L182 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "300" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "300" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(300) size (2)
+ld r0, $(l)L182
+ld r1, $(h)L182
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L180
+ldd X, $L180
+jmp
+L179:
+ ; else
+ ; {
+
+.section rodata
+L183:
+.byte 0x30 ; (0)
+.byte 0x2e ; (.)
+.byte 0x33 ; (3)
+.byte 0x2e ; (.)
+.byte 0x46 ; (F)
+.byte 0x61 ; (a)
+.byte 0x69 ; (i)
+.byte 0x6c ; (l)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -8674,59 +8708,10 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L181
-ldd X, $L181
-jmp
 L180:
- ; else
- ; {
 
 .section rodata
 L184:
-.byte 0x30 ; (0)
-.byte 0x2e ; (.)
-.byte 0x33 ; (3)
-.byte 0x2e ; (.)
-.byte 0x46 ; (F)
-.byte 0x61 ; (a)
-.byte 0x69 ; (i)
-.byte 0x6c ; (l)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L184 puts ) "
- ; Expanded expression: " L184  puts ()2 "
- ; Expression stack:    "( L184 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "300" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "300" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L184
-ld r1, $(h)L184
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L181:
-
-.section rodata
-L185:
 .byte 0x53 ; (S)
 .byte 0x68 ; (h)
 .byte 0x6f ; (o)
@@ -8762,9 +8747,9 @@ L185:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L185 puts ) "
- ; Expanded expression: " L185  puts ()2 "
- ; Expression stack:    "( L185 , puts )2 "
+ ; RPN'ized expression: "( L184 puts ) "
+ ; Expanded expression: " L184  puts ()2 "
+ ; Expression stack:    "( L184 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "300" size(0) REG: z0  *
@@ -8775,8 +8760,8 @@ L185:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(300) size (2)
-ld r0, $(l)L185
-ld r1, $(h)L185
+ld r0, $(l)L184
+ld r1, $(h)L184
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -8809,29 +8794,27 @@ popw r0
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
 
 
-L186:
+L185:
  ; RPN'ized expression: "i 10 < "
  ; Expanded expression: "(@-6) *(-1) 10 < "
- ; Expression stack:    "(@-6) *(-1) 10 < IF![189] "
+ ; Expression stack:    "(@-6) *(-1) 10 < IF![188] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "189" size(0) REG: z0  
+ ; 076<tokIfNot> "188" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "189" size(-1) REG: r0  
+ ; 076<tokIfNot> "188" size(-1) REG: r0  
  ;  - 060<tokLess> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -8845,21 +8828,21 @@ L186:
  ; possible optimization - pass size
 ld r4, 10
  ; r0 <-[tokLess]- l-6 r4  value(0) size (-1)
-ldd X, $L190
+ldd X, $L189
 tsub r0, l-6, r4
 ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L190:
- ; r0 <-[tokIfNot]- r0  value(189) size (-1)
+L189:
+ ; r0 <-[tokIfNot]- r0  value(188) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L189
+ ; Jump if zero to L188
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L189
+ldd X, $L188
 jz
 
 
@@ -8870,15 +8853,15 @@ jz
  ; if
  ; RPN'ized expression: "i 5 < "
  ; Expanded expression: "(@-6) *(-1) 5 < "
- ; Expression stack:    "(@-6) *(-1) 5 < IF![191] "
+ ; Expression stack:    "(@-6) *(-1) 5 < IF![190] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "191" size(0) REG: z0  
+ ; 076<tokIfNot> "190" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "-1" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "191" size(-1) REG: r0  
+ ; 076<tokIfNot> "190" size(-1) REG: r0  
  ;  - 060<tokLess> "0" size(-1) REG: r0  
  ;  -  - 078<tokUnaryStar> "-1" size(-1) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -8892,21 +8875,21 @@ jz
  ; possible optimization - pass size
 ld r4, 5
  ; r0 <-[tokLess]- l-6 r4  value(0) size (-1)
-ldd X, $L193
+ldd X, $L192
 tsub r0, l-6, r4
 ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L193:
- ; r0 <-[tokIfNot]- r0  value(191) size (-1)
+L192:
+ ; r0 <-[tokIfNot]- r0  value(190) size (-1)
  ; !!!!! XXX QUICK HACK
 ld A,0
 mov r1,A
- ; Jump if zero to L191
+ ; Jump if zero to L190
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L191
+ldd X, $L190
 jz
 
 
@@ -8940,10 +8923,10 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L192
-ldd X, $L192
+ ; Unconditional jump to L191
+ldd X, $L191
 jmp
-L191:
+L190:
  ; else
  ; {
  ; RPN'ized expression: "( 66 putc ) "
@@ -8974,9 +8957,9 @@ popw r0
 
 
  ; }
-L192:
+L191:
  ; }
-L187:
+L186:
  ; Expression stack:    "(@-6) ++p(-1) "
  ; Expr tree before optim: 
  ; 081<tokPostInc> "-1" size(0) REG: z0  
@@ -9011,17 +8994,16 @@ ld r4, 1
  ; r2 <-[tokAdd]- l-6 r4  value(-1) size (-1)
 tadd r2, l-6, r4
  ; r0 <-[tokAssign]- r0 r2  value(-1) size (-1)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
 
 
 
- ; Unconditional jump to L186
-ldd X, $L186
+ ; Unconditional jump to L185
+ldd X, $L185
 jmp
-L189:
+L188:
  ; RPN'ized expression: "( 10 putc ) "
  ; Expanded expression: " 10  putc ()2 "
  ; Expression stack:    "( 10 , putc )2 "
@@ -9070,29 +9052,27 @@ popw r0
 ld r2, 0
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
 
 
-L194:
+L193:
  ; RPN'ized expression: "i 10 < "
  ; Expanded expression: "(@-6) *(2) 10 < "
- ; Expression stack:    "(@-6) *(2) 10 < IF![197] "
+ ; Expression stack:    "(@-6) *(2) 10 < IF![196] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "197" size(0) REG: z0  
+ ; 076<tokIfNot> "196" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "10" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "197" size(2) REG: r0  
+ ; 076<tokIfNot> "196" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -9107,7 +9087,7 @@ L194:
 ld r4, 10
 ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (2)
-ldd X, $L198
+ldd X, $L197
 tsub r0, l-6, r4
 tsbc r1, l-5, r5
 ld r1, 0
@@ -9115,12 +9095,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L198:
- ; r0 <-[tokIfNot]- r0  value(197) size (2)
- ; Jump if zero to L197
+L197:
+ ; r0 <-[tokIfNot]- r0  value(196) size (2)
+ ; Jump if zero to L196
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L197
+ldd X, $L196
 jz
 
 
@@ -9131,15 +9111,15 @@ jz
  ; if
  ; RPN'ized expression: "i 5 < "
  ; Expanded expression: "(@-6) *(2) 5 < "
- ; Expression stack:    "(@-6) *(2) 5 < IF![199] "
+ ; Expression stack:    "(@-6) *(2) 5 < IF![198] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "199" size(0) REG: z0  
+ ; 076<tokIfNot> "198" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "199" size(2) REG: r0  
+ ; 076<tokIfNot> "198" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -9154,7 +9134,7 @@ jz
 ld r4, 5
 ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (2)
-ldd X, $L201
+ldd X, $L200
 tsub r0, l-6, r4
 tsbc r1, l-5, r5
 ld r1, 0
@@ -9162,12 +9142,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L201:
- ; r0 <-[tokIfNot]- r0  value(199) size (2)
- ; Jump if zero to L199
+L200:
+ ; r0 <-[tokIfNot]- r0  value(198) size (2)
+ ; Jump if zero to L198
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L199
+ldd X, $L198
 jz
 
 
@@ -9201,10 +9181,10 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L200
-ldd X, $L200
+ ; Unconditional jump to L199
+ldd X, $L199
 jmp
-L199:
+L198:
  ; else
  ; {
  ; RPN'ized expression: "( 66 putc ) "
@@ -9235,9 +9215,9 @@ popw r0
 
 
  ; }
-L200:
+L199:
  ; }
-L195:
+L194:
  ; Expression stack:    "(@-6) ++p(2) "
  ; Expr tree before optim: 
  ; 081<tokPostInc> "2" size(0) REG: z0  
@@ -9274,21 +9254,19 @@ ld r5, 0
 tadd r2, l-6, r4
 tadc r3, l-5, r5
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
 
 
- ; Unconditional jump to L194
-ldd X, $L194
+ ; Unconditional jump to L193
+ldd X, $L193
 jmp
-L197:
+L196:
  ; RPN'ized expression: "( 10 putc ) "
  ; Expanded expression: " 10  putc ()2 "
  ; Expression stack:    "( 10 , putc )2 "
@@ -9318,7 +9296,7 @@ popw r0
 
 
 .section rodata
-L202:
+L201:
 .byte 0x50 ; (P)
 .byte 0x72 ; (r)
 .byte 0x69 ; (i)
@@ -9337,9 +9315,9 @@ L202:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L202 puts ) "
- ; Expanded expression: " L202  puts ()2 "
- ; Expression stack:    "( L202 , puts )2 "
+ ; RPN'ized expression: "( L201 puts ) "
+ ; Expanded expression: " L201  puts ()2 "
+ ; Expression stack:    "( L201 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "305" size(0) REG: z0  *
@@ -9350,8 +9328,8 @@ L202:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(305) size (2)
-ld r0, $(l)L202
-ld r1, $(h)L202
+ld r0, $(l)L201
+ld r1, $(h)L201
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -9419,7 +9397,7 @@ popw r0
 
 
 .section rodata
-L203:
+L202:
 .byte 0x43 ; (C)
 .byte 0x6f ; (o)
 .byte 0x6d ; (m)
@@ -9473,9 +9451,9 @@ L203:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L203 puts ) "
- ; Expanded expression: " L203  puts ()2 "
- ; Expression stack:    "( L203 , puts )2 "
+ ; RPN'ized expression: "( L202 puts ) "
+ ; Expanded expression: " L202  puts ()2 "
+ ; Expression stack:    "( L202 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "310" size(0) REG: z0  *
@@ -9486,8 +9464,8 @@ L203:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(310) size (2)
-ld r0, $(l)L203
-ld r1, $(h)L203
+ld r0, $(l)L202
+ld r1, $(h)L202
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -9501,7 +9479,7 @@ popw r0
 
 
 .section rodata
-L204:
+L203:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9512,7 +9490,7 @@ L204:
 .section text
 
 .section rodata
-L205:
+L204:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9521,9 +9499,9 @@ L205:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( ( L205 , L204 strcmp ) printhex ) "
- ; Expanded expression: "  L205  L204  strcmp ()4  printhex ()2 "
- ; Expression stack:    "( ( L205 , L204 , strcmp )4 , printhex )2 "
+ ; RPN'ized expression: "( ( L204 , L203 strcmp ) printhex ) "
+ ; Expanded expression: "  L204  L203  strcmp ()4  printhex ()2 "
+ ; Expression stack:    "( ( L204 , L203 , strcmp )4 , printhex )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 041<tokCall> "4" size(0) REG: z0  
@@ -9540,11 +9518,11 @@ L205:
  ;  - 016<tokIdent> "205" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(320) size (2)
-ld r0, $(l)L205
-ld r1, $(h)L205
+ld r0, $(l)L204
+ld r1, $(h)L204
  ; r2 <-[tokIdent]-  value(315) size (2)
-ld r2, $(l)L204
-ld r3, $(h)L204
+ld r2, $(l)L203
+ld r3, $(h)L203
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
@@ -9595,7 +9573,7 @@ popw r0
 
 
 .section rodata
-L206:
+L205:
 .byte 0x43 ; (C)
 .byte 0x6f ; (o)
 .byte 0x6d ; (m)
@@ -9645,9 +9623,9 @@ L206:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L206 puts ) "
- ; Expanded expression: " L206  puts ()2 "
- ; Expression stack:    "( L206 , puts )2 "
+ ; RPN'ized expression: "( L205 puts ) "
+ ; Expanded expression: " L205  puts ()2 "
+ ; Expression stack:    "( L205 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "325" size(0) REG: z0  *
@@ -9658,8 +9636,8 @@ L206:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(325) size (2)
-ld r0, $(l)L206
-ld r1, $(h)L206
+ld r0, $(l)L205
+ld r1, $(h)L205
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -9673,7 +9651,7 @@ popw r0
 
 
 .section rodata
-L207:
+L206:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9684,7 +9662,7 @@ L207:
 .section text
 
 .section rodata
-L208:
+L207:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9693,9 +9671,9 @@ L208:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( ( L208 , L207 strcmp ) printhex ) "
- ; Expanded expression: "  L208  L207  strcmp ()4  printhex ()2 "
- ; Expression stack:    "( ( L208 , L207 , strcmp )4 , printhex )2 "
+ ; RPN'ized expression: "( ( L207 , L206 strcmp ) printhex ) "
+ ; Expanded expression: "  L207  L206  strcmp ()4  printhex ()2 "
+ ; Expression stack:    "( ( L207 , L206 , strcmp )4 , printhex )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 041<tokCall> "4" size(0) REG: z0  
@@ -9712,11 +9690,11 @@ L208:
  ;  - 016<tokIdent> "205" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(335) size (2)
-ld r0, $(l)L208
-ld r1, $(h)L208
+ld r0, $(l)L207
+ld r1, $(h)L207
  ; r2 <-[tokIdent]-  value(330) size (2)
-ld r2, $(l)L207
-ld r3, $(h)L207
+ld r2, $(l)L206
+ld r3, $(h)L206
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
@@ -9768,7 +9746,7 @@ popw r0
  ; if
 
 .section rodata
-L211:
+L210:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9779,7 +9757,7 @@ L211:
 .section text
 
 .section rodata
-L212:
+L211:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9788,11 +9766,11 @@ L212:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L212 , L211 strcmp ) 0 == "
- ; Expanded expression: " L212  L211  strcmp ()4 0 == "
- ; Expression stack:    "( L212 , L211 , strcmp )4 0 == IF![209] "
+ ; RPN'ized expression: "( L211 , L210 strcmp ) 0 == "
+ ; Expanded expression: " L211  L210  strcmp ()4 0 == "
+ ; Expression stack:    "( L211 , L210 , strcmp )4 0 == IF![208] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "209" size(0) REG: z0  
+ ; 076<tokIfNot> "208" size(0) REG: z0  
  ;  - 008<tokEQ> "0" size(0) REG: z0  
  ;  -  - 041<tokCall> "4" size(0) REG: z0  
  ;  -  -  - 016<tokIdent> "345" size(0) REG: z0  *
@@ -9800,7 +9778,7 @@ L212:
  ;  -  -  - 016<tokIdent> "41" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "209" size(2) REG: r0  
+ ; 076<tokIfNot> "208" size(2) REG: r0  
  ;  - 008<tokEQ> "0" size(2) REG: r0  
  ;  -  - 041<tokCall> "4" size(2) REG: r2  
  ;  -  -  - 016<tokIdent> "345" size(2) REG: r2  *
@@ -9809,11 +9787,11 @@ L212:
  ;  -  - 001<tokNumInt> "0" size(2) REG: r4  *
 
  ; r2 <-[tokIdent]-  value(345) size (2)
-ld r2, $(l)L212
-ld r3, $(h)L212
+ld r2, $(l)L211
+ld r3, $(h)L211
  ; r4 <-[tokIdent]-  value(340) size (2)
-ld r4, $(l)L211
-ld r5, $(h)L211
+ld r4, $(l)L210
+ld r5, $(h)L210
  ; r6 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r2 <-[tokCall]- r2 r4 r6  value(4) size (2)
@@ -9829,7 +9807,7 @@ SP+=2
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokEQ]- r2 r4  value(0) size (2)
-ldd X, $L213
+ldd X, $L212
 tsub r0, r2, r4
 tsbc r1, r3, r5
 ld r1, 0
@@ -9837,12 +9815,12 @@ ld r0, 0
 jnz
 ld r0, 1
 ; --- end of comparison:
-L213:
- ; r0 <-[tokIfNot]- r0  value(209) size (2)
- ; Jump if zero to L209
+L212:
+ ; r0 <-[tokIfNot]- r0  value(208) size (2)
+ ; Jump if zero to L208
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L209
+ldd X, $L208
 jz
 
 
@@ -9850,7 +9828,7 @@ jz
  ; {
 
 .section rodata
-L214:
+L213:
 .byte 0x54 ; (T)
 .byte 0x68 ; (h)
 .byte 0x69 ; (i)
@@ -9887,9 +9865,9 @@ L214:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L214 puts ) "
- ; Expanded expression: " L214  puts ()2 "
- ; Expression stack:    "( L214 , puts )2 "
+ ; RPN'ized expression: "( L213 puts ) "
+ ; Expanded expression: " L213  puts ()2 "
+ ; Expression stack:    "( L213 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "350" size(0) REG: z0  *
@@ -9900,8 +9878,8 @@ L214:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(350) size (2)
-ld r0, $(l)L214
-ld r1, $(h)L214
+ld r0, $(l)L213
+ld r1, $(h)L213
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -9914,11 +9892,11 @@ popw r0
 
 
  ; }
-L209:
+L208:
  ; if
 
 .section rodata
-L217:
+L216:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9929,7 +9907,7 @@ L217:
 .section text
 
 .section rodata
-L218:
+L217:
 .byte 0x73 ; (s)
 .byte 0x74 ; (t)
 .byte 0x72 ; (r)
@@ -9938,9 +9916,9 @@ L218:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L218 , L217 strcmp ) "
- ; Expanded expression: " L218  L217  strcmp ()4 "
- ; Expression stack:    "( L218 , L217 , strcmp )4 return "
+ ; RPN'ized expression: "( L217 , L216 strcmp ) "
+ ; Expanded expression: " L217  L216  strcmp ()4 "
+ ; Expression stack:    "( L217 , L216 , strcmp )4 return "
  ; Expr tree before optim: 
  ; 020<tokReturn> "0" size(0) REG: z0  
  ;  - 041<tokCall> "4" size(0) REG: z0  
@@ -9955,11 +9933,11 @@ L218:
  ;  -  - 016<tokIdent> "41" size(2) REG: r4 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(355) size (2)
-ld r0, $(l)L218
-ld r1, $(h)L218
+ld r0, $(l)L217
+ld r1, $(h)L217
  ; r2 <-[tokIdent]-  value(350) size (2)
-ld r2, $(l)L217
-ld r3, $(h)L217
+ld r2, $(l)L216
+ld r3, $(h)L216
  ; r4 <-[tokIdent]-  value(41) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2 r4  value(4) size (2)
@@ -9975,15 +9953,15 @@ SP+=2
 
 
 
- ; Jump if zero to L215
+ ; Jump if zero to L214
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L215
+ldd X, $L214
 jz
  ; {
 
 .section rodata
-L219:
+L218:
 .byte 0x54 ; (T)
 .byte 0x68 ; (h)
 .byte 0x69 ; (i)
@@ -10016,9 +9994,9 @@ L219:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L219 puts ) "
- ; Expanded expression: " L219  puts ()2 "
- ; Expression stack:    "( L219 , puts )2 "
+ ; RPN'ized expression: "( L218 puts ) "
+ ; Expanded expression: " L218  puts ()2 "
+ ; Expression stack:    "( L218 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "360" size(0) REG: z0  *
@@ -10029,8 +10007,8 @@ L219:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(360) size (2)
-ld r0, $(l)L219
-ld r1, $(h)L219
+ld r0, $(l)L218
+ld r1, $(h)L218
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10043,7 +10021,7 @@ popw r0
 
 
  ; }
-L215:
+L214:
  ; loc     count : (@-6) : int
  ; RPN'ized expression: "count 10 = "
  ; Expanded expression: "(@-6) 10 =(2) "
@@ -10064,12 +10042,10 @@ L215:
 ld r2, 10
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
@@ -10078,15 +10054,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "count 50 < "
  ; Expanded expression: "(@-6) *(2) 50 < "
- ; Expression stack:    "(@-6) *(2) 50 < IF![220] "
+ ; Expression stack:    "(@-6) *(2) 50 < IF![219] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "220" size(0) REG: z0  
+ ; 076<tokIfNot> "219" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "50" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "220" size(2) REG: r0  
+ ; 076<tokIfNot> "219" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -10101,7 +10077,7 @@ mov r1, A
 ld r4, 50
 ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (2)
-ldd X, $L222
+ldd X, $L221
 tsub r0, l-6, r4
 tsbc r1, l-5, r5
 ld r1, 0
@@ -10109,12 +10085,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L222:
- ; r0 <-[tokIfNot]- r0  value(220) size (2)
- ; Jump if zero to L220
+L221:
+ ; r0 <-[tokIfNot]- r0  value(219) size (2)
+ ; Jump if zero to L219
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L220
+ldd X, $L219
 jz
 
 
@@ -10122,13 +10098,60 @@ jz
  ; {
 
 .section rodata
-L223:
+L222:
 .byte 0x31 ; (1)
 .byte 0x2e ; (.)
 .byte 0x50 ; (P)
 .byte 0x61 ; (a)
 .byte 0x73 ; (s)
 .byte 0x73 ; (s)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L222 puts ) "
+ ; Expanded expression: " L222  puts ()2 "
+ ; Expression stack:    "( L222 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "367" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "367" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(367) size (2)
+ld r0, $(l)L222
+ld r1, $(h)L222
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L220
+ldd X, $L220
+jmp
+L219:
+ ; else
+ ; {
+
+.section rodata
+L223:
+.byte 0x31 ; (1)
+.byte 0x2e ; (.)
+.byte 0x46 ; (F)
+.byte 0x61 ; (a)
+.byte 0x69 ; (i)
+.byte 0x6c ; (l)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -10161,54 +10184,7 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L221
-ldd X, $L221
-jmp
 L220:
- ; else
- ; {
-
-.section rodata
-L224:
-.byte 0x31 ; (1)
-.byte 0x2e ; (.)
-.byte 0x46 ; (F)
-.byte 0x61 ; (a)
-.byte 0x69 ; (i)
-.byte 0x6c ; (l)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L224 puts ) "
- ; Expanded expression: " L224  puts ()2 "
- ; Expression stack:    "( L224 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "367" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "367" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(367) size (2)
-ld r0, $(l)L224
-ld r1, $(h)L224
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L221:
  ; RPN'ized expression: "count 100 = "
  ; Expanded expression: "(@-6) 100 =(2) "
  ; Expression stack:    "(@-6) 100 =(2) "
@@ -10228,12 +10204,10 @@ L221:
 ld r2, 100
 ld r3, 0
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
@@ -10242,15 +10216,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "count 50 < "
  ; Expanded expression: "(@-6) *(2) 50 < "
- ; Expression stack:    "(@-6) *(2) 50 < IF![225] "
+ ; Expression stack:    "(@-6) *(2) 50 < IF![224] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "225" size(0) REG: z0  
+ ; 076<tokIfNot> "224" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "50" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "225" size(2) REG: r0  
+ ; 076<tokIfNot> "224" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -10265,7 +10239,7 @@ mov r1, A
 ld r4, 50
 ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (2)
-ldd X, $L227
+ldd X, $L226
 tsub r0, l-6, r4
 tsbc r1, l-5, r5
 ld r1, 0
@@ -10273,12 +10247,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L227:
- ; r0 <-[tokIfNot]- r0  value(225) size (2)
- ; Jump if zero to L225
+L226:
+ ; r0 <-[tokIfNot]- r0  value(224) size (2)
+ ; Jump if zero to L224
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L225
+ldd X, $L224
 jz
 
 
@@ -10286,13 +10260,60 @@ jz
  ; {
 
 .section rodata
-L228:
+L227:
 .byte 0x32 ; (2)
 .byte 0x2e ; (.)
 .byte 0x46 ; (F)
 .byte 0x61 ; (a)
 .byte 0x69 ; (i)
 .byte 0x6c ; (l)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L227 puts ) "
+ ; Expanded expression: " L227  puts ()2 "
+ ; Expression stack:    "( L227 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "367" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "367" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(367) size (2)
+ld r0, $(l)L227
+ld r1, $(h)L227
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L225
+ldd X, $L225
+jmp
+L224:
+ ; else
+ ; {
+
+.section rodata
+L228:
+.byte 0x32 ; (2)
+.byte 0x2e ; (.)
+.byte 0x50 ; (P)
+.byte 0x61 ; (a)
+.byte 0x73 ; (s)
+.byte 0x73 ; (s)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -10325,54 +10346,7 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L226
-ldd X, $L226
-jmp
 L225:
- ; else
- ; {
-
-.section rodata
-L229:
-.byte 0x32 ; (2)
-.byte 0x2e ; (.)
-.byte 0x50 ; (P)
-.byte 0x61 ; (a)
-.byte 0x73 ; (s)
-.byte 0x73 ; (s)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L229 puts ) "
- ; Expanded expression: " L229  puts ()2 "
- ; Expression stack:    "( L229 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "367" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "367" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(367) size (2)
-ld r0, $(l)L229
-ld r1, $(h)L229
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L226:
  ; RPN'ized expression: "count 1 -u = "
  ; Expanded expression: "(@-6) -1 =(2) "
  ; Expression stack:    "(@-6) -1 =(2) "
@@ -10392,12 +10366,10 @@ L226:
 ld r2, 255
 ld r3, 255
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-6, A
+mov l-6, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-5, A
+mov l-5, r3
  ; load to retval
 mov r1, A
 
@@ -10406,15 +10378,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "count 0 < "
  ; Expanded expression: "(@-6) *(2) 0 < "
- ; Expression stack:    "(@-6) *(2) 0 < IF![230] "
+ ; Expression stack:    "(@-6) *(2) 0 < IF![229] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "230" size(0) REG: z0  
+ ; 076<tokIfNot> "229" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-6" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "230" size(2) REG: r0  
+ ; 076<tokIfNot> "229" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-6 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-6" size(2) REG: r2 SUPPRESSED *
@@ -10429,7 +10401,7 @@ mov r1, A
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokLess]- l-6 r4  value(0) size (2)
-ldd X, $L232
+ldd X, $L231
 tsub r0, l-6, r4
 tsbc r1, l-5, r5
 ld r1, 0
@@ -10437,12 +10409,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L232:
- ; r0 <-[tokIfNot]- r0  value(230) size (2)
- ; Jump if zero to L230
+L231:
+ ; r0 <-[tokIfNot]- r0  value(229) size (2)
+ ; Jump if zero to L229
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L230
+ldd X, $L229
 jz
 
 
@@ -10450,13 +10422,60 @@ jz
  ; {
 
 .section rodata
-L233:
+L232:
 .byte 0x33 ; (3)
 .byte 0x2e ; (.)
 .byte 0x50 ; (P)
 .byte 0x61 ; (a)
 .byte 0x73 ; (s)
 .byte 0x73 ; (s)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L232 puts ) "
+ ; Expanded expression: " L232  puts ()2 "
+ ; Expression stack:    "( L232 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "367" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "367" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(367) size (2)
+ld r0, $(l)L232
+ld r1, $(h)L232
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
+ ; Unconditional jump to L230
+ldd X, $L230
+jmp
+L229:
+ ; else
+ ; {
+
+.section rodata
+L233:
+.byte 0x33 ; (3)
+.byte 0x2e ; (.)
+.byte 0x46 ; (F)
+.byte 0x61 ; (a)
+.byte 0x69 ; (i)
+.byte 0x6c ; (l)
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
@@ -10489,60 +10508,13 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L231
-ldd X, $L231
-jmp
 L230:
- ; else
- ; {
-
-.section rodata
-L234:
-.byte 0x33 ; (3)
-.byte 0x2e ; (.)
-.byte 0x46 ; (F)
-.byte 0x61 ; (a)
-.byte 0x69 ; (i)
-.byte 0x6c ; (l)
-.byte 0x0a ; (.)
-.byte 0x00 ; (NUL)
-.skip 1
-
-.section text
- ; RPN'ized expression: "( L234 puts ) "
- ; Expanded expression: " L234  puts ()2 "
- ; Expression stack:    "( L234 , puts )2 "
- ; Expr tree before optim: 
- ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "367" size(0) REG: z0  *
- ;  - 016<tokIdent> "2" size(0) REG: z0  *
- ; Expr tree: 
- ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "367" size(2) REG: r0  *
- ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
-
- ; r0 <-[tokIdent]-  value(367) size (2)
-ld r0, $(l)L234
-ld r1, $(h)L234
- ; r2 <-[tokIdent]-  value(2) size (2)
- ; !!! emit suppressed
- ; r0 <-[tokCall]- r0 r2  value(2) size (2)
-pushw r0
- ; pushed 1 args
-ldd X, $puts
-jmp
-popw r0
-
-
-
- ; }
-L231:
-L163:
+L162:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -10561,12 +10533,12 @@ movms
 SP-=8
 SP-=8
 SP-=8
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
  ; prolog end
 
 
 .section rodata
-L237:
+L236:
 .byte 0x48 ; (H)
 .byte 0x65 ; (e)
 .byte 0x6c ; (l)
@@ -10584,9 +10556,9 @@ L237:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L237 puts ) "
- ; Expanded expression: " L237  puts ()2 "
- ; Expression stack:    "( L237 , puts )2 "
+ ; RPN'ized expression: "( L236 puts ) "
+ ; Expanded expression: " L236  puts ()2 "
+ ; Expression stack:    "( L236 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "303" size(0) REG: z0  *
@@ -10597,8 +10569,8 @@ L237:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(303) size (2)
-ld r0, $(l)L237
-ld r1, $(h)L237
+ld r0, $(l)L236
+ld r1, $(h)L236
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10612,7 +10584,7 @@ popw r0
 
 
 .section rodata
-L238:
+L237:
 .byte 0x54 ; (T)
 .byte 0x68 ; (h)
 .byte 0x69 ; (i)
@@ -10639,9 +10611,9 @@ L238:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L238 puts ) "
- ; Expanded expression: " L238  puts ()2 "
- ; Expression stack:    "( L238 , puts )2 "
+ ; RPN'ized expression: "( L237 puts ) "
+ ; Expanded expression: " L237  puts ()2 "
+ ; Expression stack:    "( L237 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
  ;  - 016<tokIdent> "308" size(0) REG: z0  *
@@ -10652,8 +10624,8 @@ L238:
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(308) size (2)
-ld r0, $(l)L238
-ld r1, $(h)L238
+ld r0, $(l)L237
+ld r1, $(h)L237
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10665,23 +10637,107 @@ popw r0
 
 
 
- ; RPN'ized expression: "( tests ) "
- ; Expanded expression: " tests ()0 "
- ; Expression stack:    "( tests )0 "
+ ; for
+ ; loc     i : (@-2) : int
+ ; RPN'ized expression: "i 0 = "
+ ; Expanded expression: "(@-2) 0 =(2) "
+ ; Expression stack:    "(@-2) 0 =(2) "
  ; Expr tree before optim: 
- ; 041<tokCall> "0" size(0) REG: z0  
- ;  - 016<tokIdent> "285" size(0) REG: z0  *
+ ; 061<tokAssign> "2" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ;  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 041<tokCall> "0" size(2) REG: r0  
- ;  - 016<tokIdent> "285" size(2) REG: r0 SUPPRESSED *
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 001<tokNumInt> "0" size(2) REG: r2  *
 
- ; r0 <-[tokIdent]-  value(285) size (2)
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
  ; !!! emit suppressed
- ; r0 <-[tokCall]- r0  value(0) size (2)
- ; pushed 0 args
- ; no args, reserve 2 bytes for retval
-SP-=2
-ldd X, $tests
+ ; r2 <-[tokNumInt]-  value(0) size (2)
+ ; possible optimization - pass size
+ld r2, 0
+ld r3, 0
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov l-2, r2
+ ; load to retval
+mov r0, A
+mov l-1, r3
+ ; load to retval
+mov r1, A
+
+
+
+L238:
+ ; RPN'ized expression: "i 5 < "
+ ; Expanded expression: "(@-2) *(2) 5 < "
+ ; Expression stack:    "(@-2) *(2) 5 < IF![241] "
+ ; Expr tree before optim: 
+ ; 076<tokIfNot> "241" size(0) REG: z0  
+ ;  - 060<tokLess> "0" size(0) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ;  -  - 001<tokNumInt> "5" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 076<tokIfNot> "241" size(2) REG: r0  
+ ;  - 060<tokLess> "0" size(2) REG: r0  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "5" size(2) REG: r4  *
+
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(5) size (2)
+ ; possible optimization - pass size
+ld r4, 5
+ld r5, 0
+ ; r0 <-[tokLess]- l-2 r4  value(0) size (2)
+ldd X, $L242
+tsub r0, l-2, r4
+tsbc r1, l-1, r5
+ld r1, 0
+ld r0, 0
+jge
+ld r0, 1
+; --- end of comparison:
+L242:
+ ; r0 <-[tokIfNot]- r0  value(241) size (2)
+ ; Jump if zero to L241
+ ; 16 bit for now, optimize
+tor r0,r0,r1
+ldd X, $L241
+jz
+
+
+
+ ; RPN'ized expression: "i ++ "
+ ; Expanded expression: "(@-2) ++(2) "
+ ; {
+ ; RPN'ized expression: "( i printhex ) "
+ ; Expanded expression: " (@-2) *(2)  printhex ()2 "
+ ; Expression stack:    "( (@-2) *(2) , printhex )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ;  - 016<tokIdent> "205" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 016<tokIdent> "205" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokIdent]-  value(205) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- l-2 r2  value(2) size (2)
+pushw l-2
+ ; pushed 1 args
+ldd X, $printhex
 jmp
 popw r0
 
@@ -10689,7 +10745,476 @@ popw r0
 
 
 .section rodata
+L243:
+.byte 0x3a ; (:)
+.byte 0x20 ; ( )
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L243 puts ) "
+ ; Expanded expression: " L243  puts ()2 "
+ ; Expression stack:    "( L243 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "313" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "313" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(313) size (2)
+ld r0, $(l)L243
+ld r1, $(h)L243
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+; checkme
+
+ ; RPN'ized expression: "( cmds i + *u puts ) "
+ ; Expanded expression: " cmds (@-2) *(2) 2 * + *(2)  puts ()2 "
+ ; Expression stack:    "( cmds (@-2) *(2) 2 * + *(2) , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  - 043<tokAdd> "0" size(0) REG: z0  
+ ;  -  -  - 016<tokIdent> "266" size(0) REG: z0  *
+ ;  -  -  - 042<tokMul> "0" size(0) REG: z0  
+ ;  -  -  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
+ ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ;  -  -  -  - 001<tokNumInt> "2" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 078<tokUnaryStar> "2" size(2) REG: r0  
+ ;  -  - 043<tokAdd> "0" size(2) REG: r0  
+ ;  -  -  - 016<tokIdent> "266" size(2) REG: r0  *
+ ;  -  -  - 004<tokLShift> "0" size(2) REG: r2  
+ ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4 SUPPRESSED *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(266) size (2)
+ld r0, $(l)cmds
+ld r1, $(h)cmds
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLShift]- l-2 r4  value(0) size (2)
+tshl r2, l-2, r0
+tshlc r3, l-1, r0
+ ; r0 <-[tokAdd]- r0 r2  value(0) size (2)
+tadd r0, r0, r2
+tadc r1, r1, r3
+ ; r0 <-[tokUnaryStar]- r0  value(2) size (2)
+ ; deref from non-ident non-local tok : tokAdd suppress 0
+movw X, r0
+mov A, [X]
+mov r0, A
+ ; emit_inc_x()
+X++
+mov A, [X]
+mov r1, A
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+
+.section rodata
+L244:
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L244 puts ) "
+ ; Expanded expression: " L244  puts ()2 "
+ ; Expression stack:    "( L244 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "318" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "318" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(318) size (2)
+ld r0, $(l)L244
+ld r1, $(h)L244
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+ ; }
 L239:
+ ; Expression stack:    "(@-2) ++(2) "
+ ; Expr tree before optim: 
+ ; 012<tokInc> "2" size(0) REG: z0  
+ ;  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
+ ; Found tokPostInc/Dec/Add/Sub
+ ; 012<tokInc> "2" size(2) REG: z0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
+ ; After replace
+ ; 061<tokAssign> "2" size(2) REG: z0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
+ ;  - 043<tokAdd> "2" size(2) REG: z0  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: z0  
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: z0  *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: z0  *
+ ; Expr tree: 
+ ; 061<tokAssign> "2" size(2) REG: r0  
+ ;  - 089<tokLocalOfs> "-2" size(2) REG: r0 SUPPRESSED *
+ ;  - 043<tokAdd> "2" size(2) REG: r2  
+ ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
+ ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
+ ;  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+
+ ; r0 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; r2 <-[tokLocalOfs]-  value(-2) size (2)
+ ; !!! emit suppressed
+ ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
+ ; !!! emit suppressed
+ ; r4 <-[tokNumInt]-  value(1) size (2)
+ ; possible optimization - pass size
+ld r4, 1
+ld r5, 0
+ ; r2 <-[tokAdd]- l-2 r4  value(2) size (2)
+tadd r2, l-2, r4
+tadc r3, l-1, r5
+ ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
+mov l-2, r2
+ ; load to retval
+mov r0, A
+mov l-1, r3
+ ; load to retval
+mov r1, A
+
+
+
+ ; Unconditional jump to L238
+ldd X, $L238
+jmp
+L241:
+hlt
+
+
+.section rodata
+L245:
+.byte 0x54 ; (T)
+.byte 0x65 ; (e)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x20 ; ( )
+.byte 0x67 ; (g)
+.byte 0x65 ; (e)
+.byte 0x74 ; (t)
+.byte 0x5f ; (_)
+.byte 0x63 ; (c)
+.byte 0x6d ; (m)
+.byte 0x64 ; (d)
+.byte 0x5f ; (_)
+.byte 0x69 ; (i)
+.byte 0x64 ; (d)
+.byte 0x78 ; (x)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L245 puts ) "
+ ; Expanded expression: " L245  puts ()2 "
+ ; Expression stack:    "( L245 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "313" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "313" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(313) size (2)
+ld r0, $(l)L245
+ld r1, $(h)L245
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+
+.section rodata
+L246:
+.byte 0x69 ; (i)
+.byte 0x6e ; (n)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x72 ; (r)
+.byte 0x31 ; (1)
+.byte 0x3a ; (:)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L246 puts ) "
+ ; Expanded expression: " L246  puts ()2 "
+ ; Expression stack:    "( L246 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "318" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "318" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(318) size (2)
+ld r0, $(l)L246
+ld r1, $(h)L246
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+
+.section rodata
+L247:
+.byte 0x69 ; (i)
+.byte 0x6e ; (n)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x72 ; (r)
+.byte 0x31 ; (1)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L247 get_cmd_idx ) "
+ ; Expanded expression: " L247  get_cmd_idx ()2 "
+ ; Expression stack:    "( L247 , get_cmd_idx )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "323" size(0) REG: z0  *
+ ;  - 016<tokIdent> "272" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "323" size(2) REG: r0  *
+ ;  - 016<tokIdent> "272" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(323) size (2)
+ld r0, $(l)L247
+ld r1, $(h)L247
+ ; r2 <-[tokIdent]-  value(272) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $get_cmd_idx
+jmp
+popw r0
+
+
+
+
+.section rodata
+L248:
+.byte 0x74 ; (t)
+.byte 0x65 ; (e)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x31 ; (1)
+.byte 0x3a ; (:)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L248 puts ) "
+ ; Expanded expression: " L248  puts ()2 "
+ ; Expression stack:    "( L248 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "328" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "328" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(328) size (2)
+ld r0, $(l)L248
+ld r1, $(h)L248
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+
+.section rodata
+L249:
+.byte 0x74 ; (t)
+.byte 0x65 ; (e)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x31 ; (1)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L249 get_cmd_idx ) "
+ ; Expanded expression: " L249  get_cmd_idx ()2 "
+ ; Expression stack:    "( L249 , get_cmd_idx )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "333" size(0) REG: z0  *
+ ;  - 016<tokIdent> "272" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "333" size(2) REG: r0  *
+ ;  - 016<tokIdent> "272" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(333) size (2)
+ld r0, $(l)L249
+ld r1, $(h)L249
+ ; r2 <-[tokIdent]-  value(272) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $get_cmd_idx
+jmp
+popw r0
+
+
+
+
+.section rodata
+L250:
+.byte 0x74 ; (t)
+.byte 0x65 ; (e)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x32 ; (2)
+.byte 0x3a ; (:)
+.byte 0x0a ; (.)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L250 puts ) "
+ ; Expanded expression: " L250  puts ()2 "
+ ; Expression stack:    "( L250 , puts )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "338" size(0) REG: z0  *
+ ;  - 016<tokIdent> "2" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "338" size(2) REG: r0  *
+ ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(338) size (2)
+ld r0, $(l)L250
+ld r1, $(h)L250
+ ; r2 <-[tokIdent]-  value(2) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $puts
+jmp
+popw r0
+
+
+
+
+.section rodata
+L251:
+.byte 0x74 ; (t)
+.byte 0x65 ; (e)
+.byte 0x73 ; (s)
+.byte 0x74 ; (t)
+.byte 0x32 ; (2)
+.byte 0x00 ; (NUL)
+.skip 1
+
+.section text
+ ; RPN'ized expression: "( L251 get_cmd_idx ) "
+ ; Expanded expression: " L251  get_cmd_idx ()2 "
+ ; Expression stack:    "( L251 , get_cmd_idx )2 "
+ ; Expr tree before optim: 
+ ; 041<tokCall> "2" size(0) REG: z0  
+ ;  - 016<tokIdent> "343" size(0) REG: z0  *
+ ;  - 016<tokIdent> "272" size(0) REG: z0  *
+ ; Expr tree: 
+ ; 041<tokCall> "2" size(2) REG: r0  
+ ;  - 016<tokIdent> "343" size(2) REG: r0  *
+ ;  - 016<tokIdent> "272" size(2) REG: r2 SUPPRESSED *
+
+ ; r0 <-[tokIdent]-  value(343) size (2)
+ld r0, $(l)L251
+ld r1, $(h)L251
+ ; r2 <-[tokIdent]-  value(272) size (2)
+ ; !!! emit suppressed
+ ; r0 <-[tokCall]- r0 r2  value(2) size (2)
+pushw r0
+ ; pushed 1 args
+ldd X, $get_cmd_idx
+jmp
+popw r0
+
+
+
+
+.section rodata
+L252:
 .byte 0x54 ; (T)
 .byte 0x65 ; (e)
 .byte 0x73 ; (s)
@@ -10712,21 +11237,21 @@ L239:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L239 puts ) "
- ; Expanded expression: " L239  puts ()2 "
- ; Expression stack:    "( L239 , puts )2 "
+ ; RPN'ized expression: "( L252 puts ) "
+ ; Expanded expression: " L252  puts ()2 "
+ ; Expression stack:    "( L252 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "313" size(0) REG: z0  *
+ ;  - 016<tokIdent> "348" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "313" size(2) REG: r0  *
+ ;  - 016<tokIdent> "348" size(2) REG: r0  *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(313) size (2)
-ld r0, $(l)L239
-ld r1, $(h)L239
+ ; r0 <-[tokIdent]-  value(348) size (2)
+ld r0, $(l)L252
+ld r1, $(h)L252
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10743,32 +11268,32 @@ popw r0
  ; RPN'ized expression: "1 "
  ; Expanded expression: "1 "
  ; Expression value: 1
-L240:
+L253:
  ; {
 
 .section rodata
-L242:
+L255:
 .byte 0x3e ; (>)
 .byte 0x20 ; ( )
 .byte 0x00 ; (NUL)
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L242 puts ) "
- ; Expanded expression: " L242  puts ()2 "
- ; Expression stack:    "( L242 , puts )2 "
+ ; RPN'ized expression: "( L255 puts ) "
+ ; Expanded expression: " L255  puts ()2 "
+ ; Expression stack:    "( L255 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "327" size(0) REG: z0  *
+ ;  - 016<tokIdent> "362" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "327" size(2) REG: r0  *
+ ;  - 016<tokIdent> "362" size(2) REG: r0  *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(327) size (2)
-ld r0, $(l)L242
-ld r1, $(h)L242
+ ; r0 <-[tokIdent]-  value(362) size (2)
+ld r0, $(l)L255
+ld r1, $(h)L255
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10804,7 +11329,7 @@ popw r0
 
 
 .section rodata
-L243:
+L256:
 .byte 0x0a ; (.)
 .byte 0x63 ; (c)
 .byte 0x6d ; (m)
@@ -10815,21 +11340,21 @@ L243:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L243 puts ) "
- ; Expanded expression: " L243  puts ()2 "
- ; Expression stack:    "( L243 , puts )2 "
+ ; RPN'ized expression: "( L256 puts ) "
+ ; Expanded expression: " L256  puts ()2 "
+ ; Expression stack:    "( L256 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "332" size(0) REG: z0  *
+ ;  - 016<tokIdent> "367" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "332" size(2) REG: r0  *
+ ;  - 016<tokIdent> "367" size(2) REG: r0  *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(332) size (2)
-ld r0, $(l)L243
-ld r1, $(h)L243
+ ; r0 <-[tokIdent]-  value(367) size (2)
+ld r0, $(l)L256
+ld r1, $(h)L256
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10869,27 +11394,27 @@ popw r0
 
 
 .section rodata
-L244:
+L257:
 .byte 0x0a ; (.)
 .byte 0x00 ; (NUL)
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L244 puts ) "
- ; Expanded expression: " L244  puts ()2 "
- ; Expression stack:    "( L244 , puts )2 "
+ ; RPN'ized expression: "( L257 puts ) "
+ ; Expanded expression: " L257  puts ()2 "
+ ; Expression stack:    "( L257 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "337" size(0) REG: z0  *
+ ;  - 016<tokIdent> "372" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "337" size(2) REG: r0  *
+ ;  - 016<tokIdent> "372" size(2) REG: r0  *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(337) size (2)
-ld r0, $(l)L244
-ld r1, $(h)L244
+ ; r0 <-[tokIdent]-  value(372) size (2)
+ld r0, $(l)L257
+ld r1, $(h)L257
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -10931,12 +11456,10 @@ ldd X, $get_cmd_idx
 jmp
 popw r2
  ; r0 <-[tokAssign]- r0 r2  value(2) size (2)
-mov A, r2
-mov l-2, A
+mov l-2, r2
  ; load to retval
 mov r0, A
-mov A, r3
-mov l-1, A
+mov l-1, r3
  ; load to retval
 mov r1, A
 
@@ -10945,15 +11468,15 @@ mov r1, A
  ; if
  ; RPN'ized expression: "cmd_idx 0 < "
  ; Expanded expression: "(@-2) *(2) 0 < "
- ; Expression stack:    "(@-2) *(2) 0 < IF![245] "
+ ; Expression stack:    "(@-2) *(2) 0 < IF![258] "
  ; Expr tree before optim: 
- ; 076<tokIfNot> "245" size(0) REG: z0  
+ ; 076<tokIfNot> "258" size(0) REG: z0  
  ;  - 060<tokLess> "0" size(0) REG: z0  
  ;  -  - 078<tokUnaryStar> "2" size(0) REG: z0  
  ;  -  -  - 089<tokLocalOfs> "-2" size(0) REG: z0  *
  ;  -  - 001<tokNumInt> "0" size(0) REG: z0  *
  ; Expr tree: 
- ; 076<tokIfNot> "245" size(2) REG: r0  
+ ; 076<tokIfNot> "258" size(2) REG: r0  
  ;  - 060<tokLess> "0" size(2) REG: r0  
  ;  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
@@ -10968,7 +11491,7 @@ mov r1, A
 ld r4, 0
 ld r5, 0
  ; r0 <-[tokLess]- l-2 r4  value(0) size (2)
-ldd X, $L247
+ldd X, $L260
 tsub r0, l-2, r4
 tsbc r1, l-1, r5
 ld r1, 0
@@ -10976,12 +11499,12 @@ ld r0, 0
 jge
 ld r0, 1
 ; --- end of comparison:
-L247:
- ; r0 <-[tokIfNot]- r0  value(245) size (2)
- ; Jump if zero to L245
+L260:
+ ; r0 <-[tokIfNot]- r0  value(258) size (2)
+ ; Jump if zero to L258
  ; 16 bit for now, optimize
 tor r0,r0,r1
-ldd X, $L245
+ldd X, $L258
 jz
 
 
@@ -10989,7 +11512,7 @@ jz
  ; {
 
 .section rodata
-L248:
+L261:
 .byte 0x75 ; (u)
 .byte 0x6e ; (n)
 .byte 0x6b ; (k)
@@ -11010,21 +11533,21 @@ L248:
 .skip 1
 
 .section text
- ; RPN'ized expression: "( L248 puts ) "
- ; Expanded expression: " L248  puts ()2 "
- ; Expression stack:    "( L248 , puts )2 "
+ ; RPN'ized expression: "( L261 puts ) "
+ ; Expanded expression: " L261  puts ()2 "
+ ; Expression stack:    "( L261 , puts )2 "
  ; Expr tree before optim: 
  ; 041<tokCall> "2" size(0) REG: z0  
- ;  - 016<tokIdent> "342" size(0) REG: z0  *
+ ;  - 016<tokIdent> "377" size(0) REG: z0  *
  ;  - 016<tokIdent> "2" size(0) REG: z0  *
  ; Expr tree: 
  ; 041<tokCall> "2" size(2) REG: r0  
- ;  - 016<tokIdent> "342" size(2) REG: r0  *
+ ;  - 016<tokIdent> "377" size(2) REG: r0  *
  ;  - 016<tokIdent> "2" size(2) REG: r2 SUPPRESSED *
 
- ; r0 <-[tokIdent]-  value(342) size (2)
-ld r0, $(l)L248
-ld r1, $(h)L248
+ ; r0 <-[tokIdent]-  value(377) size (2)
+ld r0, $(l)L261
+ld r1, $(h)L261
  ; r2 <-[tokIdent]-  value(2) size (2)
  ; !!! emit suppressed
  ; r0 <-[tokCall]- r0 r2  value(2) size (2)
@@ -11037,10 +11560,10 @@ popw r0
 
 
  ; }
- ; Unconditional jump to L246
-ldd X, $L246
+ ; Unconditional jump to L259
+ldd X, $L259
 jmp
-L245:
+L258:
  ; else
  ; {
  ; RPN'ized expression: "( funcs cmd_idx + *u ) "
@@ -11063,7 +11586,7 @@ L245:
  ;  -  -  - 004<tokLShift> "0" size(2) REG: r2  
  ;  -  -  -  - 078<tokUnaryStar> "2" size(2) REG: l-2 SUPPRESSED 
  ;  -  -  -  -  - 089<tokLocalOfs> "-2" size(2) REG: r2 SUPPRESSED *
- ;  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4  *
+ ;  -  -  -  - 001<tokNumInt> "1" size(2) REG: r4 SUPPRESSED *
 
  ; r0 <-[tokIdent]-  value(259) size (2)
 ld r0, $(l)funcs
@@ -11073,9 +11596,7 @@ ld r1, $(h)funcs
  ; l-2 <-[tokUnaryStar]- r2  value(2) size (2)
  ; !!! emit suppressed
  ; r4 <-[tokNumInt]-  value(1) size (2)
- ; possible optimization - pass size
-ld r4, 1
-ld r5, 0
+ ; !!! emit suppressed
  ; r2 <-[tokLShift]- l-2 r4  value(0) size (2)
 tshl r2, l-2, r0
 tshlc r3, l-1, r0
@@ -11103,12 +11624,12 @@ popw r0
 
 
  ; }
-L246:
+L259:
  ; }
- ; Unconditional jump to L240
-ldd X, $L240
+ ; Unconditional jump to L253
+ldd X, $L253
 jmp
-L241:
+L254:
 hlt
 
  ; Expression stack:    "0 return "
@@ -11128,12 +11649,12 @@ ld r1, 0
 
 
 
-L235:
+L234:
  ; epilog
-mov A,r0
-mov a0,A
-mov A,r1
-mov a1,A
+mov a0,r0
+
+mov a1,r1
+
 SP+=8
 movsm
 pop MX
@@ -11154,7 +11675,7 @@ jmp
  ; Macro __SMALLER_C_UWCHAR__ = ``
  ; Macro __SMALLER_C_WCHAR16__ = ``
  ; Macro MAX_LENGTH = `127`
- ; Macro N_CMDS = `2`
+ ; Macro N_CMDS = `5`
  ; Bytes used: 136/5120
 
 
@@ -11164,8 +11685,8 @@ jmp
  ; Ident s
  ; Ident putc
  ; Ident c
- ; Ident isdigit
  ; Ident getc
+ ; Ident isdigit
  ; Ident atoi
  ; Ident strcmp
  ; Ident s1
@@ -11204,5 +11725,5 @@ jmp
  ; Ident main
  ; Bytes used: 298/5632
 
- ; Next label number: 249
+ ; Next label number: 262
  ; Compilation succeeded.

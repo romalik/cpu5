@@ -133,7 +133,20 @@ total 8494
 
 total: 6220
 
-push-pop [m+#] : -250b (+hw: -500b)
-movd x, r1r2 : -200b (-150 - no hw changes [movx][r0][r1])
+[done] push-pop [m+#] : -250b (+hw: -500b)
+[done] movw x, r1r2 : -200b (-150 - no hw changes [movx][r0][r1])
 
-mov2 d# s# : - ~200b (hw: select high)
+[??tbd??] mov2 d# s# : - ~200b (hw: select high)
+
+[ ] suppress returns from assign
+
+[ ] somehow optimize comparisons
+
+[ ] suppress assignment of constant - load constant directly to reg
+
+[!] tokInt inserted between Call and tokIdent - ERROR
+
+[!] not all Assigns replaced with direct register reroute (after post replace)
+
+[ ] (low) increment 16 bit reg somehow?
+

@@ -1,5 +1,4 @@
 
-//#define FULL
 
 void puts(char * s) {
     while(*s) {
@@ -15,15 +14,17 @@ int putc(char c) {
 }
 
 
-int isdigit(char c) {
-    return (c >= '0' && c <= '9');
-}
 
 char getc() {
    char c = *(unsigned char *)(0x4803);
    if(c == 0xff) c = 0;
    return c;
 }
+
+int isdigit(char c) {
+    return (c >= '0' && c <= '9');
+}
+
 
 
 int atoi(const char *s) {
@@ -386,53 +387,44 @@ void printhex(int i) {
 	char * s = printnum_buffer + 7;
 	char n_rem;
 	char n;
-   *s = 0;
+    *s = 0;
 	s--;
 
-   //asm(";checkme!\n");
-   n = i;
-	if(n == 0) {
-      //puts("\n[printhex.1]\n");
-		*s = '0';
-		s--;
-	}
+    n = i & 0x000f;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
 
-	while(n) {
-      //puts("\n[printhex.2]\n");
-		n_rem = n & 0x0f;
-		if(n_rem > 9) {
-         //puts("\n[printhex.3]\n");
-			*s = n_rem + 'A' - 10;
-		} else {
-         //puts("\n[printhex.4]\n");
-			*s = n_rem + '0';
-		}
-		n = n >> 4;
-		s--;
-	}
+    n = i & 0x00f0;
+    n = n >> 4;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
 
-   n = (i>>8);
-	if(n == 0) {
-      //puts("\n[printhex.5]\n");
-		*s = '0';
-		s--;
-	}
+    i = i >> 8;
 
-	while(n) {
-      //puts("\n[printhex.6]\n");
-		n_rem = n & 0x0f;
-		if(n_rem > 9) {
-			*s = n_rem + 'A' - 10;
-		} else {
-			*s = n_rem + '0';
-		}
-		n = n >> 4;
-		s--;
-	}
+    n = i & 0x000f;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
 
-
-
-   //puts("\n[printhex.7]\n");
+    n = i & 0x00f0;
+    n = n >> 4;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
 
 	*s = 'x';
 	s--;
@@ -475,10 +467,10 @@ void test_func_2() {
    puts("another test func\n");   
 }
 
-#define N_CMDS 2
+#define N_CMDS 5
 
-void (*funcs[])() = {test_func, test_func_2};
-char * cmds[] = {"test1", "test2"};
+void (*funcs[])() = {test_func, test_func_2, test_func_2, test_func_2};
+char * cmds[] = {"test1", "test2","another_string","fourth_str","fifth"};
 
 
 int get_cmd_idx(char * s) {
@@ -600,6 +592,19 @@ void main() {
    puts("Hello world!\n");
    puts("This is a test string\n");
    tests();
+
+
+
+   puts("Test get_cmd_idx\n");
+
+   puts("instr1:\n");
+   get_cmd_idx("instr1");
+   puts("test1:\n");
+   get_cmd_idx("test1");
+   puts("test2:\n");
+   get_cmd_idx("test2");
+
+
    puts("Tests done. Halt.\n");
 
    int cmd_idx;
@@ -610,6 +615,8 @@ void main() {
       puts("\ncmd: ");
       puts(in_str);
       puts("\n");
+
+
 
       cmd_idx = get_cmd_idx(in_str);
 

@@ -169,7 +169,7 @@ unsigned char get_reg_use(unsigned char reg) {
   return register_usage[reg];
 }
 
-
+/*
 #define USED_REGS_STACK_OPERATION_SIZE 20
 
 void gen_push_used_regs() {
@@ -226,7 +226,7 @@ void adjust_sp(int n) {
   printf2(adjust_sp_procedure, n, low(n), op, high(n), op2);
 
 }
-
+*/
 
 Node * node_create(unsigned char token, int value, int size) {
   Node * node = (Node *)malloc(sizeof(Node));
@@ -927,7 +927,7 @@ STATIC void GenFxnProlog(void) {
 
 
   fgetpos(OutFile, &GenPrologPos);
-  for(int i = 0; i<strlen(adjust_sp_procedure) + 25 + USED_REGS_STACK_OPERATION_SIZE*32; i++) { // 25 should be enough for 2 ops and 3 figures + 32 push operations
+  for(int i = 0; i<6*100; i++) { // adjust by 800 - should be enough
     printf2(" ");
   }
   puts2("\n ; prolog end\n");
@@ -938,11 +938,14 @@ STATIC void GenFxnProlog(void) {
 STATIC void GenFxnEpilog(void) {
   puts2(" ; epilog");
 
+/*
   puts2("mov A,r0");
   puts2("mov a0,A");
   puts2("mov A,r1");
   puts2("mov a1,A");
-
+*/
+  puts2("mov a0,r0\n");
+  puts2("mov a1,r1\n");
   int n_adjusts = abs(CurFxnMinLocalOfs)/8 + ((abs(CurFxnMinLocalOfs)%8)?1:0);
   for(int i = 0; i<n_adjusts; i++) {
     puts2("SP+=8");
