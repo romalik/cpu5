@@ -1,5 +1,22 @@
 
 
+char text[] = "# Hello, world!\n";
+
+char text2[] = "recv: ";
+char text3[] = "\r\n";
+
+char read_serial();
+#define aAA
+
+#ifdef aAA
+void main() {}
+char read_serial() {}
+#endif
+
+int putc(char c) {
+    *(unsigned char *)(0x4803) = c;
+}
+
 void puts(char * s) {
     while(*s) {
         *(unsigned char *)(0x4803) = *s;
@@ -7,38 +24,9 @@ void puts(char * s) {
     }
 }
 
-
-
-int putc(char c) {
-    *(unsigned char *)(0x4803) = c;
-}
-
-
-
 char getc() {
-   char c = *(unsigned char *)(0x4803);
-   if(c == 0xff) c = 0;
-   return c;
+    return read_serial();
 }
-
-int isdigit(char c) {
-    return (c >= '0' && c <= '9');
-}
-
-int fxnMul() {return 0;}
-int fxnMod() {return 0;}
-int fxnDiv() {return 0;}
-
-int atoi(const char *s) {
-    int res = 0;
-    while (isdigit(*s)) {
-        res = res * 10;
-        res += (*s) - '0';
-        s++;
-    }
-    return res;
-}
-
 
 int strcmp(const char *s1, const char *s2)
 {
@@ -56,157 +44,9 @@ int strcmp(const char *s1, const char *s2)
 	return d;
 }
 
-char *strcpy(char *dst, const char *src)
-{
-	char *q = dst;
-	const char *p = src;
-	char ch;
-
-	do {
-		*q++ = ch = *p++;
-	} while (ch);
-
-	return dst;
-}
-
-int strlen(const void *s) {
-    const char *p = (const char *)s;
-    int n = 0;
-    while (*p) {
-        p++;
-        n++;
-    }
-    return n;
-}
-
-void reverse(char *s) {
-    int i, j;
-    char c;
-
-    for (i = 0, j = strlen(s) - 1; i < j; i++, j--) {
-        c = s[i];
-        s[i] = s[j];
-        s[j] = c;
-    }
-}
-
-void itoa(int n, char s[]) {
-    int i, sign = 0;
-    if (n < 0) { // record sign 
-        s[0] = '-';
-        itoa(-n, s + 1);
-        return;
-    }
-    i = 0;
-    do { // generate digits in reverse order 
-
-        s[i++] = n % 10 + '0'; // get next digit 
-    } while ((n /= 10) > 0);   // delete it 
-    if (sign == 1) {
-        s[i++] = '-';
-    }
-    s[i] = '\0';
-    reverse(s);
-}
+#ifdef aAA
 
 
-char *strncpy(char *d, const char *s, unsigned int l)
-{
-        char *s1 = d;
-        const char *s2 = s;
-
-        while (l) {
-                l--;
-                if ((*s1++ = *s2++) == '\0')
-                        break;
-        }
-
-        // This _is_ correct strncpy is supposed to zap 
-        while (l-- != 0)
-                *s1++ = '\0';
-        return d;
-}
-
-
-int memset(char *dest, const char val, int n) {
-    int k = n;
-    while (k--) {
-        *dest = val;
-        dest++;
-    }
-    return n;
-}
-
-int memcpy(char *dest, const char *src, int n) {
-    int k = n;
-    while (k--) {
-        *dest = *src;
-        dest++;
-        src++;
-    }
-    return n;
-}
-
-int memcpy_r(unsigned int *dest, const unsigned int *src, int n) {
-    int k = n;
-    while (k--) {
-        *dest = *src;
-        dest++;
-        src++;
-    }
-    return n;
-}
-
-int memcmp(const void *mem1, const void *mem2, int len)
-{
-        const signed char *p1 = mem1, *p2 = mem2;
-
-        if (!len)
-                return 0;
-
-        while (--len && *p1 == *p2) {
-                p1++;
-                p2++;
-        }
-        return *p1 - *p2;
-}
-
-
-
-
-
-char printnum_buffer[8];
-
-
-
-void printnum(int n) {
-	char neg = 0;
-	char * s = printnum_buffer + 7;
-	char n_rem;
-	*s = 0;
-	if(n == 0) {
-		s--;
-		*s = '0';
-	}
-	if(n < 0) {
-		neg = 1;
-		n = -n;
-	}
-	while(n) {
-		s--;
-		n_rem = n % 10;
-		*s = n_rem + '0';
-		n = n / 10;
-	}
-	if(neg) {
-		s--;
-		*s = '-';
-	}
-	puts(s);
-}
-
-
-#ifdef FULL
 static void printchar(char **str, int c) {
     if (str) {
         **str = c;
@@ -253,13 +93,13 @@ static int prints(char **out, const char *string, int width, int pad) {
 
 // the following should be enough for 32 bit int 
 #define PRINT_BUF_LEN 12
-
+char print_buf[PRINT_BUF_LEN];
 static int printi(char **out, int i, int b, int sg, int width, int pad,
                   int letbase) {
     char *s;
     int t, neg = 0, pc = 0;
     unsigned int u = i;
-    char print_buf[PRINT_BUF_LEN];
+
 
     if (i == 0) {
         print_buf[0] = '0';
@@ -382,51 +222,54 @@ int sprintf(char *out, const char *format, ...) {
     int *varg = (int *)(&format);
     return print(&out, varg);
 }
+
 #endif
+
 
 void printhex(int i) {
     char printnum_buffer[8];
 	char * s = printnum_buffer + 7;
 	char n_rem;
 	char n;
-    *s = 0;
+   *s = 0;
 	s--;
 
-    n = i & 0x000f;
-    if(n > 9) {
-        *s = n + 'a' - 10;
-    } else {
-        *s = n + '0';
-    }
-    s--;
+   n = i;
+	if(n == 0) {
+		*s = '0';
+		s--;
+	}
 
-    n = i & 0x00f0;
-    n = n >> 4;
-    if(n > 9) {
-        *s = n + 'a' - 10;
-    } else {
-        *s = n + '0';
-    }
-    s--;
+	while(n) {
+		n_rem = n & 0x0f;
+		if(n_rem > 9) {
+			*s = n_rem + 'A' - 10;
+		} else {
+			*s = n_rem + '0';
+		}
+		n = n >> 4;
+		s--;
+	}
 
-    i = i >> 8;
+   n = (i>>8);
+	if(n == 0) {
+		*s = '0';
+		s--;
+	}
 
-    n = i & 0x000f;
-    if(n > 9) {
-        *s = n + 'a' - 10;
-    } else {
-        *s = n + '0';
-    }
-    s--;
+	while(n) {
+		n_rem = n & 0x0f;
+		if(n_rem > 9) {
+			*s = n_rem + 'A' - 10;
+		} else {
+			*s = n_rem + '0';
+		}
+		n = n >> 4;
+		s--;
+	}
 
-    n = i & 0x00f0;
-    n = n >> 4;
-    if(n > 9) {
-        *s = n + 'a' - 10;
-    } else {
-        *s = n + '0';
-    }
-    s--;
+
+
 
 	*s = 'x';
 	s--;
@@ -469,10 +312,10 @@ void test_func_2() {
    puts("another test func\n");   
 }
 
-#define N_CMDS 5
+#define N_CMDS 2
 
-void (*funcs[])() = {test_func, test_func_2, test_func_2, test_func_2};
-char * cmds[] = {"test1", "test2","another_string","fourth_str","fifth"};
+void (*funcs[])() = {test_func, test_func_2};
+char * cmds[] = {"test1", "test2"};
 
 
 int get_cmd_idx(char * s) {
@@ -493,58 +336,8 @@ int get_cmd_idx(char * s) {
    return -1;
 }
 
-typedef struct TestStruct {
-   int field;
-   int field2;
-} TestStruct_t;
-
-TestStruct_t s2;
 
 void tests() {
-   char k = 1;
-
-   TestStruct_t s;
-
-   s.field = 0x11AA;
-   s.field2 = 0x22BB;
-
-
-   s.field++;
-   asm(";checkme!\n");
-   s2.field++;
-
-   printhex(s.field); putc('\n');
-   printhex(s.field2); putc('\n');
-
-   if(k == 0) {
-      puts("0.0.Fail\n");
-   } else {
-      puts("0.0.Pass\n");
-
-   }
-   k = 0;
-   if(k == 0) {
-      puts("0.1.Pass\n");
-   } else {
-      puts("0.1.Fail\n");
-
-   }
-
-   int l = 0x1000;
-   if(l == 0) {
-      puts("0.2.Fail\n");
-   } else {
-      puts("0.2.Pass\n");
-
-   }
-   l = 0;
-   if(l == 0) {
-      puts("0.3.Pass\n");
-   } else {
-      puts("0.3.Fail\n");
-
-   }
-
    puts("Should print 5As nad 5Bs twice\n");
    for(char i = 0; i<10; i++) {
       if(i < 5) {
@@ -607,53 +400,37 @@ void tests() {
       puts("3.Fail\n");
    }
 
-   puts("Test memcpy\n");
-   char * test_mem = "This is a test memory chunk, will try to copy it over to 0xA000\n";
-
-   unsigned int length = strlen(test_mem);
-
-   puts("Length: "); printhex(length); puts("\n");
-
-   memcpy((unsigned char*)(0xA000), test_mem, length);
-
-   puts("Puts from 0xA000: ");
-   puts((char*)(0xA000));
-   puts("Memset it to 'A'\n");
-   memset((unsigned char *)(0xA000), 'A', length);
-   puts("Puts from 0xA000: ");
-   puts((char*)(0xA000));
-   puts("\ndone\n");
-
 }
 
 
-void main() {
-   puts("Hello world!\n");
-   puts("This is a test string\n");
-   tests();
-
-   puts("Tests done. Halt.\n");
-
+int hello() {
+   char *s = text;
+   char c = -1;
    int cmd_idx;
 
+   puts(text);
+
+   puts("start tests\n");
+   tests();
+   puts("end tests\n");
+   
+
    while(1) {
-      puts("> ");
-      getline();
-      puts("\ncmd: ");
-      puts(in_str);
-      puts("\n");
+        puts("> ");
+        getline();
+        puts("\ncmd: ");
+        puts(in_str);
+        puts("\n");
 
+        cmd_idx = get_cmd_idx(in_str);
 
-
-      cmd_idx = get_cmd_idx(in_str);
-
-      if(cmd_idx < 0) {
+        if(cmd_idx < 0) {
             puts("unknown command\n");
-      } else {
+        } else {
             funcs[cmd_idx]();
-      }
+        }
 
    }
+    
 
-   asm("hlt\n");
 }

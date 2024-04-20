@@ -12,7 +12,9 @@ void emit_not_impl(Node * node) {
 
 void emit_tokNumInt(Node * node) {
     if(node->size == 0) {
-        error("Zero size for tokNumInt!\n");
+        //error("Zero size for tokNumInt!\n");
+        printf2("!!!! Zero size for tokNumInt!\n");
+        node->size = 2;
     }
 
     printf2(" ; possible optimization - pass size\n");
@@ -839,6 +841,7 @@ int can_descend_size(int tok) {
         case tokUGreater:
         case tokULEQ:
         case tokUGEQ:
+        case tokShortCirc:
         case '+':
         case '-':
         case '~':

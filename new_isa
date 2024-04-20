@@ -78,6 +78,8 @@ TLB: 0x6000 - 0x7FFF
 
 
 
+1 tick = 50ns min
+20MHz
 
 Phases:
 0000 control word pull down
@@ -150,3 +152,4 @@ total: 6220
 
 [ ] (low) increment 16 bit reg somehow?
 
+[!] trenary if has weird goto

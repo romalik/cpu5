@@ -616,7 +616,10 @@ int main(int argc, char ** argv) {
 
 
   assemble();
-  print_counts();
+
+  //print_counts();
+
+
 /*
   for(i = 0; i<n_sections; i++) {
     printf("section %s: %d bytes\n", sections[i]->name, sections[i]->data_pos);

@@ -70,11 +70,72 @@ void draw_frame(unsigned char * fb) {
 
 #else
 
-int fxnLShift(int v, int n) {
+void puts(char * s) {
+    while(*s) {
+        *(unsigned char *)(0x4803) = *s;
+        s++;
+    }
+}
+
+
+void printhex(int i) {
+    char printnum_buffer[8];
+	char * s = printnum_buffer + 7;
+	char n_rem;
+	char n;
+    *s = 0;
+	s--;
+
+    n = i & 0x000f;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
+
+    n = i & 0x00f0;
+    n = n >> 4;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
+
+    i = i >> 8;
+
+    n = i & 0x000f;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
+
+    n = i & 0x00f0;
+    n = n >> 4;
+    if(n > 9) {
+        *s = n + 'a' - 10;
+    } else {
+        *s = n + '0';
+    }
+    s--;
+
+	*s = 'x';
+	s--;
+	*s = '0';
+	puts(s);
+}
+
+/*reverse order of arguments!*/
+int fxnLShift(int n, int v) {
     while(n) {
+
         v = v<<1;
         n--;
     }
+
     return v;
 }
 
@@ -94,16 +155,7 @@ void draw_frame(unsigned char * fb) {
         unsigned char lcd_row = 0;
         for(unsigned char c = 0; c<WIDTH; c++) {
             if(fb[r*WIDTH + c]) {
-                if(c == 7) lcd_row += 0x01;
-                if(c == 6) lcd_row += 0x02;
-                if(c == 5) lcd_row += 0x04;
-                if(c == 4) lcd_row += 0x08;
-                if(c == 3) lcd_row += 0x10;
-                if(c == 2) lcd_row += 0x20;
-                if(c == 1) lcd_row += 0x40;
-                if(c == 0) lcd_row += 0x80;
-
-                //lcd_row |= (1U << (c));
+                lcd_row |= (1 << (7-c));
             } else {
             }
         }
@@ -269,14 +321,23 @@ void test_fb() {
     }
 
     fb[0]  = 1;
-    fb[8]  = 1;
-    fb[16] = 1;
-    fb[24] = 1;
-    fb[32] = 1;
-    fb[40] = 1;
-    fb[48] = 1;
-    fb[56] = 1;
-    
+    fb[9]  = 1;
+    fb[18] = 1;
+    fb[27] = 1;
+    fb[36] = 1;
+    fb[45] = 1;
+    fb[54] = 1;
+    fb[63] = 1;
+
+    fb[0*8 + 7]  = 1;
+    fb[1*8 + 6]  = 1;
+    fb[2*8 + 5]  = 1;
+    fb[3*8 + 4]  = 1;
+    fb[4*8 + 3]  = 1;
+    fb[5*8 + 2]  = 1;
+    fb[6*8 + 1]  = 1;
+    fb[7*8 + 0]  = 1;
+
 }
 
 int main() {
