@@ -315,7 +315,7 @@ void emit_tokUnaryAlu(Node * node) {
 }
 
 void emit_tokLogAndOr(Node * node) {
-    printf2(" ; tokLogAndOr\n");
+    printf2(" ; tokLogAndOr and Trenary\n");
     GenNumLabel(node->value);
 }
 
@@ -323,7 +323,11 @@ void emit_tokLogAndOr(Node * node) {
 void emit_tokShortCirc(Node * node) {
     printf2(" ; tokShortCirc\n");
     if (node->value >= 0) {
-        GenJumpIfZero(node->value); // &&
+        if(node->value & (0x1U<<14)) {
+            GenJumpUncond(node->value&0x3fff); // unconditional - for trenary
+        } else {
+            GenJumpIfZero(node->value); // &&
+        }
     } else {
         GenJumpIfNotZero(-node->value); // ||
     }
@@ -916,7 +920,8 @@ void opt_deriveSizes(Node ** node, Node ** head) {
 void opt_deriveNumSizes(Node ** node, Node ** head) {
     Node * kid = (*node)->kids;
     while(kid) {
-        if(kid->token == tokNumInt || kid->token == tokNumUint) {
+        //if(kid->token == tokNumInt || kid->token == tokNumUint) {
+        if(kid->size == 0) {
             kid->size = (*node)->size;
 
             /* override for exceptions */
@@ -1251,4 +1256,35 @@ void opt_replaceTokensWithCalls(Node ** node,  Node ** head) {
     }
 
     if(rep) do_replace_with_call(*node);
+}
+
+
+void opt_fixTrenary(Node ** node,  Node ** head) {
+    if((*node)->token == tokTrenary) {
+        Node * cond = (*node)->kids;
+        Node * vR = (*node)->kids->next;
+        Node * vL = (*node)->kids->next->next;
+        
+        (*node)->kids = NULL;
+        cond->next = NULL;
+        vR->next = NULL;
+        vL->next = NULL;
+
+
+        int label_final = (*node)->value;
+        int label_true = LabelCnt++;
+
+        node_add_kid((*node), vL);//True condition, Left value, last, no jumps, add
+
+
+        node_add_kid((*node), node_create(tokLogAnd, label_true, 0)); //False condition, generate label after for true jump 
+        node_add_kid((*node)->kids, node_create(tokShortCirc, (label_final | 0x4000), 0)); //False condition, generate jump to end of trenary 
+                                                                                           //(0x4000) for unconditional jmp
+        node_add_kid((*node)->kids->kids, vR); //actual Right value
+        
+
+        node_add_kid((*node), node_create(tokShortCirc, -label_true, 0)); //Jump to true if not zero hence minus (log or like)
+        node_add_kid((*node)->kids, cond); //Actual condition
+
+    }
 }

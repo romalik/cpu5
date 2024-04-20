@@ -478,6 +478,9 @@ void gen_op_info() {
   add_token_info('.',             "'.'"             ,  2, -1, emit_not_impl);
   add_token_info('?',             "'?'"             ,  2, -1, emit_not_impl);
 
+  add_token_info(tokTrenary,      "tokTrenary"      ,  3, -1, emit_tokLogAndOr);
+  add_token_info(tokTrenaryL,     "tokTrenaryL"     ,  1, -1, emit_not_impl);
+  add_token_info(tokTrenaryR,     "tokTrenaryR"     ,  1, -1, emit_not_impl);
 
   add_token_info(tokSequential,   "tokSequential"   ,  2, -1, emit_tokSequential);
 
@@ -541,6 +544,7 @@ STATIC void GenAssignRegistersToTree(Node * root, int r_idx) {
       case tokLogAnd:
       case tokLogOr: //these will bail on first fail, let them all write to self output
       case tokComma: //discard first result
+      case tokTrenary: //discard everything except result
         break;
       default:
         r_idx += 2;
@@ -580,10 +584,12 @@ void init_optimizers() {
 
   add_optimizer(opt_replacePostOps);
   add_optimizer(opt_replaceAssignArith);
+
   add_optimizer(opt_deriveNumSizes);  
   add_optimizer(opt_deriveSizes);  
   add_optimizer(opt_assignSizes);
   
+  add_optimizer(opt_fixTrenary);
 }
 
 

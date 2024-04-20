@@ -323,6 +323,12 @@ int fsetpos(FILE*, fpos_t*);
 //#define tokLongLong   0x84
 //#define tokULongLong  0x85
 //#define tokLongDbl    0x86
+#define tokTrenary    0x87
+#define tokTrenaryC   0x88
+#define tokTrenaryL   0x89
+#define tokTrenaryR   0x8a
+
+
 #define tokGotoLabel  0x8F
 #define tokStructPtr  0x90
 #define tokTag        0x91
@@ -1010,7 +1016,7 @@ unsigned char tktk[] =
   tokSChar, tokShort, tokLong, tokUChar, tokUShort, tokULong, tokNumFloat,
   tokNumCharWide, tokLitStrWide,
   // XXX Added by rl
-  tokIfNot
+  tokIfNot, tokTrenary, tokTrenaryL, tokTrenaryR
 };
 
 char* tks[] =
@@ -1035,7 +1041,7 @@ char* tks[] =
   "signed char", "short", "long", "unsigned char", "unsigned short", "unsigned long", "float",
   "<NumCharWide>", "<LitStrWide>",
   // XXX Added by rl
-  "<IfNot>"
+  "<IfNot>", "<Trenary>", "<TrenaryL>", "<TrenaryR>"
 };
 
 STATIC
@@ -5348,8 +5354,14 @@ int exprval(int* idx, int* ExprTypeSynPtr, int* ConstExpr)
       // "exprL exprR exprMID ?"
 
       // label at the end of ?:
+      
+#ifdef RLCPU
+      stack[*idx + 1][0] = tokTrenary;
+      stack[*idx + 1][1] = sc + 1;
+#else
       stack[*idx + 1][0] = tokLogAnd; // piggyback on && for CG (ugly, but simple)
       stack[*idx + 1][1] = sc + 1;
+#endif
 
       smid = exprval(idx, ExprTypeSynPtr, &constExpr[1]);
 
@@ -5446,11 +5458,14 @@ int exprval(int* idx, int* ExprTypeSynPtr, int* ConstExpr)
       }
 
       // label at the start of exprMID
+#ifdef RLCPU
+#else
       ins2(oldIdxLeft + 1 - (oldSpLeft - sp), tokLogAnd, sc); // piggyback on && for CG (ugly, but simple)
       // jump from the end of exprR over exprMID to the end of ?:
       ins2(oldIdxLeft - (oldSpLeft - sp), tokGoto, sc + 1);
       // jump to exprMID if exprL is non-zero
       ins2(*idx + 1, tokShortCirc, -sc);
+#endif
 
       oldIdxCond = *idx;
       oldSpCond = sp;
