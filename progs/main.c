@@ -500,6 +500,76 @@ typedef struct TestStruct {
 
 TestStruct_t s2;
 
+#define TLB_BASE  0x6000
+#define TLBF_BASE 0x7000
+
+#define RESET_PAGING 0x4800
+#define SET_PAGING   0x4801
+#define TLB_INDEX    0x4802
+
+void write_tlb(unsigned char idx, unsigned char page, unsigned char value, unsigned char flags) {
+    unsigned int offset = (idx << 4) + page;
+    unsigned int tlb_addr = TLB_BASE + offset;
+    unsigned int tlbf_addr = TLBF_BASE + offset;
+/*
+    puts("[TLB]  Write "); printhex(value&0xff); puts(" to "); printhex(tlb_addr); puts("\n");
+    puts("[TLBF] Write "); printhex(flags&0xff); puts(" to "); printhex(tlbf_addr); puts("\n");
+*/
+    *(unsigned char *)(tlb_addr) = value;
+    *(unsigned char *)(tlbf_addr) = flags;
+}
+
+void test_mmu() {
+    puts("Test MMU\nFill TLB at [0] with 0..F\n");
+    for(char i = 0; i<0x10; i++) {
+        write_tlb(0, i, i, 0xff-i);
+    }
+    puts("Test MMU\nFill TLB at [3] with 0..F, A->4\n");
+    for(char i = 0; i<0x10; i++) {
+        write_tlb(3, i, i, 0xff-i);
+    }
+    write_tlb(3, 0x0a, 0x04, 0xff);
+
+
+    puts("Write TLB Index 0\n");
+    *(unsigned char *)(TLB_INDEX) = 0;
+
+    puts("Enable MMU\n");
+    *(unsigned char *)(SET_PAGING) = 1;
+    asm("ei\n");
+
+    puts("Disable MMU\n");
+    *(unsigned char *)(RESET_PAGING) = 1;
+
+    puts("Write TLB Index 3\n");
+    *(unsigned char *)(TLB_INDEX) = 3;
+
+    puts("Enable MMU\n");
+    *(unsigned char *)(SET_PAGING) = 1;
+
+
+    puts("Write '!' to 0xA803: ");
+    *(unsigned char *)(0xA803) = '!';
+    puts("\n");
+
+    puts("Disable MMU\n");
+    *(unsigned char *)(RESET_PAGING) = 1;
+
+    puts("Write TLB Index 0\n");
+    *(unsigned char *)(TLB_INDEX) = 0;
+
+    puts("Enable MMU\n");
+    *(unsigned char *)(SET_PAGING) = 1;
+    
+    puts("Write '!' to 0xA803: ");
+    *(unsigned char *)(0xA803) = '!';
+    puts("\n");
+
+    puts("Test MMU done\n");
+
+}
+
+
 void tests() {
    char k = 1;
 
@@ -628,8 +698,10 @@ void tests() {
 
 
 void main() {
-   puts("Hello world!\n");
+   puts("\n\nHello world!\n");
    puts("This is a test string\n");
+   test_mmu();
+
    tests();
 
    puts("Tests done. Halt.\n");
