@@ -1,3 +1,3 @@
-#define TYPE unsigned long long
+#define TYPE unsigned int
 #define NAME strtoull
 #include "strtox.c"

@@ -13,6 +13,8 @@
 #include <limits.h>
 #include <stdio.h>
 
+
+
 #ifndef LONG_BIT
 #define LONG_BIT (CHAR_BIT*sizeof(long))
 #endif
@@ -46,7 +48,7 @@ enum bail {
 	bail_err		/* Conversion mismatch */
 };
 
-static inline const char *skipspace(const char *p)
+static const char *skipspace(const char *p)
 {
 	while (isspace((unsigned char)*p))
 		p++;
@@ -54,13 +56,13 @@ static inline const char *skipspace(const char *p)
 }
 
 #undef set_bit
-static inline void set_bit(unsigned long *bitmap, unsigned int bit)
+static void set_bit(unsigned long *bitmap, unsigned int bit)
 {
-	bitmap[bit / LONG_BIT] |= 1UL << (bit % LONG_BIT);
+	bitmap[bit / LONG_BIT] |= 1U << (bit % LONG_BIT);
 }
 
 #undef test_bit
-static inline int test_bit(unsigned long *bitmap, unsigned int bit)
+static int test_bit(unsigned long *bitmap, unsigned int bit)
 {
 	return (int)(bitmap[bit / LONG_BIT] >> (bit % LONG_BIT)) & 1;
 }
@@ -263,7 +265,7 @@ int vsscanf(const char *buffer, const char *format, va_list ap)
 							break;
 						case rank_longlong:
 							*va_arg(ap,
-								unsigned long
+								unsigned /*long*/
 								long *) = val;
 							break;
 						case rank_ptr:

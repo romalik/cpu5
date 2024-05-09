@@ -1,3 +1,3 @@
-#define TYPE signed long long
+#define TYPE int
 #define NAME strtoll
 #include "strtox.c"

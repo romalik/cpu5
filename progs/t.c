@@ -1,18 +1,22 @@
-int b;
-int c;
 
-int * ptr;
+struct free_arena_header;
+
+struct arena_header {
+	unsigned int type;
+	unsigned int size;
+	struct free_arena_header *next, *prev;
+};
+
+
+struct free_arena_header {
+	struct arena_header a;
+	struct free_arena_header *next_free, *prev_free;
+};
 
 void main() {
-
-    int a = 0;
-/*
-    a = 10;
-    a = (a>10)&&(a<20);
-*/
-
-    *ptr = (10*b + c)-5;
-
-
-    a = (b>10)?100:200;
+        int a;
+    	struct free_arena_header *pah, *ah;
+        a += ah->a.size;
+        asm("!!!!!!!!!!!!!!!!!!!!!!!\n");
+		pah->a.size += ah->a.size;
 }

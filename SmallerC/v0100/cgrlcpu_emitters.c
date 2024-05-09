@@ -1213,7 +1213,7 @@ Node * gen_replaceAsignArith_subtree(Node * node, Node ** head) {
 void opt_replaceAssignArith(Node ** node, Node ** head) {
     int target_token = assign_arith_to_tok((*node)->token);
     if( target_token ) {
-        printf2(" ; Found tokPostInc/Dec/Add/Sub\n");
+        printf2(" ; Found assign arith\n");
         node_print_subtree(*node, 0);
         Node * next = (*node)->next;
         (*node) = gen_replaceAsignArith_subtree(*node, head);
@@ -1222,6 +1222,41 @@ void opt_replaceAssignArith(Node ** node, Node ** head) {
         node_print_subtree(*node, 0);
     }
     
+}
+
+void opt_removeRedundantArith(Node ** node, Node ** head) {
+    if((*node)->token == '+' || (*node)->token == '-') {
+        if(((*node)->kids->token == tokNumInt) && ((*node)->kids->value == 0)) {
+
+            printf2(" ; Found redundant arith [1]\n");
+            node_print_subtree(*node, 0);
+            
+            Node * to_remove = (*node);
+            *node = (*node)->kids->next;
+            (*node)->next = to_remove->next;
+            to_remove->kids->next = NULL;
+            node_free(to_remove);
+
+            printf2(" ; After replace\n");
+            node_print_subtree(*node, 0);
+
+        } else if(((*node)->kids->next->token == tokNumInt) && ((*node)->kids->next->value == 0)) {
+
+            printf2(" ; Found redundant arith [2]\n");
+            node_print_subtree(*node, 0);
+
+            Node * to_remove = (*node);
+            *node = (*node)->kids;
+            (*node)->next = to_remove->next;
+
+            to_remove->kids = NULL;
+            node_free(to_remove);
+
+            printf2(" ; After replace\n");
+            node_print_subtree(*node, 0);
+
+        }        
+    }
 }
 
 void do_replace_with_call(Node * node) {

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline size_t newgap(size_t gap)
+static size_t newgap(size_t gap)
 {
 	gap = (gap * 10) / 13;
 	if (gap == 9 || gap == 10)

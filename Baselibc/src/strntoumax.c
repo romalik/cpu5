@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-static inline int digitval(int ch)
+static int digitval(int ch)
 {
 	if (ch >= '0' && ch <= '9') {
 		return ch - '0';

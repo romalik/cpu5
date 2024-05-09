@@ -259,11 +259,12 @@ Node * node_copy_subtree(Node * node) {
   Node * new_node = node_copy(node);
   Node * kid = node->kids;
   while(kid) {
-    node_add_kid_to_end(new_node, node_copy(kid));
+    node_add_kid_to_end(new_node, node_copy_subtree(kid));
     kid = kid->next;
   }
   return new_node;
 }
+
 
 void node_free(Node * node) {
   Node * kid = node->kids;
@@ -440,9 +441,9 @@ void gen_op_info() {
   add_token_info(tokUGEQ       ,  "tokUGEQ"         ,  2, -1, emit_alu_op  ); //-
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
   add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc); //-
-  add_token_info(tokSChar      ,  "tokSChar"        ,  1, -1, emit_not_impl);
+  add_token_info(tokSChar      ,  "tokSChar"        ,  1, -1, emit_convType);
   add_token_info(tokUChar      ,  "tokUChar"        ,  1, -1, emit_convType);
-  add_token_info(tokUShort     ,  "tokUShort"       ,  1, -1, emit_not_impl);
+  add_token_info(tokUShort     ,  "tokUShort"       ,  1, -1, emit_convType);
   add_token_info(tokULong      ,  "tokULong"        ,  1, -1, emit_not_impl);
   add_token_info(tokGotoLabel  ,  "tokGotoLabel"    , -1, -1, emit_not_impl);
   add_token_info(tokStructPtr  ,  "tokStructPtr"    , -1, -1, emit_not_impl);
@@ -582,13 +583,15 @@ void init_optimizers() {
 
   add_optimizer(opt_replaceMulDiv);
 
+  add_optimizer(opt_removeRedundantArith);
+
   add_optimizer(opt_replacePostOps);
   add_optimizer(opt_replaceAssignArith);
 
   add_optimizer(opt_deriveNumSizes);  
   add_optimizer(opt_deriveSizes);  
   add_optimizer(opt_assignSizes);
-  
+
   add_optimizer(opt_fixTrenary);
 }
 
@@ -876,7 +879,7 @@ STATIC void GenExpr(void) {
 
   printf2("\n");
 
-  
+  fflush2();
 
   GenEmitTree(root);
 

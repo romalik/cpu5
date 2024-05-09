@@ -10,6 +10,7 @@ compile_args = "" #
 assemble_args = "" # -Wa
 link_args = "" # -Wl
 
+verbose = False
 
 object_files = ['/opt/cpu5/lib/crt0.o', '/opt/cpu5/lib/crt1.o']
 
@@ -53,6 +54,9 @@ for i in range(len(sys.argv)):
     if arg == "-c":
         link = False
         cleanup = False
+    
+    if arg == "-v":
+        verbose = True
 
     
 
@@ -61,10 +65,13 @@ for i in range(len(sys.argv)):
 
 tmp_files = []
 
-print("cpu5 build")
-print("c_srcs: " + str(c_srcs))
-print("asm_srcs: " + str(asm_srcs))
-print("output: " + output)
+if verbose:
+    print("cpu5 build")
+    print("c_srcs: " + str(c_srcs))
+    print("asm_srcs: " + str(asm_srcs))
+    print("output: " + output)
+
+print(' > '  + str(c_srcs) + ' ' + str(asm_srcs))
 
 commands = []
 
@@ -133,15 +140,20 @@ if assemble == True:
 #    print(cmd)
 
 for cmd in commands:
-    print(" >> " + cmd)
+    if verbose:
+        print(" >> " + cmd)
+
     if os.system(cmd):
         print("Error")
         exit(1)
 
 if cleanup == True:
     for file in tmp_files:
-        print(" >> rm " + file)
+        if verbose:
+            print(" >> rm " + file)
+
         os.system("rm " + file)
+
 
 
 
