@@ -7,7 +7,11 @@
 
 extern unsigned short __rand48_seed[3];	/* Common with mrand48.c, srand48.c */
 
-long lrand48(void)
+//long lrand48(void)
+int lrand48(void)
 {
+/*
 	return (uint32_t) jrand48(__rand48_seed) >> 1;
+*/
+	return 1/0;
 }

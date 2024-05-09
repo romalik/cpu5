@@ -1,4 +1,7 @@
 int b;
+int c;
+
+int * ptr;
 
 void main() {
 
@@ -7,6 +10,9 @@ void main() {
     a = 10;
     a = (a>10)&&(a<20);
 */
+
+    *ptr = (10*b + c)-5;
+
 
     a = (b>10)?100:200;
 }

@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-long jrand48(unsigned short xsubi[3])
+//long jrand48(unsigned short xsubi[3])
+int jrand48(unsigned short xsubi[3])
 {
+#if 0
 	uint64_t x;
 
 	/* The xsubi[] array is littleendian by spec */
@@ -21,4 +23,6 @@ long jrand48(unsigned short xsubi[3])
 	xsubi[2] = (unsigned short)(uint16_t) (x >> 32);
 
 	return (long)(int32_t) (x >> 16);
+#endif
+	return 1/0;
 }

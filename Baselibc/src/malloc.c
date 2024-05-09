@@ -29,14 +29,14 @@ static void malloc_unlock_nop(void) {}
 static malloc_lock_t malloc_lock = &malloc_lock_nop;
 static malloc_unlock_t malloc_unlock = &malloc_unlock_nop;
 
-static inline void mark_block_dead(struct free_arena_header *ah)
+static /*inline*/ void mark_block_dead(struct free_arena_header *ah)
 {
 #ifdef DEBUG_MALLOC
 	ah->a.type = ARENA_TYPE_DEAD;
 #endif
 }
 
-static inline void remove_from_main_chain(struct free_arena_header *ah)
+static /*inline*/ void remove_from_main_chain(struct free_arena_header *ah)
 {
 	struct free_arena_header *ap, *an;
 
@@ -48,7 +48,7 @@ static inline void remove_from_main_chain(struct free_arena_header *ah)
 	an->a.prev = ap;
 }
 
-static inline void remove_from_free_chain(struct free_arena_header *ah)
+static /*inline*/ void remove_from_free_chain(struct free_arena_header *ah)
 {
 	struct free_arena_header *ap, *an;
 
@@ -58,7 +58,7 @@ static inline void remove_from_free_chain(struct free_arena_header *ah)
 	an->prev_free = ap;
 }
 
-static inline void remove_from_chains(struct free_arena_header *ah)
+static /*inline*/ void remove_from_chains(struct free_arena_header *ah)
 {
 	remove_from_free_chain(ah);
 	remove_from_main_chain(ah);

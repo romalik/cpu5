@@ -434,10 +434,10 @@ void gen_op_info() {
   add_token_info(tokPostDec    ,  "tokPostDec"      ,  1, -1, emit_not_impl); //+
   add_token_info(tokPostAdd    ,  "tokPostAdd"      ,  2, -1, emit_not_impl); //+
   add_token_info(tokPostSub    ,  "tokPostSub"      ,  2, -1, emit_not_impl); //+
-  add_token_info(tokULess      ,  "tokULess"        , -1, -1, emit_alu_op  ); //-
-  add_token_info(tokUGreater   ,  "tokUGreater"     , -1, -1, emit_alu_op  ); //-
-  add_token_info(tokULEQ       ,  "tokULEQ"         , -1, -1, emit_alu_op  ); //-
-  add_token_info(tokUGEQ       ,  "tokUGEQ"         , -1, -1, emit_alu_op  ); //-
+  add_token_info(tokULess      ,  "tokULess"        ,  2, -1, emit_alu_op  ); //-
+  add_token_info(tokUGreater   ,  "tokUGreater"     ,  2, -1, emit_alu_op  ); //-
+  add_token_info(tokULEQ       ,  "tokULEQ"         ,  2, -1, emit_alu_op  ); //-
+  add_token_info(tokUGEQ       ,  "tokUGEQ"         ,  2, -1, emit_alu_op  ); //-
   add_token_info(tokLocalOfs   ,  "tokLocalOfs"     ,  0, -1, emit_tokLocalOfs);
   add_token_info(tokShortCirc  ,  "tokShortCirc"    ,  1, -1, emit_tokShortCirc); //-
   add_token_info(tokSChar      ,  "tokSChar"        ,  1, -1, emit_not_impl);

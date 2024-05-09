@@ -5,6 +5,12 @@ import os
 asm_srcs = []
 c_srcs = []
 
+preproc_args = "" # -Wp
+compile_args = "" # 
+assemble_args = "" # -Wa
+link_args = "" # -Wl
+
+
 object_files = ['/opt/cpu5/lib/crt0.o', '/opt/cpu5/lib/crt1.o']
 
 include_path = ['/opt/cpu5/include']

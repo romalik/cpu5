@@ -1,3 +1,3 @@
-#define TYPE long long
+#define TYPE int
 #define NAME atoll
 #include "atox.c"
