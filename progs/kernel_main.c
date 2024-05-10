@@ -1,5 +1,28 @@
 
 
+unsigned char uart_buffer[256];
+unsigned char uart_buffer_size;
+unsigned char uart_buffer_rd_pos;
+unsigned char uart_buffer_wr_pos;
+
+void init_uart() {
+    uart_buffer_size = 0;
+    uart_buffer_rd_pos = 0;
+    uart_buffer_wr_pos = 0;
+}
+
+char getc() {
+    char c = 0;
+    if(uart_buffer_size) {
+        uart_buffer_size--;
+        c = uart_buffer[uart_buffer_rd_pos];
+        uart_buffer_rd_pos++;
+    }
+    return c;
+}
+
+
+
 void puts(char * s) {
     while(*s) {
         *(unsigned char *)(0x4803) = *s;
@@ -15,7 +38,8 @@ int putc(char c) {
 
 
 
-char getc() {
+
+char getc_raw() {
    char c = *(unsigned char *)(0x4803);
    if(c == 0xff) c = 0;
    return c;
@@ -166,12 +190,23 @@ void test_func() {
 
 void test_func_2() {
     puts("test function\n");
+
 }
 
-#define N_CMDS 2
+void echo() {
+    puts("echo:\n");
+    while(1) {
+        char c = getc();
+        if(c) {
+            putc(c);
+        }
+    }
+}
 
-void (*funcs[])() = {test_func, test_func_2};
-char * cmds[] = {"s", "test"};
+#define N_CMDS 3
+
+void (*funcs[])() = {test_func, test_func_2, echo};
+char * cmds[] = {"s", "test", "echo"};
 
 
 int get_cmd_idx(char * s) {
@@ -248,62 +283,85 @@ char isr_vec[] = {
 
 int btn_counter;
 
-unsigned char isr_stack_arena[256];
 
-#define ISR_PROLOG      asm("mov A, ML\n"); \
-                        asm("push A\n"); \
-                        asm("mov A, MH\n"); \
-                        asm("push A\n"); \
-                        asm("mov A, F\n"); \
-                        asm("push A\n"); \
-                        asm("ldd S, $isr_stack_arena+255\n"); \
-                        asm("movms\n"); \
-                        asm("SP-=8\n"); \
-                        asm("SP-=8\n");
+
+#define ISR_PROLOG      asm("mov A, ML"); \
+                        asm("push A"); \
+                        asm("mov A, MH"); \
+                        asm("push A"); \
+                        asm("mov A, F"); \
+                        asm("push A"); \
+                        asm("ldd S, $isr_stack"); \
+                        asm("movms"); \
+                        asm("SP-=8"); \
+                        asm("SP-=8");
 
                         /*pushed 7 bytes (pl,ph, xl, xh, ml, mh, f)*/
                         /*S is now 0xffff - 7 = 0xfff8*/
 
-#define ISR_EPILOG      asm("ldd S, 0xfff8\n"); \
-                        asm("pop A\n"); \
-                        asm("mov F, A\n"); \
-                        asm("pop A\n"); \
-                        asm("mov MH, A\n"); \
-                        asm("pop A\n"); \
-                        asm("mov ML, A\n"); \
-                        asm("pop A\n"); \
-                        asm("mov XH, A\n"); \
-                        asm("pop A\n"); \
-                        asm("mov XL, A\n"); \
-                        asm("iret\n");
+#define ISR_EPILOG      asm("ldd S, 0xfff8"); \
+                        asm("pop A"); \
+                        asm("mov F, A"); \
+                        asm("pop A"); \
+                        asm("mov MH, A"); \
+                        asm("pop A"); \
+                        asm("mov ML, A"); \
+                        asm("pop A"); \
+                        asm("mov XH, A"); \
+                        asm("pop A"); \
+                        asm("mov XL, A"); \
+                        asm("iret");
 
+#define IRET_ADDRESS_PTR 0xfffe
 
 void __interrupt empty_isr() {
     ISR_PROLOG
     ISR_EPILOG
 }
 
+
+
 void __interrupt btn_isr() {
     ISR_PROLOG
 
     btn_counter++;
+
 
     ISR_EPILOG
 }
 
 void __interrupt uart_isr() {
     ISR_PROLOG
+    if(uart_buffer_size < 0xffU) {
+        uart_buffer[uart_buffer_wr_pos] = *(unsigned char *)(0x4803);
+        uart_buffer_wr_pos++;
+        uart_buffer_size++;
+    } else {
+        char dummy = *(unsigned char *)(0x4803);
+    }
     ISR_EPILOG
 }
 
 
 void __interrupt syscall_isr() {
     ISR_PROLOG
+
+    *(unsigned int *)(IRET_ADDRESS_PTR) += 1;
+    puts(" ---- hello from Syscall ---- \n");
+
     ISR_EPILOG
 }
 
 void init_interrupts() {
     puts("init interrupts\n");
+
+    asm(".section bss");
+    asm(".align 2");
+    asm("isr_stack_arena:");
+    asm(".skip 0xff");
+    asm("isr_stack:");
+    asm(".skip 1");
+    asm(".section text");
 
     memcpy((unsigned char *)(INT_VEC_0),        isr_vec, ISR_VEC_LENGTH);
     *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &btn_isr;
@@ -328,6 +386,7 @@ void main() {
    int i = 0;
    btn_counter = 0;
    puts("\n\nKernel\n");
+   init_uart();
    init_mmu();
    init_interrupts();
    puts("Ready\n");

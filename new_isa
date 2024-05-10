@@ -153,3 +153,5 @@ total: 6220
 [ ] (low) increment 16 bit reg somehow?
 
 [!] trenary if has weird goto
+
+[!!!!] UNALIGNED ACCESS TO STACK CAUSES SHORT CIRC!!! <<--- Trap only in sim
