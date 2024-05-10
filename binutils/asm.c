@@ -418,6 +418,9 @@ void gen_instruction() {
   } else if(!strcmp(token, "SP-=8")) {
     count("sp-=8", 1);
     emit(0xf5);
+  } else if(!strcmp(token, "syscall")) {
+    count("syscall", 1);
+    emit(0xff);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {

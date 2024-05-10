@@ -149,10 +149,10 @@ section code
 -       ----    1111    0001    pc_switch   # (comparison overriden by 0x0f in instruction)
 -       ----    ----    0010    sl++
 -       ----    ----    0011    a_i s_a mread
--       ----    ----    0100    a_o xh_i
+-       ----    ----    0100    a_o xl_i
 -       ----    ----    0101    sl++
 -       ----    ----    0110    a_i s_a mread
--       ----    ----    0111    a_o xl_i
+-       ----    ----    0111    a_o xh_i
 -       ----    ----    1000    a_i  sel_a mread s_rst  # s_rst because A was saved at +0x03
 -       ----    ----    1001    sh_i sel_a mread
 -       ----    ----    1010    sl_i sel_a mread
@@ -490,9 +490,9 @@ section code
 -       ---     -----   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
 -       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) !!!!! WILL WRITE TO + 0x03 because of s_rst
 -       ---     -----   0101    sl--                      # (SP = 0xffff)
--       ---     -----   0110    a_i xl_o
+-       ---     -----   0110    a_i xh_o
 -       ---     -----   0111    a_o s_a mwrite            # (pc l will be at 0xffff)
--       ---     -----   1000    a_i xh_o
+-       ---     -----   1000    a_i xl_o
 -       ---     -----   1001    sl--                      # (SP = 0xfffe)
 -       ---     -----   1010    a_o s_a mwrite            # (pc h will be at 0xfffe)
 -       ---     -----   1011    xl_i iv_o                 # (+ disable interrupts)

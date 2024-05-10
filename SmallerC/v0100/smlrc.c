@@ -7148,6 +7148,10 @@ int ParseDerived(int tok)
 {
   int stars = 0;
   int params = 0;
+#ifdef RLCPU
+  int isInterrupt = 0;
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
   int isInterrupt = 0;
@@ -7159,6 +7163,15 @@ int ParseDerived(int tok)
     stars++;
     tok = GetToken();
   }
+
+#ifdef RLCPU
+  if (tok == tokIntr)
+  {
+
+    isInterrupt = 1;
+    tok = GetToken();
+  }
+#endif
 
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
@@ -7208,6 +7221,14 @@ int ParseDerived(int tok)
       tok = GetToken();
     else
       PushSyntax2(tokIdent, AddIdent("<something>"));
+
+#ifdef RLCPU
+    if (isInterrupt)
+      PushSyntax2('(', 1);
+    else // fallthrough
+
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
     if (isInterrupt)
@@ -8422,6 +8443,12 @@ int ParseDecl(int tok, unsigned structInfo[4], int cast, int label)
 
         GenLabel(CurFxnName, Static);
 
+#ifdef RLCPU
+        if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
+          GenIsrProlog();
+        else // fallthrough
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
         if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
@@ -8468,6 +8495,11 @@ int ParseDecl(int tok, unsigned structInfo[4], int cast, int label)
 
         GenNumLabel(CurFxnEpilogLabel);
 
+#ifdef RLCPU
+        if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
+          GenIsrEpilog();
+        else // fallthrough
+#endif
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
         if (SyntaxStack1[lastSyntaxPtr + 1] & 1)

@@ -992,6 +992,16 @@ STATIC void GenFxnEpilog(void) {
 }
 
 
+STATIC void GenIsrProlog(void) {
+  puts2(" ; ISR start");
+}
+
+
+
+STATIC void GenIsrEpilog(void) {
+  puts2(" ; ISR end");
+}
+
 STATIC void GenInit(void) {
   SizeOfWord = 2;
 }
