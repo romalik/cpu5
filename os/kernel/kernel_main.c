@@ -85,6 +85,23 @@ void cat(int argc, char ** argv) {
     }
 }
 
+void exec(int argc, char ** argv) {
+    if(argc < 2) {
+        return;
+    }
+    struct stat st;
+    if(stat(argv[1], &st)) {
+        puts("File not found\n");
+    } else {
+        read_file((unsigned char *)(0xA000), st.blk, 0, st.size);
+        puts("File read\nJump..\n");
+        asm("ldd X, 0xA000");
+        asm("jmp");
+
+    }
+}
+
+
 #define STORAGE_ADDR_LOW    0x4000
 #define STORAGE_ADDR_MID    0x4001
 #define STORAGE_ADDR_HIGH   0x4002
@@ -131,10 +148,10 @@ char ** build_argv(char * str, int * argc) {
 
 
 
-#define N_CMDS 5
+#define N_CMDS 6
 
-void (*funcs[])() = {test_func, test_func_2, echo, list_files, cat};
-char *cmds[] = {"s", "test", "echo", "ls", "cat"};
+void (*funcs[])() = {test_func, test_func_2, echo, list_files, cat, exec};
+char *cmds[] = {"s", "test", "echo", "ls", "cat", "exec"};
 
 int get_cmd_idx(char *s)
 {
