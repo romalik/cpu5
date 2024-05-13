@@ -326,10 +326,10 @@ void emit_tokShortCirc(Node * node) {
         if(node->value & (0x1U<<14)) {
             GenJumpUncond(node->value&0x3fff); // unconditional - for trenary
         } else {
-            GenJumpIfZero(node->value); // &&
+            GenJumpIfZero_sz(node->value, abs(node->size)); // &&
         }
     } else {
-        GenJumpIfNotZero(-node->value); // ||
+        GenJumpIfNotZero_sz(-node->value, abs(node->size)); // ||
     }
 }
 

@@ -1083,6 +1083,47 @@ STATIC void GenJumpUncond(int label)
   puts2("jmp");
 }
 
+
+STATIC void GenJumpIfNotZero8(int label) {
+  printf2(" ; Jump if not zero [8] to "); GenPrintNumLabel(label); puts2("");
+  
+  printf2("tor r0,r0,r0\n");
+  printf2("ldd X, $"); GenPrintNumLabel(label); puts2("");
+  printf2("jnz\n");
+
+}
+
+
+STATIC void GenJumpIfZero8(int label) {
+  printf2(" ; Jump if zero [8] to "); GenPrintNumLabel(label); puts2("");
+  
+  printf2("tor r0,r0,r0\n");
+  printf2("ldd X, $"); GenPrintNumLabel(label); puts2("");
+  printf2("jz\n");
+  
+}
+
+
+
+STATIC void GenJumpIfNotZero_sz(int label, int sz) {
+  if(sz == 1) {
+    GenJumpIfNotZero8(label);
+  } else {
+    GenJumpIfNotZero(label);
+  }
+}
+
+
+STATIC void GenJumpIfZero_sz(int label, int sz) {
+  if(sz == 1) {
+    GenJumpIfZero8(label);
+  } else {
+    GenJumpIfZero(label);
+  }
+}
+
+
+
 STATIC void GenLabel(char *Label, int Static)
 {
   printf2("%s:\n", Label);

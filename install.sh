@@ -10,3 +10,4 @@ cd alu && ./gen.sh && cd ..
 make -C microcode clean all
 cd microcode && ./gen.sh cpu6.txt && cd ..
 
+make -C tools clean install

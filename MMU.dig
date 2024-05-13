@@ -121,7 +121,7 @@
         </entry>
         <entry>
           <string>lastDataFile</string>
-          <file>/home/rl/cpu5/progs/rom.hex</file>
+          <file>/home/rl/cpu5/rom.hex</file>
         </entry>
         <entry>
           <string>autoReload</string>
@@ -893,28 +893,6 @@
         </entry>
       </elementAttributes>
       <pos x="3020" y="1220"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="2"/>
-        </entry>
-        <entry>
-          <string>Label</string>
-          <string>IN_7</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>8</int>
-        </entry>
-        <entry>
-          <string>pinNumber</string>
-          <string>17</string>
-        </entry>
-      </elementAttributes>
-      <pos x="3100" y="1260"/>
     </visualElement>
     <visualElement>
       <elementName>DriverInvSel</elementName>
@@ -2474,15 +2452,57 @@ TLB</string>
       <elementName>Splitter</elementName>
       <elementAttributes>
         <entry>
-          <string>Input Splitting</string>
-          <string>1*8</string>
-        </entry>
-        <entry>
           <string>rotation</string>
           <rotation rotation="3"/>
         </entry>
+        <entry>
+          <string>Input Splitting</string>
+          <string>1*8</string>
+        </entry>
       </elementAttributes>
       <pos x="-80" y="3300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Const</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Value</string>
+          <long>0</long>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>8</int>
+        </entry>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+      </elementAttributes>
+      <pos x="3100" y="1260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>STORAGE_SEL</string>
+        </entry>
+        <entry>
+          <string>pinNumber</string>
+          <string>17</string>
+        </entry>
+      </elementAttributes>
+      <pos x="3560" y="1800"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>0x4804</string>
+        </entry>
+      </elementAttributes>
+      <pos x="2780" y="1680"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -2991,16 +3011,16 @@ TLB</string>
       <p2 x="2480" y="1120"/>
     </wire>
     <wire>
-      <p1 x="-600" y="2660"/>
-      <p2 x="-380" y="2660"/>
-    </wire>
-    <wire>
       <p1 x="-760" y="2660"/>
       <p2 x="-720" y="2660"/>
     </wire>
     <wire>
       <p1 x="380" y="2660"/>
       <p2 x="620" y="2660"/>
+    </wire>
+    <wire>
+      <p1 x="-600" y="2660"/>
+      <p2 x="-380" y="2660"/>
     </wire>
     <wire>
       <p1 x="-220" y="2660"/>
@@ -3241,6 +3261,10 @@ TLB</string>
     <wire>
       <p1 x="400" y="1700"/>
       <p2 x="460" y="1700"/>
+    </wire>
+    <wire>
+      <p1 x="2600" y="1700"/>
+      <p2 x="3520" y="1700"/>
     </wire>
     <wire>
       <p1 x="420" y="680"/>
@@ -3825,6 +3849,10 @@ TLB</string>
     <wire>
       <p1 x="860" y="-1800"/>
       <p2 x="920" y="-1800"/>
+    </wire>
+    <wire>
+      <p1 x="3520" y="1800"/>
+      <p2 x="3560" y="1800"/>
     </wire>
     <wire>
       <p1 x="780" y="780"/>
@@ -6181,6 +6209,10 @@ TLB</string>
     <wire>
       <p1 x="960" y="60"/>
       <p2 x="960" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="3520" y="1700"/>
+      <p2 x="3520" y="1800"/>
     </wire>
     <wire>
       <p1 x="1220" y="320"/>
