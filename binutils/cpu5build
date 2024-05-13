@@ -43,6 +43,10 @@ for i in range(len(sys.argv)):
         include_path.append(sys.argv[i+1])
         i = i+1
 
+    if arg == "-Wl":
+        link_args = link_args + " " + sys.argv[i+1]
+        i = i+1
+
     if arg == "--hex":
         gen_hex = True
 
@@ -70,6 +74,7 @@ if verbose:
     print("c_srcs: " + str(c_srcs))
     print("asm_srcs: " + str(asm_srcs))
     print("output: " + output)
+    print("link_args: " + link_args)
 
 print(' > '  + str(c_srcs) + ' ' + str(asm_srcs))
 
@@ -119,7 +124,7 @@ if assemble == True:
     if link == True:
         object_files.append('/opt/cpu5/lib/crt_end.o')
 
-        cmd_ld = "cpu5ld -bss 0x8000 "
+        cmd_ld = "cpu5ld -bss 0x8000 " + link_args + " "
         for o_file in object_files:
             cmd_ld = cmd_ld + o_file + " "
 
