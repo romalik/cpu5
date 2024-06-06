@@ -1,6 +1,11 @@
 #ifndef TREE_H__
 #define TREE_H__
 
+#define R(x) (((x)&0xff00)>>8),(char)((x)&0xff)
+
+#define to_R(t,x) (((t)<<8)|((x)&0xff))
+
+
 typedef struct Node_ {
   unsigned char token;
   int value;

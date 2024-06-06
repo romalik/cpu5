@@ -5,9 +5,24 @@ import os
 asm_srcs = []
 c_srcs = []
 
+preproc_args = "" # -Wp
+compile_args = "" # 
+assemble_args = "" # -Wa
+link_args = "" # -Wl
+
+verbose = False
+
 object_files = ['/opt/cpu5/lib/crt0.o', '/opt/cpu5/lib/crt1.o']
 
+include_path = ['/opt/cpu5/include']
+
 gen_hex = False
+
+assemble = True
+link = True
+cleanup = True
+
+output = ""
 
 for i in range(len(sys.argv)):
     arg = sys.argv[i]
@@ -17,57 +32,112 @@ for i in range(len(sys.argv)):
     if arg.endswith(".c"):
         c_srcs.append(arg)
 
+    if arg.endswith(".o"):
+        object_files.append(arg)
+
     if arg == "-o":
         output = sys.argv[i+1]
         i = i+1
 
+    if arg == "-I":
+        include_path.append(sys.argv[i+1])
+        i = i+1
+
+    if arg == "-Wl":
+        link_args = link_args + " " + sys.argv[i+1]
+        i = i+1
+
     if arg == "--hex":
         gen_hex = True
+
+    if arg == "-s":
+        assemble = False
+        link = False
+        cleanup = False
+    
+    if arg == "-c":
+        link = False
+        cleanup = False
+    
+    if arg == "-v":
+        verbose = True
+
+    
 
 
         
 
 tmp_files = []
 
-print("cpu5 build")
-print("c_srcs: " + str(c_srcs))
-print("asm_srcs: " + str(asm_srcs))
-print("output: " + output)
+if verbose:
+    print("cpu5 build")
+    print("c_srcs: " + str(c_srcs))
+    print("asm_srcs: " + str(asm_srcs))
+    print("output: " + output)
+    print("link_args: " + link_args)
+
+print(' > '  + str(c_srcs) + ' ' + str(asm_srcs))
 
 commands = []
 
+if assemble == False:
+    if len(c_srcs) > 1:
+        print("Error: '-s' option requires exactly one c file")
+        exit(1)
+
+        
+
+
 for c_file in c_srcs:
-    asm_file = '/tmp/' + os.path.basename(c_file)[:-1] + 's'
-    cmd = "smlrc " + c_file + " " + asm_file
+    cpp_file = '/tmp/' + os.path.basename(c_file)[:-1] + 'i'
+    if assemble == True:
+        asm_file = '/tmp/' + os.path.basename(c_file)[:-1] + 's'
+    else:
+        if output == "":
+            asm_file = c_srcs[0][:-1] + 's'
+        else:
+            asm_file = output
+
+
+    cmd = "ucpp " 
+    for path in include_path:
+        cmd = cmd + '-I ' + path + ' '
+    cmd = cmd + c_file + " > " + cpp_file
+    commands.append(cmd)
+
+    cmd = "smlrc " + cpp_file + " " + asm_file
+    commands.append(cmd)
+
     asm_srcs.append(asm_file)
     tmp_files.append(asm_file)
-    commands.append(cmd)
+    tmp_files.append(cpp_file)
 
+if assemble == True:
+    for asm_file in asm_srcs:
+        o_file = '/tmp/' + os.path.basename(asm_file)[:-1] + 'o'
+        cmd = "cpu5as " + asm_file + " " + o_file
+        object_files.append(o_file)
+        tmp_files.append(o_file)
 
-for asm_file in asm_srcs:
-    o_file = '/tmp/' + os.path.basename(asm_file)[:-1] + 'o'
-    cmd = "cpu5as " + asm_file + " " + o_file
-    object_files.append(o_file)
-    tmp_files.append(o_file)
+        commands.append(cmd)
 
-    commands.append(cmd)
+    if link == True:
+        object_files.append('/opt/cpu5/lib/crt_end.o')
 
-object_files.append('/opt/cpu5/lib/crt_end.o')
+        cmd_ld = "cpu5ld -bss 0x8000 " + link_args + " "
+        for o_file in object_files:
+            cmd_ld = cmd_ld + o_file + " "
 
-cmd_ld = "cpu5ld -bss 0x8000 -v "
-for o_file in object_files:
-    cmd_ld = cmd_ld + o_file + " "
+        if gen_hex:
+            tmp_output = "/tmp/" + os.path.basename(output)
+            cmd_ld = cmd_ld + "-o " + tmp_output
+            tmp_files.append(tmp_output)
+            commands.append(cmd_ld)
+            commands.append("objcopy --output-target=ihex --input-target=binary " + tmp_output + " " + output)
 
-if gen_hex:
-    tmp_output = "/tmp/" + os.path.basename(output)
-    cmd_ld = cmd_ld + "-o " + tmp_output
-    tmp_files.append(tmp_output)
-    commands.append(cmd_ld)
-    commands.append("objcopy --output-target=ihex --input-target=binary " + tmp_output + " " + output)
-
-else:
-    cmd_ld = cmd_ld + "-o " + output
-    commands.append(cmd_ld)
+        else:
+            cmd_ld = cmd_ld + "-o " + output
+            commands.append(cmd_ld)
 
 
 #print("Build sequence:")
@@ -75,15 +145,20 @@ else:
 #    print(cmd)
 
 for cmd in commands:
-    print(" >> " + cmd)
+    if verbose:
+        print(" >> " + cmd)
+
     if os.system(cmd):
         print("Error")
         exit(1)
 
+if cleanup == True:
+    for file in tmp_files:
+        if verbose:
+            print(" >> rm " + file)
 
-for file in tmp_files:
-    print(" >> rm " + file)
-    os.system("rm " + file)
+        os.system("rm " + file)
+
 
 
 

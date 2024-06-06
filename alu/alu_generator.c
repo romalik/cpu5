@@ -18,42 +18,35 @@ uint16_t encode_address(uint8_t A, uint8_t B, uint8_t cmd, uint8_t carry_in) {
 }
 
 enum {
-    c_add = 0,
-    c_sub,
-    c_neg,
-    c_shl,
-    c_shlc,
-    c_inc,
-    c_adc,
-    c_sbc,
-    /////
-    c_not,
-    c_and,
-    c_or,
-    c_xor,
-    c_zero,
-    c_test,
-    c_shr,
-    c_shrc
+/*0000*/  c_add = 0,
+/*0001*/  c_adc = 1,
+/*0010*/  c_sub = 2,
+/*0011*/  c_sbc = 3,
+/*0100*/  c_inc = 4,
+/*0101*/  c_neg = 5,
+/*0110*/  c_not = 6,
+/*1000*/  c_or  = 8,
+/*1001*/  c_xor = 9,
+/*1010*/  c_and = 10
 };
 
 char * cmd_names[16] = {
-    "c_add",
-    "c_sub",
-    "c_neg",
-    "c_shl",
-    "c_shlc",
-    "c_inc",
-    "c_adc",
-    "c_sbc",
-    "c_not",
-    "c_and",
-    "c_or",
-    "c_xor",
-    "c_zero",
-    "c_test",
-    "c_shr",
-    "c_shrc"
+/*0000*/  "add",
+/*0001*/  "adc",
+/*0010*/  "sub",
+/*0011*/  "sbc",
+/*0100*/  "inc",
+/*0101*/  "neg",
+/*0110*/  "not",
+/*0111*/  "----",
+/*1000*/  "or",
+/*1001*/  "xor",
+/*1010*/  "and",
+/*1011*/  "----",
+/*1100*/  "shl",
+/*1101*/  "shlc",
+/*1110*/  "shr",
+/*1111*/  "shrc"
 };
 
 //The overflow flag is thus set when the most significant bit (here considered the sign bit) 
@@ -66,6 +59,7 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
     uint8_t ZF = 0;
     uint8_t SF = 0;
     uint8_t OF = 0;
+
 
     uint8_t A;
     uint8_t B;
@@ -124,13 +118,6 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
             // flip bit 4 (borrow-carry)
             R ^= (1<<4);
         break;
-        case c_shlc:
-            ignore_carry = 0;
-            //fallthrough
-        case c_shl:
-            R  = A << 1;
-            if(!ignore_carry) R |= carry_in;            
-        break;
         case c_inc:
             if(ignore_carry) {
                 R = A + 1;
@@ -155,14 +142,10 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
         case c_xor:
             R = A ^ B;
         break;
-        case c_zero:
-            R = 0;
-        break;
+
+/*
         case c_test:
-        //we are in upper half, accept carry on low chip, generate carry on high chip
-        //lower equals 1 if not zero or if carry
-        //higher always zero, sets carry if A not zero
-            if(low) {
+            if(!low) {
                 if(A || carry_in) {
                     R = 1;
                 } else {
@@ -176,18 +159,8 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
                 }
             }
         break;
-        case c_shr:
-            R = A >> 1;
-            R = R | ((A&0x01) << 4); //set carry from bit0
-            if(low) R = R | (carry_in<<3); //assign bit 3 to carry_in if lower chip
-        break;
-        case c_shrc:
-            R = A >> 1;
-            R = R | ((A&0x01) << 4); //set carry from bit0
-            R = R | (carry_in<<3); //assign bit 3 to carry_in for both chips
-        break;
+*/
         default:
-            printf("Bad cmd\n");
             return 0;
 
     }
@@ -218,23 +191,13 @@ uint16_t test_gen_output(uint8_t A, uint8_t B, uint8_t cmd, uint8_t carry_in, in
     uint8_t res_low, res_high;
     uint8_t internal_carry;
 
-    if((cmd & 0x08) == 0) {
-        addr_low = encode_address((A&0x0f), (B&0x0f), cmd, carry_in);
-        res_low  = chip_l[addr_low];
+    addr_low = encode_address((A&0x0f), (B&0x0f), cmd, carry_in);
+    res_low  = chip_l[addr_low];
 
-        internal_carry = (res_low & 0x10) >> 4;
+    internal_carry = (res_low & 0x10) >> 4;
 
-        addr_high = encode_address((A&0xf0)>>4, (B&0xf0)>>4, cmd, internal_carry);
-        res_high = chip_h[addr_high];
-    } else {
-        addr_high = encode_address((A&0xf0)>>4, (B&0xf0)>>4, cmd, carry_in);
-        res_high = chip_h[addr_high];
-        
-        internal_carry = (res_high & 0x10) >> 4;
-
-        addr_low = encode_address((A&0x0f), (B&0x0f), cmd, internal_carry);
-        res_low  = chip_l[addr_low];
-    }
+    addr_high = encode_address((A&0xf0)>>4, (B&0xf0)>>4, cmd, internal_carry);
+    res_high = chip_h[addr_high];
 
     result = (res_low&0x0f) | (res_high << 4);
 
@@ -295,12 +258,6 @@ int test() {
             // c_neg
             if(test_one(a,b,c_neg,0,-a)) return 1;
             if(test_one(a,b,c_neg,1,-a)) return 1;
-            // c_shl
-            if(test_one(a,b,c_shl,0,a<<1)) return 1;
-            if(test_one(a,b,c_shl,1,a<<1)) return 1;
-            // c_shlc
-            if(test_one(a,b,c_shlc,0,a<<1)) return 1;
-            if(test_one(a,b,c_shlc,1,(a<<1)|1)) return 1;
             // c_inc
             if(test_one(a,b,c_inc,0,a+1)) return 1;
             if(test_one(a,b,c_inc,1,a+1)) return 1;
@@ -322,19 +279,12 @@ int test() {
             // c_xor
             if(test_one(a,b,c_xor,0,a^b)) return 1;
             if(test_one(a,b,c_xor,1,a^b)) return 1;
-            // c_zero
-            if(test_one(a,b,c_zero,0,0)) return 1;
-            if(test_one(a,b,c_zero,1,0)) return 1;
+
+/*
             // c_test
             if(test_one(a,b,c_test,0,(a&0xff)?1:0)) return 1;
             if(test_one(a,b,c_test,1,(a&0xff)?1:0)) return 1;
-            // c_shr
-            if(test_one(a,b,c_shr,0,(a&0xff)>>1)) return 1;
-            if(test_one(a,b,c_shr,1,(a&0xff)>>1)) return 1;
-            // c_shrc
-            //if(test_one(a,b,c_shrc,0,(a&0xff)>>1)) return 1;
-            //if(test_one(a,b,c_shrc,1,((a&0xff)>>1)|0x80)) return 1;
-
+*/
         }
     }
     return 0;

@@ -150,9 +150,9 @@ void build_section_lists() {
 }
 
 
-void linker_offset_labels(uint16_t bss_offset) {
+void linker_offset_labels(uint16_t bss_offset, uint16_t start_offset) {
   int i, j;
-  uint16_t c_off = 0;
+  uint16_t c_off = start_offset;
   struct label_entry * e;
 
   for(i = 0; i < sects_sz; i++) {
@@ -453,6 +453,7 @@ int main(int argc, char ** argv) {
   size_t total_size = 0;
   int output_hex = 0;
   int dump_labels = 0;
+  uint16_t start_offset = 0;
   uint16_t bss_offset = 0;
   uint16_t obj_size;
   uint16_t label_vec_size;
@@ -471,6 +472,9 @@ int main(int argc, char ** argv) {
         dump_labels = 1;
       } else if(!strcmp(&argv[i][1], "bss")) {
         bss_offset = strtol(argv[i+1],0,0);
+        i++;
+      } else if(!strcmp(&argv[i][1], "start")) {
+        start_offset = strtol(argv[i+1],0,0);
         i++;
       }
     } else {
@@ -491,7 +495,7 @@ int main(int argc, char ** argv) {
 
   sort_sects();
 
-  linker_offset_labels(bss_offset);
+  linker_offset_labels(bss_offset, start_offset);
 
 /*
   printf("off:\n");
@@ -500,6 +504,10 @@ int main(int argc, char ** argv) {
     print_labels(label_vecs[i]);
   }
 */
+
+
+  linker_link();
+
 
   if(dump_labels) {
     for(i = 0; i < sects_sz; i++) {
@@ -513,10 +521,7 @@ int main(int argc, char ** argv) {
       }    
     }
   }
-  linker_link();
-
-
-
+  
   if(output_hex) {
     f_out = fopen(output_fname, "w");
     fprintf(f_out, "v2.0 raw");

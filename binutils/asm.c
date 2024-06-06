@@ -92,32 +92,63 @@ void generate_nop() {
   emit(0x03);
 }
 
+
+int a_offset = 5;
+int r_offset = -15;
+int l_offset = -15;
+
+
+int parse_relative_arg(char * token, uint8_t * value) {
+  if(token[0] == 'a') {
+    *value = a_offset + strtol(token+1,0,0);
+  } else if(token[0] == 'r') {
+    *value = r_offset + strtol(token+1,0,0);
+  } else if(token[0] == 'l') {
+    *value = l_offset + strtol(token+1,0,0);
+  } else if(token[0] == '[' && token[1] == 'M') {
+    *value = strtol(token+1,0,0);
+  } else {
+    panic("Bad relative arg!\n");
+    return 0;
+  }
+  return 1;
+}
+
 // type 0 - reg, 1 - mreg, 2 - m+imm
 void parse_mov_arg(char * token, uint8_t * value, uint8_t * type) {
   int reg = find_keyword(regs, token);
   int v = 0;
   if(reg == 0xff) {
-    if(token[0] == 'r') {
-      v = strtol(token+1,0,0);
-      if(v > 31 || v < 0) {
-        panic("Bad mreg");
-      }
-      *value = v;
-      *type = 1;
-    } else if(token[0] == '[' && token[1] == 'm') {
-      v = strtol(token+2,0,0);
-      if(v < -16 || v > 15) {
-        panic("Too big imm offset");
-      }
-      *value = (uint8_t)v;
-      *type = 2;
-    } else {
-      panic("Bad arg for mov");
-    }
+    parse_relative_arg(token, value);
+    *type = 2;
   } else {
     *value = reg;
     *type = 0;
   }
+}
+
+
+void generate_movw() {
+  uint8_t src = 0;
+  uint8_t src_type = 0; //0 - reg, 1 - mreg, 2 - m+imm
+
+
+  get_next_token();
+  if(strcmp(token, "X")) {
+    panic("Bad movw arg!");
+  }
+
+  get_next_token();
+  parse_mov_arg(token, &src, &src_type);
+
+  if(src_type != 2) {
+    panic("Bad movw arg!");
+  }
+
+  emit(0xFE);
+  emit(src);
+
+  count("movw_x", 2);
 }
 
 void generate_mov() {
@@ -125,7 +156,7 @@ void generate_mov() {
   uint8_t src = 0;
   uint8_t dest_type = 0; 
   uint8_t src_type = 0; //0 - reg, 1 - mreg, 2 - m+imm
-  uint8_t opcode = 0;
+
 
   get_next_token();
   parse_mov_arg(token, &dest, &dest_type);
@@ -135,74 +166,116 @@ void generate_mov() {
   
   if(dest_type == 0 && dest == 0x0f) { // A<-...
     if(src_type == 0) { //A<-reg
-      opcode = 0xE0 | src;
+      emit(0xE0 | src);
       count("mov", 1);
-    } else if(src_type == 1) { //A<-mreg
-      opcode = 0x80 | (src&0x1f);
-      count("mov_mr", 1);
     } else if(src_type == 2) { //A<-m+imm
-      opcode = 0x40 | (src&0x1f);
-      count("mov_imm", 1);
+      emit(0xE5); 
+      emit(src);
+      count("mov_imm", 2);
     } else {
       panic("Bad mov arg type");
     }
 
   } else if(src_type == 0 && src == 0x0f) { // A->...
     if(dest_type == 0) { //A->reg
-      opcode = 0xD0 | dest;
+      emit(0xD0 | dest);
       count("mov", 1);
-    } else if(dest_type == 1) { //A->mreg
-      opcode = 0x60 | (dest&0x1f);
-      count("mov_mr", 1);
     } else if(dest_type == 2) { //A->m+imm
-      opcode = 0x20 | (dest&0x1f);
-      count("mov_imm", 1);
+      emit(0xD5);
+      emit(dest);
+      count("mov_imm", 2);
     } else {
       panic("Bad mov arg type");
     }
+  } else if(dest_type == 2 && src_type == 2) { // r# -> r#
+      emit(0xFA);
+      emit(src);
+      emit(dest);
+      count("mov_rr", 3);
   } else {
     panic("Bad move instruction\n");
   }
 
-  emit(opcode);
+
 }
 
-void generate_push() {
+void generate_push(uint8_t is_word) {
   uint8_t reg = 0;
   get_next_token();
-  if(!strcmp(token, "xm")) {
+  if(!strcmp(token, "XM")) {
     emit(0xF0);
     count("push_xm", 1);
   } else {
-    reg = find_keyword(regs, token);
+    uint8_t src;
+    uint8_t src_type;
+    parse_mov_arg(token, &src, &src_type);
 
-    if(reg != 0x0f) {
-      panic("Try push other than A reg");
+    if(src_type == 0) {
+      if(src != 0x0f) {
+        panic("Try push bad reg");
+      }
+      if(is_word) {
+        panic("Try push bad word reg");
+      }
+
+      count("push", 1);
+
+      emit(0xD9);
+    } else if(src_type == 2) {
+      if(is_word) {
+        emit(0xF8);
+        count("pushw_r", 2);
+      } else {
+        emit(0xF6);
+        count("push_r", 2);
+      }
+      emit(src);
+
+    } else {
+      panic("Bad push arg");
     }
-    count("push", 1);
 
-    emit(0xD9);
   }
 }
 
-void generate_pop() {
+void generate_pop(uint8_t is_word) {
   uint8_t reg = 0;
   get_next_token();
-  if(!strcmp(token, "mx")) {
+  if(!strcmp(token, "MX")) {
     emit(0xF1);
     count("pop_mx", 1);
   } else {
-    reg = find_keyword(regs, token);
+    uint8_t dst;
+    uint8_t dst_type;
+    parse_mov_arg(token, &dst, &dst_type);
 
-    if(reg != 0x0f) {
-      panic("Try pop other than A reg");
+    if(dst_type == 0) {
+      if(dst != 0x0f) {
+        panic("Try push bad reg");
+      }
+      if(is_word) {
+        panic("Try pop bad word reg");
+      }
+      count("pop", 1);
+
+      emit(0xE9);
+    } else if(dst_type == 2) {
+
+      if(is_word) {
+        emit(0xF9);
+        count("popw_r", 2);
+      } else {
+        emit(0xF7);
+        count("pop_r", 2);
+      }
+
+      emit(dst);
+    } else {
+      panic("Bad pop arg");
     }
-
-    count("pop", 1);
-
-    emit(0xE9);
   }
 }
+
 
 void generate_ld() {
   uint8_t dest = 0;
@@ -220,8 +293,8 @@ void generate_ld() {
     expect_arg_n = 1;
     expect_arg_size = 1;
 
-  } else if(dest_type == 1) { // ld r#, #
-    count("ld_r", 3);
+  } else if(dest_type == 2) { // ld r#, #
+    count("ld_m", 3);
     emit(0xDF);
     emit(dest);
     expect_arg_n = 1;
@@ -232,11 +305,11 @@ void generate_ld() {
 
 void generate_ldd() {
   get_next_token();
-  if(token[0] == 's') {
+  if(token[0] == 'S') {
     emit(0xDC);
-  } else if(token[0] == 'm') {
+  } else if(token[0] == 'M') {
     emit(0xDD);
-  } else if(token[0] == 'x') {
+  } else if(token[0] == 'X') {
     emit(0xDE);
   } else {
     panic("Bad ldd destination");
@@ -271,7 +344,7 @@ void generate_t_alu(uint8_t arg) {
   get_next_token();
   parse_mov_arg(token, &rb, &rb_type);
 
-  if(rd_type != 1 || ra_type != 1 || rb_type != 1) {
+  if(rd_type != 2 || ra_type != 2 || rb_type != 2) {
     panic("Bad arg for three-address alu\n");
   }
 
@@ -296,17 +369,23 @@ void gen_instruction() {
     generate_nop();
   } else if(!strcmp(token, "mov")) {
     generate_mov();
+  } else if(!strcmp(token, "movw")) {
+    generate_movw();
   } else if(!strcmp(token, "push")) {
-    generate_push();
+    generate_push(0);
   } else if(!strcmp(token, "pop")) {
-    generate_pop();
+    generate_pop(0);
+  } else if(!strcmp(token, "pushw")) {
+    generate_push(1);
+  } else if(!strcmp(token, "popw")) {
+    generate_pop(1);
   } else if(!strcmp(token, "ld")) {
     generate_ld();
   } else if(!strcmp(token, "ldd")) {
     generate_ldd();
   } else if(!strcmp(token, "cmp")) {
     generate_cmp();
-  } else if(!strcmp(token, "x++")) {
+  } else if(!strcmp(token, "X++")) {
     count("x++", 1);
     emit(0x07);
   } else if(!strcmp(token, "hlt")) {
@@ -327,6 +406,21 @@ void gen_instruction() {
   } else if(!strcmp(token, "movsm")) {
     count("movsm", 1);
     emit(0xee);
+  } else if(!strcmp(token, "SP+=2")) {
+    count("sp+=2", 1);
+    emit(0xf2);
+  } else if(!strcmp(token, "SP+=8")) {
+    count("sp+=8", 1);
+    emit(0xf3);
+  } else if(!strcmp(token, "SP-=2")) {
+    count("sp-=2", 1);
+    emit(0xf4);
+  } else if(!strcmp(token, "SP-=8")) {
+    count("sp-=8", 1);
+    emit(0xf5);
+  } else if(!strcmp(token, "syscall")) {
+    count("syscall", 1);
+    emit(0xff);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {
@@ -525,7 +619,10 @@ int main(int argc, char ** argv) {
 
 
   assemble();
-  print_counts();
+
+  //print_counts();
+
+
 /*
   for(i = 0; i<n_sections; i++) {
     printf("section %s: %d bytes\n", sections[i]->name, sections[i]->data_pos);

@@ -9,6 +9,12 @@ c0_1 abus            !pc_a!  s_a     alu_d   mf_a    aluf_d  f_o     ir_a    x_a
 c1_0 in              off_i   sh_i    sl_i    b_i     ml_i    ei      xh_i    xl_i
 c1_1 I/D             ir_i    sl--    sl++    s_rst   f_i     mh_i    pc++    pc_switch
 
+                     1000    1001    1010    1011    1100    1101    1110    1111
+c0_0 dbus            yl_o    yh_o    zl_o    zh_o    wl_o    wh_o    ???     ???
+c0_1 abus            y_a     ???     z_a     ???     w_a     ???     ???     ???
+c1_0 in              yl_i    yh_i    zl_i    zh_i    wl_i    wh_i    ???     ???
+c1_1 I/D             y++     y--     z++     z--     w++     w--     ???     ???
+
 seq_rst
  ================ Chip 1 =============
 A_i
@@ -18,7 +24,7 @@ MWRITE
 sel_a
 incvec_o/di
 use_imm_off
-xxxxx
+Select+1
  ================  END   =============
 
   A     B
@@ -48,8 +54,12 @@ INT_6 :     0xFF60
 INT_7 :     0xFF70
 
 ISR STACK:  0xFFF0 - 0xFFFF
-MREG     :  0xFFC0 - 0xFFDF    
 ISR REGS :  0xFFBC - 0xFFBF
+
+0xFFBC
+0xFFBD  - SL
+0xFFBE  - SH
+0xFFBF  - A
 
 
 Memory map
@@ -72,6 +82,8 @@ I/O: 0x4000 - 0x5FFF
 0x4801            - SET PAGING
 0x4802            - TLB Index
 0x4803            - Serial
+0x4804            - Storage (Address at 0x4000-0x4002)
+
 
 TLB: 0x6000 - 0x7FFF
 0x6000 - 0x6FFF   - TLB
@@ -79,6 +91,8 @@ TLB: 0x6000 - 0x7FFF
 
 
 
+1 tick = 50ns min
+20MHz
 
 Phases:
 0000 control word pull down
@@ -131,8 +145,26 @@ target 3300
 
 total 8494
 
-push-pop 700
-adjust sp 528
-                  =7266
-alu_t 1228 (-614 if 2 bytes vs 4)
-                  ~6700
+
+total: 6220
+
+[done] push-pop [m+#] : -250b (+hw: -500b)
+[done] movw x, r1r2 : -200b (-150 - no hw changes [movx][r0][r1])
+
+[??tbd??] mov2 d# s# : - ~200b (hw: select high)
+
+[ ] suppress returns from assign
+
+[ ] somehow optimize comparisons
+
+[ ] suppress assignment of constant - load constant directly to reg
+
+[done] tokInt inserted between Call and tokIdent - ERROR
+
+[!] not all Assigns replaced with direct register reroute (after post replace)
+
+[ ] (low) increment 16 bit reg somehow?
+
+[!] trenary if has weird goto
+
+[!!!!] UNALIGNED ACCESS TO STACK CAUSES SHORT CIRC!!! <<--- Trap only in sim

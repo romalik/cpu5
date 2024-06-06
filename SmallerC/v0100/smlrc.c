@@ -323,6 +323,12 @@ int fsetpos(FILE*, fpos_t*);
 //#define tokLongLong   0x84
 //#define tokULongLong  0x85
 //#define tokLongDbl    0x86
+#define tokTrenary    0x87
+#define tokTrenaryC   0x88
+#define tokTrenaryL   0x89
+#define tokTrenaryR   0x8a
+
+
 #define tokGotoLabel  0x8F
 #define tokStructPtr  0x90
 #define tokTag        0x91
@@ -462,6 +468,8 @@ STATIC
 void ShiftChar(void);
 STATIC
 int puts2(char*);
+STATIC
+int fflush2();
 STATIC
 int printf2(char*, ...);
 
@@ -1008,7 +1016,7 @@ unsigned char tktk[] =
   tokSChar, tokShort, tokLong, tokUChar, tokUShort, tokULong, tokNumFloat,
   tokNumCharWide, tokLitStrWide,
   // XXX Added by rl
-  tokIfNot
+  tokIfNot, tokTrenary, tokTrenaryL, tokTrenaryR
 };
 
 char* tks[] =
@@ -1033,7 +1041,7 @@ char* tks[] =
   "signed char", "short", "long", "unsigned char", "unsigned short", "unsigned long", "float",
   "<NumCharWide>", "<LitStrWide>",
   // XXX Added by rl
-  "<IfNot>"
+  "<IfNot>", "<Trenary>", "<TrenaryL>", "<TrenaryR>"
 };
 
 STATIC
@@ -5346,8 +5354,14 @@ int exprval(int* idx, int* ExprTypeSynPtr, int* ConstExpr)
       // "exprL exprR exprMID ?"
 
       // label at the end of ?:
+      
+#ifdef RLCPU
+      stack[*idx + 1][0] = tokTrenary;
+      stack[*idx + 1][1] = sc + 1;
+#else
       stack[*idx + 1][0] = tokLogAnd; // piggyback on && for CG (ugly, but simple)
       stack[*idx + 1][1] = sc + 1;
+#endif
 
       smid = exprval(idx, ExprTypeSynPtr, &constExpr[1]);
 
@@ -5444,11 +5458,14 @@ int exprval(int* idx, int* ExprTypeSynPtr, int* ConstExpr)
       }
 
       // label at the start of exprMID
+#ifdef RLCPU
+#else
       ins2(oldIdxLeft + 1 - (oldSpLeft - sp), tokLogAnd, sc); // piggyback on && for CG (ugly, but simple)
       // jump from the end of exprR over exprMID to the end of ?:
       ins2(oldIdxLeft - (oldSpLeft - sp), tokGoto, sc + 1);
       // jump to exprMID if exprL is non-zero
       ins2(*idx + 1, tokShortCirc, -sc);
+#endif
 
       oldIdxCond = *idx;
       oldSpCond = sp;
@@ -5850,7 +5867,13 @@ int puts2(char* s)
   }
   return res;
 }
-
+STATIC
+int fflush2() {
+  if(OutFile) {
+    return fflush(OutFile);
+  }
+  return EOF;
+}
 // Equivalent to printf() but outputs to OutFile.
 STATIC
 int printf2(char* format, ...)
@@ -7125,6 +7148,10 @@ int ParseDerived(int tok)
 {
   int stars = 0;
   int params = 0;
+#ifdef RLCPU
+  int isInterrupt = 0;
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
   int isInterrupt = 0;
@@ -7136,6 +7163,15 @@ int ParseDerived(int tok)
     stars++;
     tok = GetToken();
   }
+
+#ifdef RLCPU
+  if (tok == tokIntr)
+  {
+
+    isInterrupt = 1;
+    tok = GetToken();
+  }
+#endif
 
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
@@ -7185,6 +7221,14 @@ int ParseDerived(int tok)
       tok = GetToken();
     else
       PushSyntax2(tokIdent, AddIdent("<something>"));
+
+#ifdef RLCPU
+    if (isInterrupt)
+      PushSyntax2('(', 1);
+    else // fallthrough
+
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
     if (isInterrupt)
@@ -8399,6 +8443,12 @@ int ParseDecl(int tok, unsigned structInfo[4], int cast, int label)
 
         GenLabel(CurFxnName, Static);
 
+#ifdef RLCPU
+        if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
+          GenIsrProlog();
+        else // fallthrough
+#endif
+
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
         if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
@@ -8445,6 +8495,11 @@ int ParseDecl(int tok, unsigned structInfo[4], int cast, int label)
 
         GenNumLabel(CurFxnEpilogLabel);
 
+#ifdef RLCPU
+        if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
+          GenIsrEpilog();
+        else // fallthrough
+#endif
 #ifndef MIPS
 #ifdef CAN_COMPILE_32BIT
         if (SyntaxStack1[lastSyntaxPtr + 1] & 1)
