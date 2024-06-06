@@ -9,6 +9,12 @@ c0_1 abus            !pc_a!  s_a     alu_d   mf_a    aluf_d  f_o     ir_a    x_a
 c1_0 in              off_i   sh_i    sl_i    b_i     ml_i    ei      xh_i    xl_i
 c1_1 I/D             ir_i    sl--    sl++    s_rst   f_i     mh_i    pc++    pc_switch
 
+                     1000    1001    1010    1011    1100    1101    1110    1111
+c0_0 dbus            yl_o    yh_o    zl_o    zh_o    wl_o    wh_o    ???     ???
+c0_1 abus            y_a     ???     z_a     ???     w_a     ???     ???     ???
+c1_0 in              yl_i    yh_i    zl_i    zh_i    wl_i    wh_i    ???     ???
+c1_1 I/D             y++     y--     z++     z--     w++     w--     ???     ???
+
 seq_rst
  ================ Chip 1 =============
 A_i
@@ -18,7 +24,7 @@ MWRITE
 sel_a
 incvec_o/di
 use_imm_off
-xxxxx
+Select+1
  ================  END   =============
 
   A     B
