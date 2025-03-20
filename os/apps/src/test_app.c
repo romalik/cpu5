@@ -9,13 +9,25 @@ unsigned char do_syscall(unsigned char id, unsigned char arg) {
     return retval;
 }
 
-void puts_scall(char * s) {
+void putc(char c) {
+    do_syscall(1, c);
+}
+
+void puts(char * s) {
     while(*s) {
-        do_syscall(1, *s);
+        putc(*s);
         s++;        
     }
 }
 
 int main() {
-    puts_scall("Hello from app!\n");
+    int i, j;
+    puts("Hello from app!\n");
+    for(i = 10; i>0; i--) {
+        for(j = 0; j<i; j++) {
+            putc('*');
+        }
+        putc('\n');
+    }
+
 }

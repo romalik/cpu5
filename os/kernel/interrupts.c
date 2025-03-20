@@ -26,12 +26,15 @@ void __interrupt empty_isr() {
     ISR_EPILOG
 }
 
+
+void sched();
+
 int btn_counter;
 void __interrupt btn_isr() {
     ISR_PROLOG
 
     btn_counter++;
-
+    sched();
 
     ISR_EPILOG
 }

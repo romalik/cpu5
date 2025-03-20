@@ -85,6 +85,8 @@ void cat(int argc, char ** argv) {
     }
 }
 
+void (*loaded_bin)(void) = 0xA000;
+
 void exec(int argc, char ** argv) {
     if(argc < 2) {
         return;
@@ -93,12 +95,69 @@ void exec(int argc, char ** argv) {
     if(stat(argv[1], &st)) {
         puts("File not found\n");
     } else {
+        //temporary map kernel page 0x0a to 0x1a to load app
+        MMU_OFF();
+        write_tlb(0, 0xa, 0x1a, 0xff);
+        MMU_ON();
         read_file((unsigned char *)(0xA000), st.blk, 0, st.size);
-        puts("File read\nJump..\n");
+        MMU_OFF();
+        write_tlb(0, 0xa, 0xa, 0xff);
+        MMU_ON();
+
+        puts("File read\nset TLB idx and Jump..\n");
+        /*
         asm("ldd X, 0xA000");
         asm("jmp");
+        */
+        write_tlb_index(1);
+        loaded_bin();
 
     }
+}
+
+int do_switch;
+int c_tlb_idx;
+
+
+void exec2(int argc, char ** argv) {
+    struct stat st;
+
+    if(stat("app1.bin", &st)) {
+        puts("File not found\n");
+    } else {
+        //temporary map kernel page 0x0a to 0x1a to load app
+        MMU_OFF();
+        write_tlb(0, 0xa, 0x1a, 0xff);
+        MMU_ON();
+        read_file((unsigned char *)(0xA000), st.blk, 0, st.size);
+        MMU_OFF();
+        write_tlb(0, 0xa, 0xa, 0xff);
+        MMU_ON();
+
+        puts("File 1 read\n");
+
+    }
+
+
+    if(stat("app2.bin", &st)) {
+        puts("File not found\n");
+    } else {
+        //temporary map kernel page 0x0a to 0x1a to load app
+        MMU_OFF();
+        write_tlb(0, 0xa, 0x2a, 0xff);
+        MMU_ON();
+        read_file((unsigned char *)(0xA000), st.blk, 0, st.size);
+        MMU_OFF();
+        write_tlb(0, 0xa, 0xa, 0xff);
+        MMU_ON();
+
+        puts("File 2 read\n");
+    }
+
+    do_switch = 1; //<<<< WTF DOES NOT HAPPEN
+    write_tlb_index(1);
+    loaded_bin();
+
 }
 
 
@@ -148,10 +207,10 @@ char ** build_argv(char * str, int * argc) {
 
 
 
-#define N_CMDS 6
+#define N_CMDS 7
 
-void (*funcs[])() = {test_func, test_func_2, echo, list_files, cat, exec};
-char *cmds[] = {"s", "test", "echo", "ls", "cat", "exec"};
+void (*funcs[])() = {test_func, test_func_2, echo, list_files, cat, exec, exec2};
+char *cmds[] = {"s", "test", "echo", "ls", "cat", "exec", "exec2"};
 
 int get_cmd_idx(char *s)
 {
@@ -183,6 +242,9 @@ void main()
     puts("\nbss end : "); printhex(&__bss_end);
     puts("\n");
 
+    c_tlb_idx = 1;
+    do_switch = 0;
+
 
     init_uart();
     init_mmu();
@@ -213,4 +275,20 @@ void main()
     }
     puts("Halt\n");
     asm("hlt\n");
+}
+
+
+
+void sched() {
+    if(do_switch) {
+        putc('#');
+        if(c_tlb_idx) c_tlb_idx = 0;
+        else c_tlb_idx = 1;
+        MMU_OFF();
+        write_tlb_index(c_tlb_idx+1);
+        MMU_ON();
+    } else {
+        putc('.');
+    }
+
 }
