@@ -186,7 +186,7 @@ void exec_process(const char * path, unsigned char p_idx) {
             MMU_OFF();
             write_tlb(  0, 
                         0xa, 
-                        p_list[p_idx].start_page + 0x0a + (already_read >> 8),
+                        p_list[p_idx].start_page + (already_read >> 8),
                         0xff
                      );
             MMU_ON();
@@ -197,7 +197,7 @@ void exec_process(const char * path, unsigned char p_idx) {
 
         puts(path); puts(" loaded\n");
     }
-    p_list[p_idx].ctx.pc = 0xA000;
+    p_list[p_idx].ctx.pc = 0x0000;
     p_list[p_idx].status = PROCESS_RUN;
 
 }
