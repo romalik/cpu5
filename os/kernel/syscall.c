@@ -2,8 +2,6 @@
 #include "syscall.h"
 #include "interrupts.h"
 
-#define SAVED_A_REG 0xFFBF
-
 /*
 void print_isr_ctx() {
     puts("PC: "); printhex(ISR_CTX->pc);
@@ -22,7 +20,7 @@ unsigned char sys_none() {
 }
 
 unsigned char sys_putchar() {
-    *(unsigned char *)(0x4803) = ISR_CTX->b;
+    *(unsigned char *)(0x4803) = *ISR_CTX_B;
     return 0;
 }
 
@@ -36,9 +34,9 @@ unsigned char (*sys_table[])() = {
 
 void __interrupt syscall_isr() {
     ISR_PROLOG
-    *(unsigned int *)(IRET_ADDRESS_PTR) += 1;
+    *(unsigned int *)(ISR_CTX_PC) += 1;
 
-    unsigned char id = *(unsigned char *)(SAVED_A_REG);
+    unsigned char id = *(unsigned char *)(ISR_CTX_A);
 
 /*
     puts(" ---- hello from Syscall ---- \n");
@@ -46,7 +44,7 @@ void __interrupt syscall_isr() {
     print_isr_ctx();
   */  
     if(id < NR_SYSCALL) {
-        *(unsigned char *)(SAVED_A_REG) = sys_table[id]();
+        *(unsigned char *)(ISR_CTX_A) = sys_table[id]();
     }
     
     //puts("\n ---- \n");

@@ -963,6 +963,16 @@ void opt_replaceMulDiv(Node ** node, Node ** head) {
                 (*node)->kids->next->value = 3;
                 (*node)->kids->next->suppress_emit = 1;
             }
+            if((*node)->kids->next->value == 16) {
+                (*node)->token = new_token;
+                (*node)->kids->next->value = 4;
+                (*node)->kids->next->suppress_emit = 1;
+            }
+            if((*node)->kids->next->value == 32) {
+                (*node)->token = new_token;
+                (*node)->kids->next->value = 5;
+                (*node)->kids->next->suppress_emit = 1;
+            }
         }
     }
 

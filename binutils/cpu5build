@@ -12,7 +12,8 @@ link_args = "" # -Wl
 
 verbose = False
 
-object_files = ['/opt/cpu5/lib/crt0.o', '/opt/cpu5/lib/crt1.o']
+#object_files = ['/opt/cpu5/lib/crt0.o', '/opt/cpu5/lib/crt1.o']
+object_files = []
 
 include_path = ['/opt/cpu5/include']
 
@@ -21,6 +22,8 @@ gen_hex = False
 assemble = True
 link = True
 cleanup = True
+
+build_rom = False
 
 output = ""
 
@@ -62,9 +65,17 @@ for i in range(len(sys.argv)):
     if arg == "-v":
         verbose = True
 
+    if arg == "--rom":
+        build_rom = True
+
     
 
+if build_rom:
+    object_files.append('/opt/cpu5/lib/kcrt0.o')
+else:
+    object_files.append('/opt/cpu5/lib/crt0.o')
 
+object_files.append('/opt/cpu5/lib/crt1.o')
         
 
 tmp_files = []
@@ -124,7 +135,13 @@ if assemble == True:
     if link == True:
         object_files.append('/opt/cpu5/lib/crt_end.o')
 
-        cmd_ld = "cpu5ld -bss 0x8000 " + link_args + " "
+        cmd_ld = "cpu5ld"
+        
+        if build_rom:
+            cmd_ld = cmd_ld + " -bss 0x8000 "
+
+        cmd_ld = cmd_ld + link_args + " "
+
         for o_file in object_files:
             cmd_ld = cmd_ld + o_file + " "
 

@@ -21,13 +21,11 @@ void init_mmu() {
     puts("init mmu\n");
     for(char i = 0; i<0x10; i++) {
         write_tlb(0, i, i, 0xff-i);
-        write_tlb(1, i, i, 0xff-i);
-        write_tlb(2, i, i, 0xff-i);
+        write_tlb(1, i, 0x10 + i, 0xff-i);
+        write_tlb(2, i, 0x20 + i, 0xff-i);
+        write_tlb(3, i, 0x30 + i, 0xff-i);
     }
 
-
-    write_tlb(1, 0x0a, 0x1a, 0xff);
-    write_tlb(2, 0x0a, 0x2a, 0xff);
 
     *(unsigned char *)(TLB_INDEX) = 0;
     MMU_ON();

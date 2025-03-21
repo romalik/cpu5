@@ -149,15 +149,15 @@ section code
 -       ----    1111    0001    pc_switch   # (comparison overriden by 0x0f in instruction)
 -       ----    ----    0010    sl++
 -       ----    ----    0011    a_i s_a mread
--       ----    ----    0100    a_o xl_i
+-       ----    ----    0100    a_o xl_i        # pop PC_L from 0xFFFE
 -       ----    ----    0101    sl++
 -       ----    ----    0110    a_i s_a mread
--       ----    ----    0111    a_o xh_i
--       ----    ----    1000    a_i  sel_a mread s_rst  # s_rst because A was saved at +0x03
--       ----    ----    1001    sh_i sel_a mread
--       ----    ----    1010    sl_i sel_a mread
+-       ----    ----    0111    a_o xh_i        # pop PC_H from 0xFFFF
+-       ----    ----    1000    a_i  sel_a mread s_rst  # A = [0xFFBF] s_rst because A was saved at +0x03
+-       ----    ----    1001    sh_i sel_a mread        # SH = [0xFFBE]
+-       ----    ----    1010    sl_i sel_a mread        # SL = [0xFFBD]
 -       ----    ----    1011    pc_switch
--       ----    ----    1100    ei
+-       ----    ----    1100    ei          # (enable ints and paging, A, S, PC in user page)
 -       ----    ----    1101    seq_rst
 
 
@@ -486,19 +486,19 @@ section code
 ######################## INTERRUPTS        #########################
 
 -       111     11111   0001    pc_switch
--       ---     -----   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01)
--       ---     -----   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02)
--       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) !!!!! WILL WRITE TO + 0x03 because of s_rst
+-       ---     -----   0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01) [0xFFBD] = SL (sel_a disable paging)
+-       ---     -----   0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02) [0xFFBE] = SH
+-       ---     -----   0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) [0xFFBF] = A  !!!!! WILL WRITE TO + 0x03 because of s_rst
 -       ---     -----   0101    sl--                      # (SP = 0xffff)
 -       ---     -----   0110    a_i xh_o
--       ---     -----   0111    a_o s_a mwrite            # (pc l will be at 0xffff)
+-       ---     -----   0111    a_o s_a mwrite            # (pc h will be at 0xffff) [0xFFFF] = PC_H
 -       ---     -----   1000    a_i xl_o
 -       ---     -----   1001    sl--                      # (SP = 0xfffe)
--       ---     -----   1010    a_o s_a mwrite            # (pc h will be at 0xfffe)
--       ---     -----   1011    xl_i iv_o                 # (+ disable interrupts)
+-       ---     -----   1010    a_o s_a mwrite            # (pc l will be at 0xfffe) [0xFFFE] = PC_L
+-       ---     -----   1011    xl_i iv_o                 # (get vector, disable interrupts)
 -       ---     -----   1100    a_i sh_o                  # (get 0xff)
 -       ---     -----   1101    a_o xh_i                  # X = 0xFF00 | int_vec
--       ---     -----   1110    sl--
+-       ---     -----   1110    sl--                      # (SP = 0xfffd)
 -       ---     -----   1111    seq_rst pc_switch
 
 

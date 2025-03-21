@@ -34,10 +34,10 @@
                         asm("mov XH, A"); \
                         asm("iret");
 
-#define IRET_ADDRESS_PTR 0xfffe
 
 void init_interrupts();
 
+/*
 struct isr_ctx {
     unsigned char b;
     unsigned char f;
@@ -45,5 +45,32 @@ struct isr_ctx {
     unsigned int x;
     unsigned int pc;
 } * ISR_CTX = (struct isr_ctx *)(0xfff8);
+*/
+
+
+unsigned int  * ISR_CTX_S  = (unsigned int *) (0xFFBD);
+unsigned int  * ISR_CTX_A  = (unsigned int *) (0xFFBF);
+unsigned char * ISR_CTX_B  = (unsigned char *)(0xFFF8);
+unsigned char * ISR_CTX_F  = (unsigned char *)(0xFFF9);
+unsigned int  * ISR_CTX_M  = (unsigned int *) (0xFFFA);
+unsigned int  * ISR_CTX_X  = (unsigned int *) (0xFFFC);
+unsigned int  * ISR_CTX_PC = (unsigned int *) (0xFFFE);
+
+
+struct isr_ctx {
+    unsigned int s;
+    unsigned int m;
+    unsigned int x;
+    unsigned int pc;
+    unsigned char a;
+    unsigned char b;
+    unsigned char f;
+    unsigned char pad;
+};
+
+void save_isr_ctx_to  (struct isr_ctx * dest);
+void load_isr_ctx_from(struct isr_ctx * src);
+
+void print_isr_ctx(struct isr_ctx * ctx);
 
 #endif

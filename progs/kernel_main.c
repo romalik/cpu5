@@ -281,7 +281,7 @@ char isr_vec[] = {
 #define INT_VEC_SYSCALL 0xFF40
 
 
-int btn_counter;
+int tick_counter;
 
 
 
@@ -324,7 +324,7 @@ void __interrupt empty_isr() {
 void __interrupt btn_isr() {
     ISR_PROLOG
 
-    btn_counter++;
+    tick_counter++;
 
 
     ISR_EPILOG
@@ -384,7 +384,7 @@ void init_interrupts() {
 
 void main() {
    int i = 0;
-   btn_counter = 0;
+   tick_counter = 0;
    puts("\n\nKernel\n");
    init_uart();
    init_mmu();
@@ -395,7 +395,7 @@ void main() {
 
 
    while(1) {
-      printhex(btn_counter);
+      printhex(tick_counter);
       puts(" > ");
       getline();
       cmd_idx = get_cmd_idx(in_str);

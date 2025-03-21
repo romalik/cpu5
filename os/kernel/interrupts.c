@@ -29,11 +29,11 @@ void __interrupt empty_isr() {
 
 void sched();
 
-int btn_counter;
-void __interrupt btn_isr() {
+int tick_counter;
+void __interrupt tick_isr() {
     ISR_PROLOG
 
-    btn_counter++;
+    tick_counter++;
     sched();
 
     ISR_EPILOG
@@ -56,7 +56,7 @@ void init_interrupts() {
     asm(".section text");
 
     memcpy((unsigned char *)(INT_VEC_0),        isr_vec, ISR_VEC_LENGTH);
-    *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &btn_isr;
+    *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &tick_isr;
 
     memcpy((unsigned char *)(INT_VEC_1),        isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &empty_isr;
@@ -72,3 +72,35 @@ void init_interrupts() {
 
     asm("ei\n");
 }
+
+void save_isr_ctx_to  (struct isr_ctx * dest) {
+    dest->s  =  *ISR_CTX_S;
+    dest->a  =  *ISR_CTX_A;
+    dest->b  =  *ISR_CTX_B;
+    dest->f  =  *ISR_CTX_F;
+    dest->m  =  *ISR_CTX_M;
+    dest->x  =  *ISR_CTX_X;
+    dest->pc =  *ISR_CTX_PC;
+}
+
+void load_isr_ctx_from(struct isr_ctx * src) {
+    *ISR_CTX_S  = src->s;
+    *ISR_CTX_A  = src->a;
+    *ISR_CTX_B  = src->b;
+    *ISR_CTX_F  = src->f;
+    *ISR_CTX_M  = src->m;
+    *ISR_CTX_X  = src->x;
+    *ISR_CTX_PC = src->pc;
+}
+
+void print_isr_ctx(struct isr_ctx * ctx) {
+    puts("pc "); printhex(ctx->pc); puts(" ");
+    puts(" a "); printhex(ctx->a);  puts(" ");
+    puts(" b "); printhex(ctx->b);  puts(" ");
+    puts(" f "); printhex(ctx->f);  puts(" ");
+    puts(" m "); printhex(ctx->m);  puts(" ");
+    puts(" s "); printhex(ctx->s);  puts(" ");
+    puts(" x "); printhex(ctx->x);  puts(" ");
+    
+}
+

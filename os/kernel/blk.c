@@ -7,6 +7,8 @@ unsigned char blockDataCache[BLOCK_CACHE_SIZE * 256];
 void dump_blocks() {
     int i;
     for (i = 0; i < BLOCK_CACHE_SIZE; i++) {
+        puts("blk "); printhex(i); puts(" @ & "); printhex(&blockCache[i]);
+        puts(" n "); printhex(blockCache[i].n); puts("\n");
         /*
         printf("Block cache %d flags %d device %d n %d cnt %d\n", i,
                blockCache[i].flags, blockCache[i].device, blockCache[i].n,

@@ -1,8 +1,11 @@
 CC=gcc -O0 -g
 
 
-all: cpu5as cpu5ld crt0.o crt1.o crt_end.o
+all: cpu5as cpu5ld crt0.o kcrt0.o crt1.o crt_end.o
 
+kcrt0.o: kcrt0.s
+	./cpu5as kcrt0.s kcrt0.o
+	
 crt0.o: crt0.s
 	./cpu5as crt0.s crt0.o
 	
@@ -24,6 +27,7 @@ install: all
 	install -m 755 cpu5ld /opt/cpu5/bin/
 	install -m 755 cpu5build /opt/cpu5/bin/
 	install -d /opt/cpu5/lib
+	install -m 755 kcrt0.o /opt/cpu5/lib/
 	install -m 755 crt0.o /opt/cpu5/lib/
 	install -m 755 crt1.o /opt/cpu5/lib/
 	install -m 755 crt_end.o /opt/cpu5/lib/
@@ -32,6 +36,7 @@ install: all
 clean:
 	-rm cpu5as
 	-rm cpu5ld
+	-rm kcrt0.o
 	-rm crt0.o
 	-rm crt1.o
 	-rm crt_end.o
