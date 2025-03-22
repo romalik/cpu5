@@ -1311,11 +1311,6 @@
       <pos x="2700" y="-2620"/>
     </visualElement>
     <visualElement>
-      <elementName>Not</elementName>
-      <elementAttributes/>
-      <pos x="1380" y="-2820"/>
-    </visualElement>
-    <visualElement>
       <elementName>Or</elementName>
       <elementAttributes>
         <entry>
@@ -2535,16 +2530,6 @@ TLB</string>
       <pos x="-280" y="-340"/>
     </visualElement>
     <visualElement>
-      <elementName>Not</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="3"/>
-        </entry>
-      </elementAttributes>
-      <pos x="-440" y="-660"/>
-    </visualElement>
-    <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
@@ -2560,7 +2545,7 @@ TLB</string>
           <value v="1" z="false"/>
         </entry>
       </elementAttributes>
-      <pos x="-780" y="-720"/>
+      <pos x="-1100" y="-460"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -3541,10 +3526,6 @@ TLB</string>
       <p2 x="460" y="1740"/>
     </wire>
     <wire>
-      <p1 x="-780" y="-720"/>
-      <p2 x="-400" y="-720"/>
-    </wire>
-    <wire>
       <p1 x="420" y="720"/>
       <p2 x="820" y="720"/>
     </wire>
@@ -3897,12 +3878,8 @@ TLB</string>
       <p2 x="-440" y="-2820"/>
     </wire>
     <wire>
-      <p1 x="1420" y="-2820"/>
-      <p2 x="2460" y="-2820"/>
-    </wire>
-    <wire>
       <p1 x="-440" y="-2820"/>
-      <p2 x="1380" y="-2820"/>
+      <p2 x="2460" y="-2820"/>
     </wire>
     <wire>
       <p1 x="-580" y="-260"/>
@@ -4765,7 +4742,7 @@ TLB</string>
       <p2 x="-120" y="-460"/>
     </wire>
     <wire>
-      <p1 x="-400" y="-460"/>
+      <p1 x="-1100" y="-460"/>
       <p2 x="-380" y="-460"/>
     </wire>
     <wire>
@@ -5993,10 +5970,6 @@ TLB</string>
       <p2 x="-400" y="2720"/>
     </wire>
     <wire>
-      <p1 x="-400" y="-720"/>
-      <p2 x="-400" y="-460"/>
-    </wire>
-    <wire>
       <p1 x="1680" y="-1120"/>
       <p2 x="1680" y="60"/>
     </wire>
@@ -6205,12 +6178,8 @@ TLB</string>
       <p2 x="-440" y="2720"/>
     </wire>
     <wire>
-      <p1 x="-440" y="-620"/>
-      <p2 x="-440" y="-320"/>
-    </wire>
-    <wire>
       <p1 x="-440" y="-2820"/>
-      <p2 x="-440" y="-660"/>
+      <p2 x="-440" y="-320"/>
     </wire>
     <wire>
       <p1 x="-440" y="860"/>
