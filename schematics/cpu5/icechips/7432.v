@@ -14,7 +14,7 @@ integer i;
 always @(*)
 begin
   for (i = 0; i < BLOCKS; i++)
-    computed[i] = |A[i];
+    computed[i] = | (A[i] === 1'bz ? 1'b1 : A[i]);
 end
 //------------------------------------------------//
 

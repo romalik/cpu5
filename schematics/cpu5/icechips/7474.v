@@ -14,7 +14,7 @@ module ttl_7474 #(parameter BLOCKS = 2, DELAY_RISE = 0, DELAY_FALL = 0)
 );
 
 //------------------------------------------------//
-reg [BLOCKS-1:0] Q_current;
+reg [BLOCKS-1:0] Q_current = 1'b0;
 reg [BLOCKS-1:0] Preset_bar_previous;
 
 generate
