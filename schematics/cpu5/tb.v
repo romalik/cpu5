@@ -17,7 +17,7 @@ module tb;
     // DUT outputs (also 'inout' in cpu5.v, but we only observe them)
     wire phase_mread, phase_write, cword_en, p3;
     wire mpc0, mpc1, mpc2, mpc3;
-    wire DATA0, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7;
+    wire iDATA0, iDATA1, iDATA2, iDATA3, iDATA4, iDATA5, iDATA6, iDATA7;
 
     // DUT from KiCadVerilog (cpu5.v). DO NOT EDIT cpu5.v BY HAND.
     cpu5 DUT (
@@ -25,17 +25,17 @@ module tb;
         .RESET(RESET),
         .phase_mread(phase_mread), .phase_write(phase_write), .cword_en(cword_en), .p3(p3),
         .mpc0(mpc0), .mpc1(mpc1), .mpc2(mpc2), .mpc3(mpc3),
-	.DATA0(DATA0), .DATA1(DATA1), .DATA2(DATA2), .DATA3(DATA3), .DATA4(DATA4), .DATA5(DATA5), .DATA6(DATA6), .DATA7(DATA7)
+	.iDATA0(iDATA0), .iDATA1(iDATA1), .iDATA2(iDATA2), .iDATA3(iDATA3), .iDATA4(iDATA4), .iDATA5(iDATA5), .iDATA6(iDATA6), .iDATA7(iDATA7)
     );
 
-    pullup(DATA0);
-    pullup(DATA1);
-    pulldown(DATA2);
-    pulldown(DATA3);
-    pulldown(DATA4);
-    pulldown(DATA5);
-    pulldown(DATA6);
-    pulldown(DATA7);
+    pullup(iDATA0);
+    pullup(iDATA1);
+    pulldown(iDATA2);
+    pulldown(iDATA3);
+    pulldown(iDATA4);
+    pulldown(iDATA5);
+    pulldown(iDATA6);
+    pulldown(iDATA7);
 
 
 

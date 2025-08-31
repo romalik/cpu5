@@ -68,9 +68,9 @@ static inline vluint64_t ns_to_ps(double ns) {
 struct SimCfg {
     double period_ns = 10.0;
     double t1_reset_low_ns = 37.0;
-    double t2_run_ns       = 5000.0;
+    double t2_run_ns       = 500000.0;
     double t3_reset_low_ns = 20.0;
-    double t4_run_ns       = 3000.0;
+    double t4_run_ns       = 300000.0;
     bool   rst_active_low  = true;
     std::string vcd_path   = "cpu5.vcd";
 };
@@ -124,14 +124,14 @@ int main(int argc, char** argv) {
 
     auto tick_half = [&](int clk_val){
         top->CLOCK = clk_val ? 1 : 0; // rename if not CLOCK
-    top->DATA0 = 1; //nop
-    top->DATA1 = 1; //nop
-    top->DATA2 = 0; //nop
-    top->DATA3 = 0; //nop
-    top->DATA4 = 0; //nop
-    top->DATA5 = 0; //nop
-    top->DATA6 = 0; //nop
-    top->DATA7 = 0; //nop
+    top->iDATA0 = 1; //nop
+    top->iDATA1 = 1; //nop
+    top->iDATA2 = 0; //nop
+    top->iDATA3 = 0; //nop
+    top->iDATA4 = 0; //nop
+    top->iDATA5 = 0; //nop
+    top->iDATA6 = 0; //nop
+    top->iDATA7 = 0; //nop
         eval_dump();
         main_time_ps += half_period_ps;
     };
