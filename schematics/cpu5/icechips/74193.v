@@ -47,10 +47,14 @@ module ttl_74193 #(
     // TCU_bar goes LOW when counting up from all-ones (i.e., Q==max) with CPU high.
     // TCD_bar goes LOW when counting down from zero (i.e., Q==0) with CPD high.
     // This matches the classic 74193 "ripple" cascade behavior.
+
     wire tcu_n = ~(~CPU & (&q_r));      // all bits 1
     wire tcd_n = ~(~CPD & (~|q_r));     // all bits 0
-
     assign #(DELAY_RISE, DELAY_FALL) TCU_bar = tcu_n;
     assign #(DELAY_RISE, DELAY_FALL) TCD_bar = tcd_n;
+    
+
+
+
 
 endmodule
