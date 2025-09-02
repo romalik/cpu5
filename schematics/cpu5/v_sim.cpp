@@ -67,48 +67,20 @@ static inline vluint64_t ns_to_ps(double ns) {
 
 struct SimCfg {
     double period_ns = 10.0;
-    double t1_reset_low_ns = 37.0;
-    double t2_run_ns       = 500000.0;
-    double t3_reset_low_ns = 20.0;
-    double t4_run_ns       = 300000.0;
+    double t1_reset_low_ns = 20.0;
+    double t2_run_ns       = 10000000.0;
     bool   rst_active_low  = true;
-    std::string vcd_path   = "cpu5.vcd";
+    std::string vcd_path   = "v_cpu5.vcd";
 };
 
-static void parse_cli(int argc, char** argv, SimCfg& cfg) {
-    for (int i=1;i<argc;i++) {
-        std::string a(argv[i]);
-        auto eat = [&](double &dst){
-            if (i+1>=argc) { std::cerr<<"Missing value after "<<a<<"\n"; std::exit(2); }
-            dst = std::atof(argv[++i]);
-        };
-        if (a=="--period-ns") eat(cfg.period_ns);
-        else if (a=="--t1-reset-low-ns") eat(cfg.t1_reset_low_ns);
-        else if (a=="--t2-run-ns") eat(cfg.t2_run_ns);
-        else if (a=="--t3-reset-low-ns") eat(cfg.t3_reset_low_ns);
-        else if (a=="--t4-run-ns") eat(cfg.t4_run_ns);
-        else if (a=="--rst-active-low") { if (i+1>=argc) { std::cerr<<"Missing value\n"; std::exit(2);} cfg.rst_active_low = std::atoi(argv[++i])!=0; }
-        else if (a=="--vcd") { if (i+1>=argc) { std::cerr<<"Missing value\n"; std::exit(2);} cfg.vcd_path = argv[++i]; }
-        else if (a=="--help" || a=="-h") {
-            std::cout << "Usage: " << argv[0] << " [options]\n"
-                      << "  --period-ns <f>\n"
-                      << "  --t1-reset-low-ns <f>\n"
-                      << "  --t2-run-ns <f>\n"
-                      << "  --t3-reset-low-ns <f>\n"
-                      << "  --t4-run-ns <f>\n"
-                      << "  --rst-active-low 0|1\n"
-                      << "  --vcd <path>\n";
-            std::exit(0);
-        }
-    }
-}
 
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);
 
     SimCfg cfg;
-    parse_cli(argc, argv, cfg);
+
+    size_t tick_n = 0;
 
     const vluint64_t half_period_ps = ns_to_ps(cfg.period_ns) / 2;
 
@@ -117,28 +89,96 @@ int main(int argc, char** argv) {
     top->trace(tfp, 99);
     tfp->open(cfg.vcd_path.c_str());
 
+    top->SIM_OE = 1;
+
+    std::vector<uint8_t> mem(65535);
+
+    mem[0] = 0x03; //nop
+    mem[1] = 0x03; //nop
+    mem[2] = 0x03; //nop
+
+    mem[3] = 0xde; //ldd X
+    mem[4] = 0x02;
+    mem[5] = 0x00; // 0x0001
+    
+    mem[6] = 0xaf; //jmp
+
     auto eval_dump = [&](){
         top->eval();
         tfp->dump(main_time_ps);
     };
 
-    auto tick_half = [&](int clk_val){
-        top->CLOCK = clk_val ? 1 : 0; // rename if not CLOCK
-    top->iDATA0 = 1; //nop
-    top->iDATA1 = 1; //nop
-    top->iDATA2 = 0; //nop
-    top->iDATA3 = 0; //nop
-    top->iDATA4 = 0; //nop
-    top->iDATA5 = 0; //nop
-    top->iDATA6 = 0; //nop
-    top->iDATA7 = 0; //nop
-        eval_dump();
-        main_time_ps += half_period_ps;
+    auto set_data = [&](uint8_t v) {
+        top->SIM_DATA0 = (v & 0b00000001) >> 0;
+        top->SIM_DATA1 = (v & 0b00000010) >> 1;
+        top->SIM_DATA2 = (v & 0b00000100) >> 2;
+        top->SIM_DATA3 = (v & 0b00001000) >> 3;
+        top->SIM_DATA4 = (v & 0b00010000) >> 4;
+        top->SIM_DATA5 = (v & 0b00100000) >> 5;
+        top->SIM_DATA6 = (v & 0b01000000) >> 6;
+        top->SIM_DATA7 = (v & 0b10000000) >> 7;
     };
 
-    auto run_half_cycles = [&](vluint64_t halves){
-        for (vluint64_t i=0;i<halves;i++){
-            tick_half(i & 1); // 0,1,0,1,...
+    auto get_address = [&]() -> uint16_t {
+        uint16_t v = 
+            (top->ADDR0  <<  0) |
+            (top->ADDR1  <<  1) |
+            (top->ADDR2  <<  2) |
+            (top->ADDR3  <<  3) |
+            (top->ADDR4  <<  4) |
+            (top->ADDR5  <<  5) |
+            (top->ADDR6  <<  6) |
+            (top->ADDR7  <<  7) |
+            (top->ADDR8  <<  8) |
+            (top->ADDR9  <<  9) |
+            (top->ADDR10 << 10) |
+            (top->ADDR11 << 11) |
+            (top->ADDR12 << 12) |
+            (top->ADDR13 << 13) |
+            (top->ADDR14 << 14) |
+            (top->ADDR15 << 15) ;
+        return v;
+    };
+
+
+    auto tick = [&](){
+        /*
+        top->iDATA0 = 1; //nop
+        top->iDATA1 = 1; //nop
+        top->iDATA2 = 0; //nop
+        top->iDATA3 = 0; //nop
+        top->iDATA4 = 0; //nop
+        top->iDATA5 = 0; //nop
+        top->iDATA6 = 0; //nop
+        top->iDATA7 = 0; //nop
+        */
+
+        //printf("0x%04x : RD(%d) WR(%d)\n", SIM_A, SIM_RD, SIM_WR);
+
+        if(top->MREAD == 0) {
+            uint16_t addr = get_address();
+            uint8_t data = mem[addr];
+            printf("a: 0x%04x d: 0x%02x\n", addr, data);
+            set_data(data);
+            top->SIM_OE = 0;
+        } else {
+            top->SIM_OE = 1;
+        }
+
+        //printf("Addr: 0x%04X\n", SIM_A);
+        top->CLOCK = tick_n & 0x01; // rename if not CLOCK
+        eval_dump();
+        main_time_ps += half_period_ps;
+        tick_n++;
+        top->CLOCK = tick_n & 0x01; // rename if not CLOCK
+        eval_dump();
+        main_time_ps += half_period_ps;
+        tick_n++;
+    };
+
+    auto run_n_cycles = [&](vluint64_t n){
+        for (vluint64_t i=0;i<n;i++){
+            tick();
         }
     };
 
@@ -154,25 +194,15 @@ int main(int argc, char** argv) {
     eval_dump();
 
     // t1: hold reset
-    auto halves = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
-    run_half_cycles(halves);
+    auto n_reset_cycles = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
+    run_n_cycles(n_reset_cycles);
 
     // release
     top->RESET = rst_inactive; eval_dump();
 
     // t2: run
-    halves = (ns_to_ps(cfg.t2_run_ns) + half_period_ps - 1) / half_period_ps;
-    run_half_cycles(halves);
-
-    // t3: reset pulse
-    top->RESET = rst_active; eval_dump();
-    halves = (ns_to_ps(cfg.t3_reset_low_ns) + half_period_ps - 1) / half_period_ps;
-    run_half_cycles(halves);
-
-    // t4: final run
-    top->RESET = rst_inactive; eval_dump();
-    halves = (ns_to_ps(cfg.t4_run_ns) + half_period_ps - 1) / half_period_ps;
-    run_half_cycles(halves);
+    auto n_run_cycles = (ns_to_ps(cfg.t2_run_ns) + half_period_ps - 1) / half_period_ps;
+    run_n_cycles(n_run_cycles);
 
     top->final();
     tfp->close();

@@ -23,10 +23,10 @@ module at28c64_rom #(
             initial $readmemh("microcode_1.bin.vhex", mem);
         end else
         if (ROM_INDEX == 2) begin : g2
-            initial $readmemh("microcode_2.hex", mem);
+            initial $readmemh("alu_low.bin.vhex", mem);
         end else
         if (ROM_INDEX == 3) begin : g3
-            initial $readmemh("microcode_3.hex", mem);
+            initial $readmemh("alu_high.bin.vhex", mem);
         end else begin : g_bad
             initial begin
                 $display("FATAL: Unsupported ROM_INDEX=%0d for at28c64_rom", ROM_INDEX);

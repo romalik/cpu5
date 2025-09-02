@@ -47,12 +47,12 @@ module tb;
         $dumpvars(0, tb);
 
         // Hold async reset low, then release
-        RESET_drv = 0; #37;
+        RESET_drv = 0; #400;
         RESET_drv = 1;            // release → counter starts ticking on next rising edge(s)
-        #5000;
+        #500000;
 
         // Prove async reset mid-run
-        RESET_drv = 0; #20; RESET_drv = 1; #3000;
+        RESET_drv = 0; #20; RESET_drv = 1; #300000;
 
         $finish;
     end

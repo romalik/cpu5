@@ -418,6 +418,14 @@
     [
       "f558077d-a1c7-4f56-87bc-c74ddd707915",
       "Registers"
+    ],
+    [
+      "068dcd52-3587-4c7a-ab0c-7ae753422c2d",
+      "alu"
+    ],
+    [
+      "f715160f-995d-49b3-aa5d-1b9e3d537dee",
+      "Memory"
     ]
   ],
   "text_variables": {}
