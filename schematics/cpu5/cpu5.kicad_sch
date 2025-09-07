@@ -15785,9 +15785,6 @@
     (path "/ed04dbea-64e2-4785-8eda-7568be290b0f/6201e947-8163-421e-ab65-848e3f42d793"
       (reference "#PWR0254") (unit 1) (value "+5V") (footprint "")
     )
-    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/45b3a001-1b5a-4ce0-935c-5db9914e9aa0"
-      (reference "#PWR?") (unit 1) (value "+5V") (footprint "")
-    )
     (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/8bc23f63-0439-4a3d-b4af-69894e4d31e7"
       (reference "ALU_DATA_BUS1") (unit 1) (value "Conn_01x08") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical")
     )
@@ -16621,6 +16618,21 @@
     )
     (path "/ed04dbea-64e2-4785-8eda-7568be290b0f/5d068125-8304-4420-b05c-67b06398ef59"
       (reference "U92") (unit 5) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
+    )
+    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/a5fa8269-8a8e-4870-995a-ee49c6668c0e"
+      (reference "U93") (unit 1) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
+    )
+    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/5d90451d-2f56-40ba-91ec-07eec1f6b18c"
+      (reference "U93") (unit 2) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
+    )
+    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/c3e7960a-b907-455e-bdbf-4ca043f2bda3"
+      (reference "U93") (unit 3) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
+    )
+    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/4622a8eb-def0-4b50-8d03-32ebb8678ec6"
+      (reference "U93") (unit 4) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
+    )
+    (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/865cb6ff-88b8-444a-9463-21f223648609"
+      (reference "U93") (unit 5) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm")
     )
   )
 )

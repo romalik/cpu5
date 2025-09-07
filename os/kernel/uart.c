@@ -7,9 +7,11 @@ unsigned char uart_buffer_rd_pos;
 unsigned char uart_buffer_wr_pos;
 
 void init_uart() {
+    puts(" + init uart... ");
     uart_buffer_size = 0;
     uart_buffer_rd_pos = 0;
     uart_buffer_wr_pos = 0;
+    puts("ok\n");
 }
 
 void __interrupt uart_isr() {

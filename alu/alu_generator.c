@@ -18,16 +18,18 @@ uint16_t encode_address(uint8_t A, uint8_t B, uint8_t cmd, uint8_t carry_in) {
 }
 
 enum {
-/*0000*/  c_add = 0,
-/*0001*/  c_adc = 1,
-/*0010*/  c_sub = 2,
-/*0011*/  c_sbc = 3,
-/*0100*/  c_inc = 4,
-/*0101*/  c_neg = 5,
-/*0110*/  c_not = 6,
-/*1000*/  c_or  = 8,
-/*1001*/  c_xor = 9,
-/*1010*/  c_and = 10
+/*0000*/  c_add  = 0,
+/*0001*/  c_adc  = 1,
+/*0010*/  c_sub  = 2,
+/*0011*/  c_sbc  = 3,
+/*0100*/  c_or   = 4,
+/*0101*/  c_orc  = 5,
+/*0110*/  c_xor  = 6,
+/*0111*/  c_xorc = 7,
+/*1000*/  c_and  = 8,
+/*1001*/  c_andc = 9,
+/*1010*/  c_neg  = 10,
+/*1011*/  c_not  = 11
 };
 
 char * cmd_names[16] = {
@@ -35,14 +37,14 @@ char * cmd_names[16] = {
 /*0001*/  "adc",
 /*0010*/  "sub",
 /*0011*/  "sbc",
-/*0100*/  "inc",
-/*0101*/  "neg",
-/*0110*/  "not",
-/*0111*/  "----",
-/*1000*/  "or",
-/*1001*/  "xor",
-/*1010*/  "and",
-/*1011*/  "----",
+/*0100*/  "or",
+/*0101*/  "orc",
+/*0110*/  "xor",
+/*0111*/  "xorc",
+/*1000*/  "and",
+/*1001*/  "andc",
+/*1010*/  "neg",
+/*1011*/  "not",
 /*1100*/  "shl",
 /*1101*/  "shlc",
 /*1110*/  "shr",
@@ -118,6 +120,7 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
             // flip bit 4 (borrow-carry)
             R ^= (1<<4);
         break;
+        /*
         case c_inc:
             if(ignore_carry) {
                 R = A + 1;
@@ -130,16 +133,20 @@ uint8_t gen(uint16_t addr, uint8_t low, int dprint) {
                 }
             }
         break;
+        */
         case c_not:
             R = ~A;
         break;
         case c_and:
+        case c_andc:
             R = A & B;
         break;
         case c_or:
+        case c_orc:
             R = A | B;
         break;
         case c_xor:
+        case c_xorc:
             R = A ^ B;
         break;
 
@@ -259,8 +266,10 @@ int test() {
             if(test_one(a,b,c_neg,0,-a)) return 1;
             if(test_one(a,b,c_neg,1,-a)) return 1;
             // c_inc
+            /*
             if(test_one(a,b,c_inc,0,a+1)) return 1;
             if(test_one(a,b,c_inc,1,a+1)) return 1;
+            */
             // c_adc
             if(test_one(a,b,c_adc,0,a+b)) return 1;
             if(test_one(a,b,c_adc,1,a+b+1)) return 1;
@@ -279,6 +288,15 @@ int test() {
             // c_xor
             if(test_one(a,b,c_xor,0,a^b)) return 1;
             if(test_one(a,b,c_xor,1,a^b)) return 1;
+            // c_andc
+            if(test_one(a,b,c_andc,0,a&b)) return 1;
+            if(test_one(a,b,c_andc,1,a&b)) return 1;
+            // c_orc
+            if(test_one(a,b,c_orc,0,a|b)) return 1;
+            if(test_one(a,b,c_orc,1,a|b)) return 1;
+            // c_xorc
+            if(test_one(a,b,c_xorc,0,a^b)) return 1;
+            if(test_one(a,b,c_xorc,1,a^b)) return 1;
 
 /*
             // c_test

@@ -295,9 +295,11 @@ void emit_tokUnaryAlu(Node * node) {
     } else if(node->token == tokUnaryMinus) {
         if(abs(node->size) == 2) {
             printf2(" ;; optimize this\n");
+            printf2("ld A,1\n");
+            printf2("mov B,A\n");
             printf2("mov A, %c%d\n", R(ral));
             printf2("not\n");
-            printf2("inc\n");
+            printf2("add\n");
             printf2("mov %c%d, A\n", R(rcl));
             printf2("ld A,0\n");
             printf2("mov B,A\n");

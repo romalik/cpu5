@@ -5,7 +5,7 @@
 #include "syscall.h"
 #include "fs.h"
 
-
+extern int tick_counter;
 
 unsigned int fxnMul(unsigned int a, unsigned int b) { 
     unsigned int res = 0;
@@ -58,6 +58,12 @@ void test_func(int argc, char ** argv)
 
 void echo(int argc, char ** argv)
 {
+    char i = 0;
+    for(i = 1; i<argc; i++) {
+        puts(argv[i]); puts(" ");
+    }
+    puts("\n");
+/*
     puts("echo:\n");
     while (1)
     {
@@ -67,6 +73,7 @@ void echo(int argc, char ** argv)
             putc(c);
         }
     }
+    */
 }
 
 #define CAT_BUFFER 100
@@ -155,6 +162,7 @@ struct Process p_list[3];
 
 
 void init_process_list() {
+    puts(" + init process list... ");
     memset(p_list, 0, sizeof(struct Process) * N_PROC);
     for(int i = 0; i<N_PROC; i++) {
         //puts("fill "); printhex(i);
@@ -163,6 +171,7 @@ void init_process_list() {
 
         p_list[i].pid = i;
     }
+    puts("ok\n");
 }
 
 void exec_process(const char * path, unsigned char p_idx) {
@@ -232,6 +241,9 @@ void exec2(int argc, char ** argv) {
     while(1) {} //spin a bit, never return after sched()
 }
 
+void uptime(int argc, char ** argv) {
+    puts("System is up for "); printhex(tick_counter); puts(" ticks.\n");
+}
 
 #define STORAGE_ADDR_LOW    0x4000
 #define STORAGE_ADDR_MID    0x4001
@@ -279,20 +291,20 @@ char ** build_argv(char * str, int * argc) {
 
 
 
-#define N_CMDS 7
+#define N_CMDS 8
 
-void (*funcs[])() = {test_func, print_process_list, echo, list_files, cat, exec, exec2};
-char *cmds[] = {"s", "ps", "echo", "ls", "cat", "exec", "exec2"};
+void (*funcs[])() = {test_func, print_process_list, echo, list_files, cat, exec, exec2, uptime};
+char *cmds[] = {"s", "ps", "echo", "ls", "cat", "exec", "exec2", "uptime"};
 
 int get_cmd_idx(char *s)
 {
     int i = 0;
     for (i = 0; i < N_CMDS; i++)
     {
-        puts("cmp: "); puts(s); puts(" with "); puts(cmds[i]); puts("\n");
+        //puts("cmp: "); puts(s); puts(" with "); puts(cmds[i]); puts("\n");
         if (!strcmp(cmds[i], s))
         {
-            puts("ok!\n");
+            //puts("ok!\n");
             return i;
         }
     }
@@ -303,6 +315,9 @@ extern char __text_end;
 extern char __data_end;
 extern char __bss_end;
 
+
+
+#if 0
 char test_string_1[] = "Test string one";
 char test_string_2[] = "Test string two";
 char test_string_3[] = "Test string one";
@@ -475,27 +490,22 @@ void run_tests() {
 
 
 }
-
+#endif
 
 #include "blk.h"
 
-extern int tick_counter;
+
 void main()
 {
     char *cmd;
     int i = 0;
 
     tick_counter = 0;
-    puts("\n\nKernel\n");
-    puts("text end: "); printhex(&__text_end);
+    puts("\n\nKernel init\n");
+    puts("text end: ");   printhex(&__text_end);
     puts("\ndata end: "); printhex(&__data_end);
     puts("\nbss end : "); printhex(&__bss_end);
     puts("\n");
-
-    puts("Run tests:\n");
-    run_tests();
-    puts("Tests done\n");
-
 
     do_switch = 0;
 
@@ -514,7 +524,7 @@ void main()
 */
 
 
-    puts("Ready\n");
+    puts("Kernel ready\n");
 
 
     int cmd_idx;
@@ -526,7 +536,7 @@ void main()
         printhex(tick_counter);
         puts(" > ");
         cmd = getline();
-        puts("cmd: "); puts(cmd); puts("\n");
+        //puts("cmd: "); puts(cmd); puts("\n");
         argv = build_argv(cmd, &argc);
         cmd_idx = get_cmd_idx(argv[0]);
 

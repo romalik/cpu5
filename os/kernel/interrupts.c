@@ -48,7 +48,7 @@ extern void uart_isr();
 extern void syscall_isr();
 
 void init_interrupts() {
-    puts("init interrupts\n");
+    puts(" + init interrupts... ");
 
     asm(".section bss");
     asm(".align 2");
@@ -78,6 +78,8 @@ void init_interrupts() {
 
 
     asm("ei\n");
+
+    puts("ok\n");
 }
 
 void save_isr_ctx_to  (struct isr_ctx * dest) {

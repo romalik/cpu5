@@ -18,7 +18,7 @@ void write_tlb(unsigned char idx, unsigned char page, unsigned char value, unsig
 }
 
 void init_mmu() {
-    puts("init mmu\n");
+    puts(" + init mmu... ");
     for(char i = 0; i<0x10; i++) {
         write_tlb(0, i, i, 0xff-i);
         write_tlb(1, i, 0x10 + i, 0xff-i);
@@ -29,6 +29,7 @@ void init_mmu() {
 
     *(unsigned char *)(TLB_INDEX) = 0;
     MMU_ON();
+    puts("ok\n");
 }
 
 void write_tlb_index(unsigned char idx) {
