@@ -45,6 +45,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <csignal>
 
 #include "verilated.h"
 #include "verilated_vcd_c.h"
@@ -53,6 +54,118 @@
 #include "Vcpu5.h"
 using Top = Vcpu5;
 // -----------------------------------------------------
+
+#include <atomic>
+#include <thread>
+#include <vector>
+#include <mutex>
+#include <unistd.h>
+#include <fcntl.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <cerrno>
+#include <cstring>
+#include <queue>
+
+
+class keyboard{
+    public:
+        keyboard();
+        ~keyboard();
+        int pop();
+        int has_data();
+    private:
+        int kbhit();
+        int getch();
+        struct termios initial_settings, new_settings;
+        int peek_character;
+        std::thread thr;
+        void runner();
+        bool running;
+        std::queue<int> q;
+        size_t max_q{64};
+        std::mutex mtx;
+
+};
+    
+int keyboard::pop() {
+    std::lock_guard<std::mutex> lock(mtx);
+    if(!q.empty()) {
+        int c = q.front();
+        q.pop();
+        return c;
+    }
+    return 0;
+}
+int keyboard::has_data() {
+    std::lock_guard<std::mutex> lock(mtx);
+    return !q.empty();
+}
+        
+keyboard::keyboard(){
+    tcgetattr(0,&initial_settings);
+    new_settings = initial_settings;
+    new_settings.c_lflag &= ~ICANON;
+    new_settings.c_lflag &= ~ECHO;
+    new_settings.c_cc[VMIN] = 1;
+    new_settings.c_cc[VTIME] = 0;
+    tcsetattr(0, TCSANOW, &new_settings);
+    peek_character=-1;
+    running = true;
+    thr = std::thread(&keyboard::runner, this);
+}
+    
+keyboard::~keyboard(){
+    tcsetattr(0, TCSANOW, &initial_settings);
+    running = false;
+    thr.join();
+}
+
+void keyboard::runner() {
+    while(running) {
+        if(kbhit()) {
+            int c = getch();
+            if(q.size() < max_q) {
+                std::lock_guard<std::mutex> lock(mtx);
+                q.push(c);
+            }
+        }
+        usleep(5*1000);
+    }
+}
+
+int keyboard::kbhit(){
+    unsigned char ch;
+    int nread;
+    if (peek_character != -1) return 1;
+    new_settings.c_cc[VMIN]=0;
+    tcsetattr(0, TCSANOW, &new_settings);
+    nread = read(0,&ch,1);
+    new_settings.c_cc[VMIN]=1;
+    tcsetattr(0, TCSANOW, &new_settings);
+
+    if (nread == 1){
+        peek_character = ch;
+        return 1;
+    }
+    return 0;
+}
+    
+int keyboard::getch(){
+    char ch;
+
+    if (peek_character != -1){
+        ch = peek_character;
+        peek_character = -1;
+    }
+    else read(0,&ch,1);
+    return ch;
+}
+
 
 // Global simulation time in ps
 static vluint64_t main_time_ps = 0;
@@ -74,10 +187,87 @@ struct SimCfg {
 };
 
 
+keyboard kb;
+
+std::vector<uint8_t> mem;
+
+void mem_init() {
+    mem.resize(65536);
+}
+
+void mem_write(uint16_t addr, uint8_t val) {
+    if(addr == 0x4803) {
+        printf("%c", val);
+        fflush(stdout);
+    } else {
+        mem[addr] = val;
+    }
+}
+
+
+char test_input[] = "test\n";
+size_t c_test_idx = 0;
+
+uint8_t mem_read(uint16_t addr) {
+    if(addr == 0x4803) {
+        if(kb.has_data()) {
+            uint8_t c = kb.pop();
+            //printf(" --- read kb 0x%02x ---\n", c);
+            return c;
+        } else {
+            return 0;
+        }
+    } else {
+        return mem[addr];
+    }
+}
+
+
+void read_file(const char *filename, std::vector<uint8_t> & data) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        perror("fopen");
+    }
+
+    if (fseek(f, 0, SEEK_END) != 0) {
+        perror("fseek");
+        fclose(f);
+    }
+
+    long size = ftell(f);
+    if (size < 0) {
+        perror("ftell");
+        fclose(f);
+    }
+    rewind(f);
+
+    unsigned char *buffer = data.data();
+
+
+    size_t read = fread(buffer, 1, size, f);
+    if (read != (size_t)size) {
+        fprintf(stderr, "fread failed (read %zu of %ld)\n", read, size);
+        fclose(f);
+    }
+
+    fclose(f);
+}
+
+
+std::atomic<bool> stop_flag(false);
+
+
+void sigint_handler(int signum) {
+    if (signum == SIGINT) {
+        stop_flag.store(true, std::memory_order_relaxed);
+    }
+}
+
+
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);
-
+    std::signal(SIGINT, sigint_handler);
     SimCfg cfg;
 
     size_t tick_n = 0;
@@ -88,24 +278,30 @@ int main(int argc, char** argv) {
     VerilatedVcdC* tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open(cfg.vcd_path.c_str());
-
     top->SIM_OE = 1;
 
-    std::vector<uint8_t> mem(65535);
+    mem_init();
 
-    mem[0] = 0x03; //nop
-    mem[1] = 0x03; //nop
-    mem[2] = 0x03; //nop
+    if(argc < 2) {
+        mem[0] = 0x03; //nop
+        mem[1] = 0x03; //nop
+        mem[2] = 0x03; //nop
 
-    mem[3] = 0xde; //ldd X
-    mem[4] = 0x02;
-    mem[5] = 0x00; // 0x0001
-    
-    mem[6] = 0xaf; //jmp
+        mem[3] = 0xde; //ldd X
+        mem[4] = 0x02;
+        mem[5] = 0x00; // 0x0001
+        
+        mem[6] = 0xaf; //jmp
+    } else {
+        read_file(argv[1], mem);
+    }
+
+
+
 
     auto eval_dump = [&](){
         top->eval();
-        tfp->dump(main_time_ps);
+        //tfp->dump(main_time_ps);
     };
 
     auto set_data = [&](uint8_t v) {
@@ -140,6 +336,19 @@ int main(int argc, char** argv) {
         return v;
     };
 
+    auto get_data = [&]() -> uint16_t {
+        uint16_t v = 
+            (top->DATA0  <<  0) |
+            (top->DATA1  <<  1) |
+            (top->DATA2  <<  2) |
+            (top->DATA3  <<  3) |
+            (top->DATA4  <<  4) |
+            (top->DATA5  <<  5) |
+            (top->DATA6  <<  6) |
+            (top->DATA7  <<  7) ;
+        return v;
+    };
+
 
     auto tick = [&](){
         /*
@@ -155,14 +364,61 @@ int main(int argc, char** argv) {
 
         //printf("0x%04x : RD(%d) WR(%d)\n", SIM_A, SIM_RD, SIM_WR);
 
-        if(top->MREAD == 0) {
+
+        if(kb.has_data()) {
+            //printf("++ int3 ++\n");            
+            top->INT3 = 1;
+        } else {
+            top->INT3 = 0;
+        }
+
+
+        if((tick_n & 0xfffff) == 0) {
+            //printf("++ int0 ++\n");
+            top->INT0 = 1;
+        } else {
+            top->INT0 = 0;
+        }
+
+        static int prev_mread = 1;
+        int mread_fall = 0;
+        int mread_rise = 0;
+
+        if(prev_mread == 1 && top->MREAD == 0) {
+            mread_fall = 1;
+        }
+
+        if(prev_mread == 0 && top->MREAD == 1) {
+            mread_rise = 1;
+        }
+
+        prev_mread = top->MREAD;
+
+        if(mread_fall) {
             uint16_t addr = get_address();
-            uint8_t data = mem[addr];
-            printf("a: 0x%04x d: 0x%02x\n", addr, data);
+            uint8_t data = mem_read(addr);
+            //printf("rd a: 0x%04x d: 0x%02x\n", addr, data);
             set_data(data);
             top->SIM_OE = 0;
-        } else {
+        } 
+        if(mread_rise) {
             top->SIM_OE = 1;
+        }
+
+        static int prev_mwrite = 1;
+        int mwrite_fall = 0;
+
+        if(prev_mwrite == 1 && top->MWRITE == 0) {
+            mwrite_fall = 1;
+        }
+
+        prev_mwrite = top->MWRITE;
+
+        if(mwrite_fall == 1) {
+            uint16_t addr = get_address();
+            uint8_t data = get_data();
+            mem_write(addr, data);
+            //printf("wr a: 0x%04x d: 0x%02x\n", addr, data);
         }
 
         //printf("Addr: 0x%04X\n", SIM_A);
@@ -178,6 +434,12 @@ int main(int argc, char** argv) {
 
     auto run_n_cycles = [&](vluint64_t n){
         for (vluint64_t i=0;i<n;i++){
+            tick();
+        }
+    };
+
+    auto run_forever = [&](){
+        while(!stop_flag.load()) {
             tick();
         }
     };
@@ -201,8 +463,7 @@ int main(int argc, char** argv) {
     top->RESET = rst_inactive; eval_dump();
 
     // t2: run
-    auto n_run_cycles = (ns_to_ps(cfg.t2_run_ns) + half_period_ps - 1) / half_period_ps;
-    run_n_cycles(n_run_cycles);
+    run_forever();
 
     top->final();
     tfp->close();
@@ -210,5 +471,6 @@ int main(int argc, char** argv) {
     delete top;
 
     std::cout << "[verilator-tb] Wrote VCD to " << cfg.vcd_path << std::endl;
+    std::cout << "Exiting gracefully\n";
     return 0;
 }

@@ -6,6 +6,7 @@
 #include "fs.h"
 
 
+
 unsigned int fxnMul(unsigned int a, unsigned int b) { 
     unsigned int res = 0;
     unsigned int mask = 1;
@@ -288,8 +289,10 @@ int get_cmd_idx(char *s)
     int i = 0;
     for (i = 0; i < N_CMDS; i++)
     {
+        puts("cmp: "); puts(s); puts(" with "); puts(cmds[i]); puts("\n");
         if (!strcmp(cmds[i], s))
         {
+            puts("ok!\n");
             return i;
         }
     }
@@ -300,6 +303,179 @@ extern char __text_end;
 extern char __data_end;
 extern char __bss_end;
 
+char test_string_1[] = "Test string one";
+char test_string_2[] = "Test string two";
+char test_string_3[] = "Test string one";
+
+void run_tests() {
+
+    char a = 0xfb;
+    int ai = 0xfb;
+    char b = 0x0b;
+    int bi = 0x0b;
+
+    int zi = 0x00;
+
+    puts("a  = "); printhex(a);  puts(" !a  = "); printhex(!a);  puts("\n");
+    puts("ai = "); printhex(ai); puts(" !ai = "); printhex(!ai); puts("\n");
+    puts("b  = "); printhex(b);  puts(" !b  = "); printhex(!b);  puts("\n");
+    puts("bi = "); printhex(bi); puts(" !bi = "); printhex(!bi); puts("\n");
+
+
+    if(a) {
+        puts("(a) is true\n");
+    }
+    if(!a) {
+        puts("(!a) is true\n");
+    }
+    if(ai) {
+        puts("(ai) is true\n");
+    }
+    if(!ai) {
+        puts("(!ai) is true\n");
+    }
+
+    puts("a  -  b = "); printhex(a - b); puts("\n");
+    puts("a  +  b = "); printhex(a + b); puts("\n");
+    puts("b  -  a = "); printhex(b - a); puts("\n");
+    puts("ai - bi = "); printhex(ai-bi); puts("\n");
+    puts("ai + bi = "); printhex(ai+bi); puts("\n");
+    puts("bi - ai = "); printhex(bi-ai); puts("\n");
+    puts("ai - zi = "); printhex(ai-zi); puts("\n");
+
+
+
+    int ret = 0;
+
+    puts("strcmp \""); puts(test_string_1); puts("\" and \""); puts(test_string_2); puts("\" : ");
+    printhex(strcmp(test_string_1, test_string_2)); puts("\n");
+
+    if(!strcmp(test_string_1, test_string_2)) {
+        puts("Strings equal\n");
+    } else {
+        puts("Strings not equal\n");
+    }
+
+    ret = strcmp(test_string_1, test_string_2);
+    puts("ret  = ");
+    printhex(ret); putc('\n');
+    puts("!ret = ");
+    printhex(!ret); putc('\n');
+
+    if(!ret) {
+        puts("Strings equal (!ret)\n");
+    } else {
+        puts("Strings not equal (ret)\n");
+    }
+
+
+/*
+    unsigned char ua = 0xaa;
+    unsigned char ub = 0xbb;
+
+    char a = 0xaa;
+    char b = 0xbb;
+
+    unsigned int uai = 0xaaaa;
+    unsigned int ubi = 0xaabb;
+
+    int ai = 0xaaaa;
+    int bi = 0xaabb;
+
+    int ret = 0;
+
+    puts("strcmp \""); puts(test_string_1); puts("\" and \""); puts(test_string_2); puts("\" : ");
+    printhex(strcmp(test_string_1, test_string_2)); puts("\n");
+
+    if(!strcmp(test_string_1, test_string_2)) {
+        puts("Strings equal\n");
+    } else {
+        puts("Strings not equal\n");
+    }
+
+    ret = strcmp(test_string_1, test_string_2);
+    printhex(ret); putc('\n');
+    printhex(!ret); putc('\n');
+
+    if(!ret) {
+        puts("Strings equal\n");
+    } else {
+        puts("Strings not equal\n");
+    }
+
+
+    puts("compare uint8's\n");
+
+    printhex(ua); putc('\n');
+    printhex(ub); putc('\n');
+    if(ua == ub) {
+        puts("EQ\n");
+    } else {
+        puts("NEQ\n");
+    }
+
+    puts("compare uint16's\n");
+
+    printhex(uai); putc('\n');
+    printhex(ubi); putc('\n');
+    if(uai == ubi) {
+        puts("EQ\n");
+    } else {
+        puts("NEQ\n");
+    }
+
+    puts("compare int8's\n");
+
+    printhex(a); putc('\n');
+    printhex(b); putc('\n');
+    if(a == b) {
+        puts("EQ\n");
+    } else {
+        puts("NEQ\n");
+    }
+
+    puts("compare int16's\n");
+
+    printhex(ai); putc('\n');
+    printhex(bi); putc('\n');
+    if(ai == bi) {
+        puts("EQ\n");
+    } else {
+        puts("NEQ\n");
+    }
+
+    if(a) {
+        puts("a non zero\n");
+    }
+    if(!a) {
+        puts("a zero\n");
+    }
+    
+    if(ai) {
+        puts("ai non zero\n");
+    }
+    if(!ai) {
+        puts("ai zero\n");
+    }
+    
+    if(ua) {
+        puts("ua non zero\n");
+    }
+    if(!ua) {
+        puts("ua zero\n");
+    }
+    
+    if(uai) {
+        puts("uai non zero\n");
+    }
+    if(!uai) {
+        puts("uai zero\n");
+    }
+  */  
+
+
+}
+
 
 #include "blk.h"
 
@@ -309,27 +485,16 @@ void main()
     char *cmd;
     int i = 0;
 
-
-    puts("\n\n\nsizeof Process "); printhex(sizeof(struct Process)); puts("\n");
-/*
-    puts("sizeof Block "); printhex(sizeof(struct Block)); puts("\n");
-    i = 0;
-    puts("blockCache[0] & "); printhex(&blockCache[i]); puts("\n");
-    i = 2;
-    puts("blockCache[2] & "); printhex(&blockCache[i]); puts("\n");
-    i = 0;
-    puts("p_list[0] & "); printhex(&p_list_[i]); puts("\n");
-    i = 2;
-    puts("p_list[2] & "); printhex(&p_list_[i]); puts("\n");
-    while(1) {}
-*/
-
     tick_counter = 0;
     puts("\n\nKernel\n");
     puts("text end: "); printhex(&__text_end);
     puts("\ndata end: "); printhex(&__data_end);
     puts("\nbss end : "); printhex(&__bss_end);
     puts("\n");
+
+    puts("Run tests:\n");
+    run_tests();
+    puts("Tests done\n");
 
 
     do_switch = 0;
@@ -351,6 +516,7 @@ void main()
 
     puts("Ready\n");
 
+
     int cmd_idx;
 
     int argc;
@@ -360,7 +526,7 @@ void main()
         printhex(tick_counter);
         puts(" > ");
         cmd = getline();
-        // puts("cmd: "); puts(cmd); puts("\n");
+        puts("cmd: "); puts(cmd); puts("\n");
         argv = build_argv(cmd, &argc);
         cmd_idx = get_cmd_idx(argv[0]);
 

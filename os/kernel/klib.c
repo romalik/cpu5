@@ -149,6 +149,7 @@ char * getline() {
 
       if(!c) continue;
  
+      putc(c);
 
       if(c == '\n' || c == '\r') {
          *s = 0;

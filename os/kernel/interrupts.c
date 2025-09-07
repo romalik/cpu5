@@ -23,6 +23,10 @@ char isr_vec[] = {
 
 void __interrupt empty_isr() {
     ISR_PROLOG
+    *(unsigned char *)(0x4803) = 'E';
+    *(unsigned char *)(0x4803) = 'I';
+    *(unsigned char *)(0x4803) = 'N';
+    *(unsigned char *)(0x4803) = 'T';
     ISR_EPILOG
 }
 
@@ -34,7 +38,7 @@ void __interrupt tick_isr() {
     ISR_PROLOG
 
     tick_counter++;
-    sched();
+    //sched();
 
     ISR_EPILOG
 }
@@ -58,6 +62,7 @@ void init_interrupts() {
     memcpy((unsigned char *)(INT_VEC_0),        isr_vec, ISR_VEC_LENGTH);
     *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &tick_isr;
 
+
     memcpy((unsigned char *)(INT_VEC_1),        isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &empty_isr;
 
@@ -67,8 +72,10 @@ void init_interrupts() {
     memcpy((unsigned char *)(INT_VEC_3),        isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_3 + ISR_ADDR_OFFSET) = &uart_isr;
 
+
     memcpy((unsigned char *)(INT_VEC_SYSCALL),  isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_SYSCALL + ISR_ADDR_OFFSET) = &syscall_isr;
+
 
     asm("ei\n");
 }

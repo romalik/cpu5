@@ -426,6 +426,10 @@
     [
       "f715160f-995d-49b3-aa5d-1b9e3d537dee",
       "Memory"
+    ],
+    [
+      "ed04dbea-64e2-4785-8eda-7568be290b0f",
+      "Interrupts"
     ]
   ],
   "text_variables": {}
