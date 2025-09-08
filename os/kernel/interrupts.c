@@ -38,7 +38,7 @@ void __interrupt tick_isr() {
     ISR_PROLOG
 
     tick_counter++;
-    //sched();
+    sched();
 
     ISR_EPILOG
 }

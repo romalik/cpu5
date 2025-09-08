@@ -317,181 +317,6 @@ extern char __bss_end;
 
 
 
-#if 0
-char test_string_1[] = "Test string one";
-char test_string_2[] = "Test string two";
-char test_string_3[] = "Test string one";
-
-void run_tests() {
-
-    char a = 0xfb;
-    int ai = 0xfb;
-    char b = 0x0b;
-    int bi = 0x0b;
-
-    int zi = 0x00;
-
-    puts("a  = "); printhex(a);  puts(" !a  = "); printhex(!a);  puts("\n");
-    puts("ai = "); printhex(ai); puts(" !ai = "); printhex(!ai); puts("\n");
-    puts("b  = "); printhex(b);  puts(" !b  = "); printhex(!b);  puts("\n");
-    puts("bi = "); printhex(bi); puts(" !bi = "); printhex(!bi); puts("\n");
-
-
-    if(a) {
-        puts("(a) is true\n");
-    }
-    if(!a) {
-        puts("(!a) is true\n");
-    }
-    if(ai) {
-        puts("(ai) is true\n");
-    }
-    if(!ai) {
-        puts("(!ai) is true\n");
-    }
-
-    puts("a  -  b = "); printhex(a - b); puts("\n");
-    puts("a  +  b = "); printhex(a + b); puts("\n");
-    puts("b  -  a = "); printhex(b - a); puts("\n");
-    puts("ai - bi = "); printhex(ai-bi); puts("\n");
-    puts("ai + bi = "); printhex(ai+bi); puts("\n");
-    puts("bi - ai = "); printhex(bi-ai); puts("\n");
-    puts("ai - zi = "); printhex(ai-zi); puts("\n");
-
-
-
-    int ret = 0;
-
-    puts("strcmp \""); puts(test_string_1); puts("\" and \""); puts(test_string_2); puts("\" : ");
-    printhex(strcmp(test_string_1, test_string_2)); puts("\n");
-
-    if(!strcmp(test_string_1, test_string_2)) {
-        puts("Strings equal\n");
-    } else {
-        puts("Strings not equal\n");
-    }
-
-    ret = strcmp(test_string_1, test_string_2);
-    puts("ret  = ");
-    printhex(ret); putc('\n');
-    puts("!ret = ");
-    printhex(!ret); putc('\n');
-
-    if(!ret) {
-        puts("Strings equal (!ret)\n");
-    } else {
-        puts("Strings not equal (ret)\n");
-    }
-
-
-/*
-    unsigned char ua = 0xaa;
-    unsigned char ub = 0xbb;
-
-    char a = 0xaa;
-    char b = 0xbb;
-
-    unsigned int uai = 0xaaaa;
-    unsigned int ubi = 0xaabb;
-
-    int ai = 0xaaaa;
-    int bi = 0xaabb;
-
-    int ret = 0;
-
-    puts("strcmp \""); puts(test_string_1); puts("\" and \""); puts(test_string_2); puts("\" : ");
-    printhex(strcmp(test_string_1, test_string_2)); puts("\n");
-
-    if(!strcmp(test_string_1, test_string_2)) {
-        puts("Strings equal\n");
-    } else {
-        puts("Strings not equal\n");
-    }
-
-    ret = strcmp(test_string_1, test_string_2);
-    printhex(ret); putc('\n');
-    printhex(!ret); putc('\n');
-
-    if(!ret) {
-        puts("Strings equal\n");
-    } else {
-        puts("Strings not equal\n");
-    }
-
-
-    puts("compare uint8's\n");
-
-    printhex(ua); putc('\n');
-    printhex(ub); putc('\n');
-    if(ua == ub) {
-        puts("EQ\n");
-    } else {
-        puts("NEQ\n");
-    }
-
-    puts("compare uint16's\n");
-
-    printhex(uai); putc('\n');
-    printhex(ubi); putc('\n');
-    if(uai == ubi) {
-        puts("EQ\n");
-    } else {
-        puts("NEQ\n");
-    }
-
-    puts("compare int8's\n");
-
-    printhex(a); putc('\n');
-    printhex(b); putc('\n');
-    if(a == b) {
-        puts("EQ\n");
-    } else {
-        puts("NEQ\n");
-    }
-
-    puts("compare int16's\n");
-
-    printhex(ai); putc('\n');
-    printhex(bi); putc('\n');
-    if(ai == bi) {
-        puts("EQ\n");
-    } else {
-        puts("NEQ\n");
-    }
-
-    if(a) {
-        puts("a non zero\n");
-    }
-    if(!a) {
-        puts("a zero\n");
-    }
-    
-    if(ai) {
-        puts("ai non zero\n");
-    }
-    if(!ai) {
-        puts("ai zero\n");
-    }
-    
-    if(ua) {
-        puts("ua non zero\n");
-    }
-    if(!ua) {
-        puts("ua zero\n");
-    }
-    
-    if(uai) {
-        puts("uai non zero\n");
-    }
-    if(!uai) {
-        puts("uai zero\n");
-    }
-  */  
-
-
-}
-#endif
-
 #include "blk.h"
 
 
@@ -569,8 +394,12 @@ void sched() {
             }
             if(p_list[current_proc].status == PROCESS_RUN) {
                 puts(" to "); printhex(current_proc); puts("\n");
+
                 load_isr_ctx_from(&p_list[current_proc].ctx);
+
                 write_tlb_index(p_list[current_proc].tlb_index);
+
+
                 return;
             }
         }

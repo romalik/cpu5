@@ -186,43 +186,6 @@ struct SimCfg {
     std::string vcd_path   = "v_cpu5.vcd";
 };
 
-
-keyboard kb;
-
-std::vector<uint8_t> mem;
-
-void mem_init() {
-    mem.resize(65536);
-}
-
-void mem_write(uint16_t addr, uint8_t val) {
-    if(addr == 0x4803) {
-        printf("%c", val);
-        fflush(stdout);
-    } else {
-        mem[addr] = val;
-    }
-}
-
-
-char test_input[] = "test\n";
-size_t c_test_idx = 0;
-
-uint8_t mem_read(uint16_t addr) {
-    if(addr == 0x4803) {
-        if(kb.has_data()) {
-            uint8_t c = kb.pop();
-            //printf(" --- read kb 0x%02x ---\n", c);
-            return c;
-        } else {
-            return 0;
-        }
-    } else {
-        return mem[addr];
-    }
-}
-
-
 void read_file(const char *filename, std::vector<uint8_t> & data) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
@@ -241,6 +204,8 @@ void read_file(const char *filename, std::vector<uint8_t> & data) {
     }
     rewind(f);
 
+    data.resize(size);
+
     unsigned char *buffer = data.data();
 
 
@@ -254,6 +219,117 @@ void read_file(const char *filename, std::vector<uint8_t> & data) {
 }
 
 
+class SimpleStorage {
+public:
+    SimpleStorage() {};
+    void load(std::string path) {
+        printf("Loading HDD %s...\n", path.c_str());
+        read_file(path.c_str(), data);
+        printf("Loaded HDD %s of size %zu\n", path.c_str(), data.size());
+    }
+
+    void init(size_t sz) {
+        data.clear();
+        data.resize(sz);
+    }
+
+    void set_high_addr(uint8_t addr) {
+        c_high = addr;        
+        c_idx = 0;
+    }
+    void set_mid_addr(uint8_t addr) {
+        c_mid = addr;
+        c_idx = 0;
+    }
+    void set_low_addr(uint8_t addr) {
+        c_low = addr;
+        c_idx = 0;
+    }
+    uint8_t read() {
+        uint8_t d = data[full_addr()];
+        c_idx++;
+        return d;
+    }
+
+    void write(uint8_t d) {
+        data[full_addr()] = d;
+        c_idx++;
+    }
+
+private:
+    size_t full_addr() {
+        return c_idx | (c_mid << 8) | (c_high << 16);
+    }
+
+    std::vector<uint8_t> data;
+    uint8_t c_high{0};
+    uint8_t c_mid{0};
+    uint8_t c_low{0};
+    uint8_t c_idx{0};
+    
+
+};
+
+keyboard kb;
+SimpleStorage storage;
+
+
+int decode_mem(uint16_t addr) {
+    if(addr >= 0x8000) {
+        return 0;
+    }
+    switch(addr) {
+        case 0x4803:
+        case 0x4804:
+        case 0x4000:
+        case 0x4001:
+        case 0x4002:
+            return 1;
+            break;
+        default:
+            return 0;
+    }
+}
+
+void mem_write(uint16_t addr, uint8_t val) {
+    if(addr == 0x4803) {
+        printf("%c", val);
+        fflush(stdout);
+    } else if (addr == 0x4000) {
+        storage.set_low_addr(val);
+    } else if (addr == 0x4001) {
+        storage.set_mid_addr(val);
+    } else if (addr == 0x4002) {
+        storage.set_high_addr(val);
+    } else if (addr == 0x4804) {
+        storage.write(val);
+    } else {
+        printf("Decode error!\n");
+
+    }
+}
+
+
+uint8_t mem_read(uint16_t addr) {
+    if(addr == 0x4803) {
+        if(kb.has_data()) {
+            uint8_t c = kb.pop();
+            //printf(" --- read kb 0x%02x ---\n", c);
+            return c;
+        } else {
+            return 0;
+        }
+    } else if (addr == 0x4804) {
+        return storage.read();
+    } else {
+        printf("Decode error!\n");
+        return 0;
+    }
+}
+
+
+
+
 std::atomic<bool> stop_flag(false);
 
 
@@ -262,6 +338,26 @@ void sigint_handler(int signum) {
         stop_flag.store(true, std::memory_order_relaxed);
     }
 }
+
+
+struct Args {
+    std::string rom;
+    std::string hdd;
+};
+
+Args parse_args(int argc, char* argv[]) {
+    Args args;
+    for (int i = 1; i < argc; ++i) {
+        std::string key = argv[i];
+        if ((key == "--rom") && i + 1 < argc) {
+            args.rom = argv[++i]; // eat next arg
+        } else if ((key == "--hdd") && i + 1 < argc) {
+            args.hdd = argv[++i];
+        }
+    }
+    return args;
+}
+
 
 
 int main(int argc, char** argv) {
@@ -280,22 +376,15 @@ int main(int argc, char** argv) {
     tfp->open(cfg.vcd_path.c_str());
     top->SIM_OE = 1;
 
-    mem_init();
+    Args args = parse_args(argc,argv);
 
-    if(argc < 2) {
-        mem[0] = 0x03; //nop
-        mem[1] = 0x03; //nop
-        mem[2] = 0x03; //nop
 
-        mem[3] = 0xde; //ldd X
-        mem[4] = 0x02;
-        mem[5] = 0x00; // 0x0001
-        
-        mem[6] = 0xaf; //jmp
+
+    if(args.hdd.empty()) {
+        storage.init(65536*256);
     } else {
-        read_file(argv[1], mem);
+        storage.load(args.hdd);
     }
-
 
 
 
@@ -393,9 +482,9 @@ int main(int argc, char** argv) {
         }
 
         prev_mread = top->MREAD;
+        uint16_t addr = get_address();
 
-        if(mread_fall) {
-            uint16_t addr = get_address();
+        if(mread_fall && decode_mem(addr)) {
             uint8_t data = mem_read(addr);
             //printf("rd a: 0x%04x d: 0x%02x\n", addr, data);
             set_data(data);
@@ -414,7 +503,7 @@ int main(int argc, char** argv) {
 
         prev_mwrite = top->MWRITE;
 
-        if(mwrite_fall == 1) {
+        if(mwrite_fall == 1 && decode_mem(addr)) {
             uint16_t addr = get_address();
             uint8_t data = get_data();
             mem_write(addr, data);
@@ -456,8 +545,20 @@ int main(int argc, char** argv) {
     eval_dump();
 
     // t1: hold reset
+
+    size_t ticks_before = tick_n;
+    auto calib_time_start = std::chrono::steady_clock::now();
+
     auto n_reset_cycles = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
     run_n_cycles(n_reset_cycles);
+
+    size_t ticks_after = tick_n;
+    auto calib_time_end = std::chrono::steady_clock::now();
+
+
+    std::chrono::duration<double> diff = calib_time_end - calib_time_start;
+    double calib_freq_mhz = (static_cast<double>(ticks_after - ticks_before) / diff.count()) / 1000000.0;
+    printf("Main clock freq %f MHz\n", calib_freq_mhz);
 
     // release
     top->RESET = rst_inactive; eval_dump();
