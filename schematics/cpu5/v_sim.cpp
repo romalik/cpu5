@@ -46,15 +46,6 @@
 #include <vector>
 #include <iostream>
 #include <csignal>
-
-#include "verilated.h"
-#include "verilated_vcd_c.h"
-
-// ---- CHANGE HERE if your top module isn't 'cpu5' ----
-#include "Vcpu5.h"
-using Top = Vcpu5;
-// -----------------------------------------------------
-
 #include <atomic>
 #include <thread>
 #include <vector>
@@ -70,6 +61,26 @@ using Top = Vcpu5;
 #include <cerrno>
 #include <cstring>
 #include <queue>
+
+
+#ifndef VSIM_TRACE
+#define VSIM_TRACE 0
+#endif
+
+
+#include "verilated.h"
+
+#if VSIM_TRACE
+#include "verilated_vcd_c.h"
+#endif
+
+// ---- CHANGE HERE if your top module isn't 'cpu5' ----
+#include "Vcpu5.h"
+using Top = Vcpu5;
+// -----------------------------------------------------
+
+
+
 
 
 class keyboard{
@@ -89,6 +100,7 @@ class keyboard{
         std::queue<int> q;
         size_t max_q{64};
         std::mutex mtx;
+        std::atomic<bool> has_data_atomic{false};
 
 };
     
@@ -97,13 +109,15 @@ int keyboard::pop() {
     if(!q.empty()) {
         int c = q.front();
         q.pop();
+        if(q.empty()) {
+            has_data_atomic.store(false);
+        }
         return c;
     }
     return 0;
 }
 int keyboard::has_data() {
-    std::lock_guard<std::mutex> lock(mtx);
-    return !q.empty();
+    return has_data_atomic.load();
 }
         
 keyboard::keyboard(){
@@ -132,6 +146,7 @@ void keyboard::runner() {
             if(q.size() < max_q) {
                 std::lock_guard<std::mutex> lock(mtx);
                 q.push(c);
+                has_data_atomic.store(true);
             }
         }
         usleep(5*1000);
@@ -362,7 +377,8 @@ Args parse_args(int argc, char* argv[]) {
 
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
+
+
     std::signal(SIGINT, sigint_handler);
     SimCfg cfg;
 
@@ -371,9 +387,17 @@ int main(int argc, char** argv) {
     const vluint64_t half_period_ps = ns_to_ps(cfg.period_ns) / 2;
 
     Top* top = new Top;
+
+
+#if VSIM_TRACE
+    Verilated::traceEverOn(true);
     VerilatedVcdC* tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open(cfg.vcd_path.c_str());
+    printf("Tracing enabled\n");
+#endif
+
+
     top->SIM_OE = 1;
 
     Args args = parse_args(argc,argv);
@@ -390,7 +414,9 @@ int main(int argc, char** argv) {
 
     auto eval_dump = [&](){
         top->eval();
-        //tfp->dump(main_time_ps);
+#if VSIM_TRACE        
+        tfp->dump(main_time_ps);
+#endif
     };
 
     auto set_data = [&](uint8_t v) {
@@ -482,13 +508,15 @@ int main(int argc, char** argv) {
         }
 
         prev_mread = top->MREAD;
-        uint16_t addr = get_address();
 
-        if(mread_fall && decode_mem(addr)) {
-            uint8_t data = mem_read(addr);
-            //printf("rd a: 0x%04x d: 0x%02x\n", addr, data);
-            set_data(data);
-            top->SIM_OE = 0;
+        if(mread_fall) {
+            uint16_t addr = get_address();
+            if(decode_mem(addr)) {
+                uint8_t data = mem_read(addr);
+                //printf("rd a: 0x%04x d: 0x%02x\n", addr, data);
+                set_data(data);
+                top->SIM_OE = 0;
+            }
         } 
         if(mread_rise) {
             top->SIM_OE = 1;
@@ -503,11 +531,13 @@ int main(int argc, char** argv) {
 
         prev_mwrite = top->MWRITE;
 
-        if(mwrite_fall == 1 && decode_mem(addr)) {
+        if(mwrite_fall == 1) {
             uint16_t addr = get_address();
-            uint8_t data = get_data();
-            mem_write(addr, data);
-            //printf("wr a: 0x%04x d: 0x%02x\n", addr, data);
+            if(decode_mem(addr)) {
+                uint8_t data = get_data();
+                mem_write(addr, data);
+                //printf("wr a: 0x%04x d: 0x%02x\n", addr, data);
+            }
         }
 
         //printf("Addr: 0x%04X\n", SIM_A);
@@ -546,11 +576,21 @@ int main(int argc, char** argv) {
 
     // t1: hold reset
 
-    size_t ticks_before = tick_n;
-    auto calib_time_start = std::chrono::steady_clock::now();
 
     auto n_reset_cycles = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
     run_n_cycles(n_reset_cycles);
+
+
+    // release
+    top->RESET = rst_inactive; eval_dump();
+
+
+
+    size_t ticks_before = tick_n;
+    auto calib_time_start = std::chrono::steady_clock::now();
+
+    // t2: run
+    run_forever();
 
     size_t ticks_after = tick_n;
     auto calib_time_end = std::chrono::steady_clock::now();
@@ -558,20 +598,16 @@ int main(int argc, char** argv) {
 
     std::chrono::duration<double> diff = calib_time_end - calib_time_start;
     double calib_freq_mhz = (static_cast<double>(ticks_after - ticks_before) / diff.count()) / 1000000.0;
-    printf("Main clock freq %f MHz\n", calib_freq_mhz);
-
-    // release
-    top->RESET = rst_inactive; eval_dump();
-
-    // t2: run
-    run_forever();
+    printf("\n\nMain clock freq %f MHz\n", calib_freq_mhz);
 
     top->final();
+#if VSIM_TRACE      
     tfp->close();
     delete tfp;
+    std::cout << "[verilator-tb] Wrote VCD to " << cfg.vcd_path << std::endl;
+#endif
     delete top;
 
-    std::cout << "[verilator-tb] Wrote VCD to " << cfg.vcd_path << std::endl;
     std::cout << "Exiting gracefully\n";
     return 0;
 }
