@@ -382,7 +382,7 @@ void main()
 
 void sched() {
     if(do_switch) {
-        if(tick_counter & 0x07) return;
+        if(tick_counter & 0x03) return;
 
         puts("\n#sw from "); printhex(current_proc);
         save_isr_ctx_to(&p_list[current_proc].ctx);
