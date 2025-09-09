@@ -43,9 +43,9 @@ void __interrupt tick_isr() {
     ISR_EPILOG
 }
 
-#define MMU_FAULT_REG_0 (*(unsigned char *)(0x4804))
-#define MMU_FAULT_REG_1 (*(unsigned char *)(0x4805))
-#define MMU_FAULT_REG_2 (*(unsigned char *)(0x4806))
+#define MMU_FAULT_REG_0 (*(unsigned char *)(0x4805))
+#define MMU_FAULT_REG_1 (*(unsigned char *)(0x4806))
+#define MMU_FAULT_REG_2 (*(unsigned char *)(0x4807))
 
 void __interrupt page_fault() {
     ISR_PROLOG

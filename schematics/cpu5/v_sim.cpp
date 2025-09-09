@@ -487,7 +487,6 @@ int main(int argc, char** argv) {
             top->INT3 = 0;
         }
 
-
         if((tick_n & 0xfffff) == 0) {
             //printf("++ int0 ++\n");
             top->INT0 = 1;

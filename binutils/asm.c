@@ -420,7 +420,7 @@ void gen_instruction() {
     emit(0xf5);
   } else if(!strcmp(token, "syscall")) {
     count("syscall", 1);
-    emit(0xff);
+    emit(0x1f);
   } else if((arg = find_keyword(alu_args, token)) != 0xFF) {
     generate_alu(arg);
   } else if((arg = find_keyword(jumps, token)) != 0xFF) {

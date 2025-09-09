@@ -120,7 +120,9 @@ void parse_error(int str_num) {
 bool parse_words(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end, std::vector<std::string> & target) {
   for(auto it = begin; it != end; ++it) {
     std::string id = *it;
-    if(alias.find(id) != alias.end()) {
+    if(id == "!override") {
+      target.push_back(id);
+    } else if(alias.find(id) != alias.end()) {
       target.insert(target.end(), alias[id].begin(), alias[id].end());
     } else if(control_lines.find(id) != control_lines.end()) {
       target.push_back(id);
@@ -302,10 +304,13 @@ std::vector<uint64_t> get_address_vector(const std::string & address_mask) {
 }
 
 
-uint64_t get_word_for_instr(uint64_t default_word, const std::vector<std::string> & instr) {
+uint64_t get_word_for_instr(uint64_t default_word, const std::vector<std::string> & instr, bool & fl_override) {
   uint64_t word = default_word;
+  fl_override = false;
   for(const auto & cl : instr) {
-    if(control_lines.find(cl) == control_lines.end()) {
+    if(cl == "!override") {
+      fl_override = true;
+    } else if(control_lines.find(cl) == control_lines.end()) {
       printf("Unknown control line %s\n", cl.c_str());
       exit(1);
     }
@@ -331,11 +336,12 @@ void compile() {
   
 
   for(const auto & instr : m_instr_lines) {
+    bool fl_override = false;
     auto adr_vec = get_address_vector(instr.first);
-    uint64_t word = get_word_for_instr(default_word, instr.second);
+    uint64_t word = get_word_for_instr(default_word, instr.second, fl_override);
 
     for(const auto & adr : adr_vec) {
-      if(visited_mask[adr]) {
+      if(visited_mask[adr] && !fl_override) {
         printf("Double write at addr %s\n", bin_to_str(adr, config["address_width"]).c_str());
         exit(1);
       }
@@ -349,7 +355,8 @@ void compile() {
   }
 
   size_t unused_cnt = 0;
-  uint64_t unused_word = get_word_for_instr(default_word, parsed_unused_words);
+  bool fl_override = 0;
+  uint64_t unused_word = get_word_for_instr(default_word, parsed_unused_words, fl_override);
   for(uint64_t addr = 0; addr < (1ULL << config["address_width"]); addr++) {
     if(visited_mask[addr] != 1) {
       image[addr] = unused_word;
