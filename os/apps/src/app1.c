@@ -24,6 +24,6 @@ int main() {
     int i, j;
     puts("This is app 1\n");
     while(1) {
-        puts("app1\n");
+        puts("1");
     }
 }

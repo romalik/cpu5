@@ -30,7 +30,7 @@ $(MDIR_FAST)/V$(TOP).mk: $(VSRCS) v_sim.cpp
 	verilator -cc $(VSRCS) $(INCLUDES) $(VERILATOR_FLAGS_COMMON) \
 	  --Mdir $(MDIR_FAST) \
 	  --exe v_sim.cpp \
-	  -CFLAGS "$(COPT) -DVSIM_TRACE=0" \
+	  -CFLAGS "$(COPT) -DVSIM_TRACE=0 -DVL_DEBUG" \
 	  -LDFLAGS "-flto -pthread"
 
 $(OUT_FAST): $(MDIR_FAST)/V$(TOP).mk

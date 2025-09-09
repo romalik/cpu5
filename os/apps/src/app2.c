@@ -24,6 +24,9 @@ int main() {
     int i, j;
     while(1) {
         puts("Hello from app2!\n");
+        while(1) {
+            putc('2');
+        }
         for(i = 10; i>0; i--) {
             for(j = 0; j<i; j++) {
                 putc('*');

@@ -20,10 +20,10 @@ void write_tlb(unsigned char idx, unsigned char page, unsigned char value, unsig
 void init_mmu() {
     puts(" + init mmu... ");
     for(char i = 0; i<0x10; i++) {
-        write_tlb(0, i, i, 0xff-i);
-        write_tlb(1, i, 0x10 + i, 0xff-i);
-        write_tlb(2, i, 0x20 + i, 0xff-i);
-        write_tlb(3, i, 0x30 + i, 0xff-i);
+        write_tlb(0, i, i, 3);
+        write_tlb(1, i, 0x10 + i, 3);
+        write_tlb(2, i, 0x20 + i, 0);
+        write_tlb(3, i, 0x30 + i, 3);
     }
 
 

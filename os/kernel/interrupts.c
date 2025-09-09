@@ -43,6 +43,36 @@ void __interrupt tick_isr() {
     ISR_EPILOG
 }
 
+#define MMU_FAULT_REG_0 (*(unsigned char *)(0x4804))
+#define MMU_FAULT_REG_1 (*(unsigned char *)(0x4805))
+#define MMU_FAULT_REG_2 (*(unsigned char *)(0x4806))
+
+void __interrupt page_fault() {
+    ISR_PROLOG
+    *(unsigned char *)(0x4803) = 'P';
+    *(unsigned char *)(0x4803) = 'F';
+    *(unsigned char *)(0x4803) = 'L';
+    *(unsigned char *)(0x4803) = 'T';
+    *(unsigned char *)(0x4803) = '\n';
+
+/*
+    unsigned int base_addr = (((unsigned int)*(unsigned char *)(0x4805)) << 8) | (((unsigned int)*(unsigned char *)(0x4804)));
+    unsigned int ext_addr = (*(unsigned char *)(0x4806)) & 0x0f;
+    unsigned int flags = (*(unsigned char *)(0x4806) & 0x0f) >> 4;
+
+
+    puts("Fault addr base: "); printhex(base_addr); puts("\n");
+    puts("Fault addr ext : "); printhex(ext_addr);  puts("\n");
+    puts("Flags          : "); printhex(flags); puts("\n");
+*/
+    puts("REG0: "); printhex(MMU_FAULT_REG_0); puts("\n");
+    puts("REG1: "); printhex(MMU_FAULT_REG_1);  puts("\n");
+    puts("REG2: "); printhex(MMU_FAULT_REG_2); puts("\n");
+
+
+    ISR_EPILOG
+}
+
 
 extern void uart_isr();
 extern void syscall_isr();
@@ -64,7 +94,7 @@ void init_interrupts() {
 
 
     memcpy((unsigned char *)(INT_VEC_1),        isr_vec, ISR_VEC_LENGTH);    
-    *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &empty_isr;
+    *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &page_fault;
 
     memcpy((unsigned char *)(INT_VEC_2),        isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_2 + ISR_ADDR_OFFSET) = &empty_isr;

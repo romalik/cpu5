@@ -384,16 +384,16 @@ void sched() {
     if(do_switch) {
         if(tick_counter & 0x03) return;
 
-        puts("\n#sw from "); printhex(current_proc);
+        //puts("\n#sw from "); printhex(current_proc);
         save_isr_ctx_to(&p_list[current_proc].ctx);
         while(1) {
             current_proc++;
             if(current_proc >= N_PROC) {
-                puts(" .ovf. ");
+                //puts(" .ovf. ");
                 current_proc = 0;
             }
             if(p_list[current_proc].status == PROCESS_RUN) {
-                puts(" to "); printhex(current_proc); puts("\n");
+                //puts(" to "); printhex(current_proc); puts("\n");
 
                 load_isr_ctx_from(&p_list[current_proc].ctx);
 
