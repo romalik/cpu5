@@ -1,5 +1,6 @@
 #include "klib.h"
 #include "interrupts.h"
+#include "mmu.h"
 
 #define ISR_VEC_LENGTH 8
 #define ISR_ADDR_OFFSET 5
@@ -43,9 +44,8 @@ void __interrupt tick_isr() {
     ISR_EPILOG
 }
 
-#define MMU_FAULT_REG_0 (*(unsigned char *)(0x4805))
-#define MMU_FAULT_REG_1 (*(unsigned char *)(0x4806))
-#define MMU_FAULT_REG_2 (*(unsigned char *)(0x4807))
+#define MMU_FAULT_IDX         (*(unsigned char *)(0x4805))
+#define MMU_FAULT_PAGE_CAUSE  (*(unsigned char *)(0x4806))
 
 void __interrupt page_fault() {
     ISR_PROLOG
@@ -55,22 +55,33 @@ void __interrupt page_fault() {
     *(unsigned char *)(0x4803) = 'T';
     *(unsigned char *)(0x4803) = '\n';
 
-/*
-    unsigned int base_addr = (((unsigned int)*(unsigned char *)(0x4805)) << 8) | (((unsigned int)*(unsigned char *)(0x4804)));
-    unsigned int ext_addr = (*(unsigned char *)(0x4806)) & 0x0f;
-    unsigned int flags = (*(unsigned char *)(0x4806) & 0x0f) >> 4;
+    unsigned char page_cause = MMU_FAULT_PAGE_CAUSE;
+    unsigned char page = page_cause & 0x0f;
+    
+
+    puts("IDX : "); printhex(MMU_FAULT_IDX);    puts("\n");
+    puts("PAGE: "); printhex(page);             puts("\n");
+    puts("CAUSE:"); printhex(page_cause);       puts("\n");
+
+    /*
+    puts("Write ALL\n");
+    for(char i = 0; i<0x10; i++) {
+        write_tlb(2, i, 0x20 + i, 3);
+    }
+    */
 
 
-    puts("Fault addr base: "); printhex(base_addr); puts("\n");
-    puts("Fault addr ext : "); printhex(ext_addr);  puts("\n");
-    puts("Flags          : "); printhex(flags); puts("\n");
-*/
-    puts("REG0: "); printhex(MMU_FAULT_REG_0); puts("\n");
-    puts("REG1: "); printhex(MMU_FAULT_REG_1);  puts("\n");
-    puts("REG2: "); printhex(MMU_FAULT_REG_2); puts("\n");
+    if(page_cause & 0x10) {
+        puts("BAD READ\nwrite 0x01\n");
+        write_tlb(MMU_FAULT_IDX, page, 0x20 + page, 1);
+    }
+    if(page_cause & 0x20) {
+        puts("BAD WRITE\nwrite 0x03\n");
+        write_tlb(MMU_FAULT_IDX, page, 0x20 + page, 3);
+    }
 
 
-    ISR_EPILOG
+    FAULT_EPILOG
 }
 
 
@@ -90,11 +101,11 @@ void init_interrupts() {
     asm(".section text");
 
     memcpy((unsigned char *)(INT_VEC_0),        isr_vec, ISR_VEC_LENGTH);
-    *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &tick_isr;
+    *(unsigned int *)(INT_VEC_0 + ISR_ADDR_OFFSET) = &page_fault;
 
 
     memcpy((unsigned char *)(INT_VEC_1),        isr_vec, ISR_VEC_LENGTH);    
-    *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &page_fault;
+    *(unsigned int *)(INT_VEC_1 + ISR_ADDR_OFFSET) = &tick_isr;
 
     memcpy((unsigned char *)(INT_VEC_2),        isr_vec, ISR_VEC_LENGTH);    
     *(unsigned int *)(INT_VEC_2 + ISR_ADDR_OFFSET) = &empty_isr;

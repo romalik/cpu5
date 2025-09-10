@@ -35,6 +35,21 @@
                         asm("iret");
 
 
+#define FAULT_EPILOG    asm("ldd S, 0xfff7"); \
+                        asm("pop A"); \
+                        asm("mov B, A"); \
+                        asm("pop A"); \
+                        asm("mov F, A"); \
+                        asm("pop A"); \
+                        asm("mov ML, A"); \
+                        asm("pop A"); \
+                        asm("mov MH, A"); \
+                        asm("pop A"); \
+                        asm("mov XL, A"); \
+                        asm("pop A"); \
+                        asm("mov XH, A"); \
+                        asm("iretf");
+
 void init_interrupts();
 
 /*

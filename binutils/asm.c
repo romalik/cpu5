@@ -400,6 +400,9 @@ void gen_instruction() {
   } else if(!strcmp(token, "iret")) {
     count("iret", 1);
     emit(0x0f);
+  } else if(!strcmp(token, "iretf")) {
+    count("iretf", 1);
+    emit(0x2f);
   } else if(!strcmp(token, "movms")) {
     count("movms", 1);
     emit(0xef);
