@@ -9,5 +9,6 @@
 
 void init_mmu();
 void write_tlb(unsigned char idx, unsigned char page, unsigned char value, unsigned char flags);
+void write_tlbf(unsigned char idx, unsigned char page, unsigned char flags);
 void write_tlb_index(unsigned char idx);
 #endif

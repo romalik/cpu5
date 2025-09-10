@@ -8,43 +8,23 @@ module at28c64_rom #(
     input         nOE,
     input         nWE
 );
-    reg [7:0] mem [0:8191];
+  import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
+  import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
+    //reg [7:0] mem [0:8191];
 
     // Tristate read
     wire enable = ~nCE & ~nOE;
-    assign D = enable ? mem[A] : 8'bz;
+    assign D = enable ? verilator_mem_read(A, ROM_INDEX) : 8'bz;
 
     wire [7:0] din = D; // read the bus value driven by host
     always @(negedge nWE) begin
         if (~nCE) begin
-            mem[A] <= din;
+            verilator_mem_write(A, din, ROM_INDEX);
         end
     end
 
 
-    // ===== ELABORATION-TIME SELECTION OF THE FILE =====
-    generate
-        if (ROM_INDEX == 0) begin : g0
-            initial $readmemh("microcode_0.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 1) begin : g1
-            initial $readmemh("microcode_1.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 2) begin : g2
-            initial $readmemh("alu_low.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 3) begin : g3
-            initial $readmemh("alu_high.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == -1) begin : g3
-            // Empty
-        end else begin : g_bad
-            initial begin
-                $display("FATAL: Unsupported ROM_INDEX=%0d for at28c64_rom", ROM_INDEX);
-                $finish;
-            end
-        end
-    endgenerate
+
 
 endmodule
 
@@ -58,47 +38,21 @@ module at28c256_rom #(
     input         nOE,
     input         nWE
 );
-    reg [7:0] mem [0:32767];
+    //reg [7:0] mem [0:32767];
+  import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
+  import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
 
     // Tristate read
     wire enable = ~nCE & ~nOE;
-    assign D = enable ? mem[A] : 8'bz;
+    assign D = enable ? verilator_mem_read(A, ROM_INDEX) : 8'bz;
 
 
     wire [7:0] din = D; // read the bus value driven by host
     always @(negedge nWE) begin
         if (~nCE) begin
-            mem[A] <= din;
+            verilator_mem_write(A, din, ROM_INDEX);
         end
     end
-
-
-    // ===== ELABORATION-TIME SELECTION OF THE FILE =====
-    generate
-        if (ROM_INDEX == 0) begin : g0
-            initial $readmemh("microcode_0.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 1) begin : g1
-            initial $readmemh("microcode_1.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 2) begin : g2
-            initial $readmemh("alu_low.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 3) begin : g3
-            initial $readmemh("alu_high.bin.vhex", mem);
-        end else
-        if (ROM_INDEX == 4) begin : g4
-            initial $readmemh("rom.bin.vhex", mem);
-	    end else
-        if (ROM_INDEX == -1) begin : g5
-            // Empty
-        end else begin : g_bad
-            initial begin
-                $display("FATAL: Unsupported ROM_INDEX=%0d for at28c256_rom", ROM_INDEX);
-                $finish;
-            end
-        end
-    endgenerate
 
 endmodule
 
@@ -113,17 +67,22 @@ module ram_512 #(
     input         nOE,
     input         nWE
 );
-    reg [7:0] mem [0:524287];
+
+  import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
+  import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
+
+    //reg [7:0] mem [0:524287];
 
     // Tristate read
     wire enable = ~nCE & ~nOE;
-    assign D = enable ? mem[A] : 8'bz;
+    //assign D = enable ? mem[A] : 8'bz;
+    assign D = enable ? verilator_mem_read(A, ROM_INDEX) : 8'bz;
 
 
     wire [7:0] din = D; // read the bus value driven by host
     always @(negedge nWE) begin
         if (~nCE) begin
-            mem[A] <= din;
+            verilator_mem_write(A, din, ROM_INDEX);
         end
     end
 endmodule

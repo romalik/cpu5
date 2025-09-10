@@ -44,7 +44,7 @@ assign RCO_current = ENT && (&Q_current);
 
 //------------------------------------------------//
 
-assign #(DELAY_RISE, DELAY_FALL) RCO = RCO_current;
-assign #(DELAY_RISE, DELAY_FALL) Q = Q_current;
+assign RCO = RCO_current;
+assign Q = Q_current;
 
 endmodule

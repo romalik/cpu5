@@ -15,5 +15,5 @@ module ttl_74574 #(
     end
 
     // Tri-state outputs (Verilator supports Z on nets; if you want no-Z modeling, gate externally)
-    assign #(DELAY_RISE, DELAY_FALL) Y = (OE_bar == 1'b0) ? q : {WIDTH{1'bz}};
+    assign Y = (OE_bar == 1'b0) ? q : {WIDTH{1'bz}};
 endmodule

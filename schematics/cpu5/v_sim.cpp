@@ -38,28 +38,24 @@
 //
 // NOTE: If your top module isn't 'cpu5', change the include ("Vcpu5.h") and class (Vcpu5) below.
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstdint>
-#include <cmath>
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
 #include <vector>
 #include <iostream>
-#include <csignal>
+#include <signal.h>
 #include <atomic>
 #include <thread>
 #include <vector>
 #include <mutex>
 #include <unistd.h>
 #include <fcntl.h>
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
+#include <errno.h>
+#include <string.h>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <cerrno>
-#include <cstring>
 #include <queue>
 
 
@@ -79,8 +75,69 @@
 using Top = Vcpu5;
 // -----------------------------------------------------
 
+void read_file(const char *filename, std::vector<uint8_t> & data) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        perror("fopen");
+    }
+
+    if (fseek(f, 0, SEEK_END) != 0) {
+        perror("fseek");
+        fclose(f);
+    }
+
+    long size = ftell(f);
+    if (size < 0) {
+        perror("ftell");
+        fclose(f);
+    }
+    rewind(f);
+
+    data.resize(size);
+
+    unsigned char *buffer = data.data();
 
 
+    size_t read = fread(buffer, 1, size, f);
+    if (read != (size_t)size) {
+        fprintf(stderr, "fread failed (read %zu of %ld)\n", read, size);
+        fclose(f);
+    }
+
+    fclose(f);
+}
+
+
+extern "C" {
+static std::vector<std::vector<uint8_t>> MEMs(1<<19);
+
+char verilator_mem_read (int addr, int mem_idx) {
+    return MEMs[mem_idx][addr];
+}
+void verilator_mem_write(int addr, char data, int mem_idx) {
+    MEMs[mem_idx][addr] = data;
+}
+
+void verilator_mem_init() {
+    MEMs.resize(20);
+    std::vector<std::string> files = {
+        "microcode_0.bin",
+        "microcode_1.bin",
+        "alu_low.bin",
+        "alu_high.bin",
+        "rom.bin"
+    };
+
+    for(auto & mem : MEMs) {
+        mem.resize(1000000);
+    }
+
+    for(size_t i = 0; i<files.size(); i++) {
+        read_file(files[i].c_str(), MEMs[i]);
+    }
+}
+
+}
 
 
 class keyboard{
@@ -201,37 +258,6 @@ struct SimCfg {
     std::string vcd_path   = "v_cpu5.vcd";
 };
 
-void read_file(const char *filename, std::vector<uint8_t> & data) {
-    FILE *f = fopen(filename, "rb");
-    if (!f) {
-        perror("fopen");
-    }
-
-    if (fseek(f, 0, SEEK_END) != 0) {
-        perror("fseek");
-        fclose(f);
-    }
-
-    long size = ftell(f);
-    if (size < 0) {
-        perror("ftell");
-        fclose(f);
-    }
-    rewind(f);
-
-    data.resize(size);
-
-    unsigned char *buffer = data.data();
-
-
-    size_t read = fread(buffer, 1, size, f);
-    if (read != (size_t)size) {
-        fprintf(stderr, "fread failed (read %zu of %ld)\n", read, size);
-        fclose(f);
-    }
-
-    fclose(f);
-}
 
 
 class SimpleStorage {
@@ -378,8 +404,9 @@ Args parse_args(int argc, char* argv[]) {
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
 
+    verilator_mem_init();
 
-    std::signal(SIGINT, sigint_handler);
+    signal(SIGINT, sigint_handler);
     SimCfg cfg;
 
     size_t tick_n = 0;
@@ -540,11 +567,11 @@ int main(int argc, char** argv) {
         }
 
         //printf("Addr: 0x%04X\n", SIM_A);
-        top->CLOCK = tick_n & 0x01; // rename if not CLOCK
+        top->CLOCK = tick_n & 0x01;
         eval_dump();
         main_time_ps += half_period_ps;
         tick_n++;
-        top->CLOCK = tick_n & 0x01; // rename if not CLOCK
+        top->CLOCK = tick_n & 0x01; 
         eval_dump();
         main_time_ps += half_period_ps;
         tick_n++;
@@ -575,21 +602,20 @@ int main(int argc, char** argv) {
 
     // t1: hold reset
 
-
-    auto n_reset_cycles = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
-    run_n_cycles(n_reset_cycles);
-
-
-    // release
-    top->RESET = rst_inactive; eval_dump();
-
-
-
     size_t ticks_before = tick_n;
     auto calib_time_start = std::chrono::steady_clock::now();
 
-    // t2: run
-    run_forever();
+    for(size_t i = 0; i<100000; i++) {
+        top->CLOCK = tick_n & 0x01;
+        eval_dump();
+        main_time_ps += half_period_ps;
+        tick_n++;
+        top->CLOCK = tick_n & 0x01;
+        eval_dump();
+        main_time_ps += half_period_ps;
+        tick_n++;
+    }
+
 
     size_t ticks_after = tick_n;
     auto calib_time_end = std::chrono::steady_clock::now();
@@ -599,6 +625,28 @@ int main(int argc, char** argv) {
     double calib_freq_mhz = (static_cast<double>(ticks_after - ticks_before) / diff.count()) / 1000000.0;
     printf("\n\nMain clock freq %f MHz\n", calib_freq_mhz);
 
+
+
+    auto n_reset_cycles = (ns_to_ps(cfg.t1_reset_low_ns) + half_period_ps - 1) / half_period_ps;
+    run_n_cycles(n_reset_cycles);
+
+
+    // release
+    top->RESET = rst_inactive; eval_dump();
+
+
+    ticks_before = tick_n;
+    calib_time_start = std::chrono::steady_clock::now();
+    // t2: run
+    run_forever();
+    ticks_after = tick_n;
+    calib_time_end = std::chrono::steady_clock::now();
+    
+    diff = calib_time_end - calib_time_start;
+    calib_freq_mhz = (static_cast<double>(ticks_after - ticks_before) / diff.count()) / 1000000.0;
+    printf("\n\nMain clock freq %f MHz\n", calib_freq_mhz);
+    
+    
     top->final();
 #if VSIM_TRACE      
     tfp->close();

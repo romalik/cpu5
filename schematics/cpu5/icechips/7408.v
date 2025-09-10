@@ -30,5 +30,5 @@ module ttl_7408 #(
         end
     end
 
-    assign #(DELAY_RISE, DELAY_FALL) Y = computed;
+    assign Y = computed;
 endmodule

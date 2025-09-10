@@ -24,11 +24,17 @@ unsigned char sys_putchar() {
     return 0;
 }
 
-#define NR_SYSCALL 2
+unsigned char sys_getchar() {
+    *ISR_CTX_B = getc();
+    return 0;
+}
 
-unsigned char (*sys_table[])() = {
+#define NR_SYSCALL 3
+
+unsigned char (*sys_table[NR_SYSCALL])() = {
     sys_none, 
-    sys_putchar
+    sys_putchar,
+    sys_getchar
 };
 
 

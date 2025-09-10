@@ -15,6 +15,6 @@ begin
 end
 //------------------------------------------------//
 
-assign #(DELAY_RISE, DELAY_FALL) Y = computed;
+assign Y = computed;
 
 endmodule

@@ -1,56 +1,69 @@
-TOP        ?= cpu5
-VSRCS      ?= helper.v cpu5.v
-INCLUDES   ?= -Iicechips/
+# =========[ VERILATOR + CLANG/LLD @ MAX NITRO ]=========
+# Top + sources
+TOP         := cpu5
+RTL_TOP     := cpu5.v
+RTL_HELPERS := helper.v
+HARNESS     := v_sim.cpp
 
-OUT_FAST   ?= v_sim
-OUT_WAVES  ?= v_sim_waves
-MDIR_FAST  ?= obj_fast
-MDIR_WAVES ?= obj_waves
+# Verilog include dir (you do `\`include "icechips/xxx.v"` inside RTL)
+ICECHIPS_DIR := icechips
 
-# use all cores for inner builds
-NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu || echo 4)
-MAKEFLAGS += -j$(NPROC)
+# Build dir + final binary
+MDIR        := verilator_build
+BIN         := v_sim
 
-# core verilator flags
-VERILATOR_FLAGS_COMMON = --timescale-override 1ns/1ps \
-                         -Wno-UNOPTFLAT \
-                         --top-module $(TOP) \
-                         --output-split 15000
+# Tools — LLVM stack only
+VERILATOR   = verilator
 
-# final optimization (APPENDED LAST via OPT_FAST — wins over any -Os)
-OFAST = -O3 -march=native -mtune=native -DNDEBUG -fomit-frame-pointer -funroll-loops -flto
-# early C++ flags (safe to pass via -CFLAGS)
-COPT  = -pipe -fno-exceptions -fno-rtti -pthread
+# Host compile/link flags — MAXIMUM AGRESSION
+COMMON_OPTS := -O3 -march=native -mtune=native -DNDEBUG -fno-exceptions -fno-rtti
+CXXSTD      := -std=c++17
+THREAD_OPTS := -pthread
+LTO_OPTS    := -fuse-ld=lld
+CFLAGS      := $(COMMON_OPTS)
+CXXFLAGS    := $(CXXSTD) $(COMMON_OPTS)
+LDFLAGS     := $(THREAD_OPTS) $(LTO_OPTS)
 
-.PHONY: all clean
-all: $(OUT_FAST) $(OUT_WAVES)
+OPT_FAST    := CXXFLAGS
+OPT_SLOW    := CXXFLAGS
 
-# ---------- FAST (no trace) ----------
-$(MDIR_FAST)/V$(TOP).mk: $(VSRCS) v_sim.cpp
-	verilator -cc $(VSRCS) $(INCLUDES) $(VERILATOR_FLAGS_COMMON) \
-	  --Mdir $(MDIR_FAST) \
-	  --exe v_sim.cpp \
-	  -CFLAGS "$(COPT) -DVSIM_TRACE=0 -DVL_DEBUG" \
-	  -LDFLAGS "-flto -pthread"
 
-$(OUT_FAST): $(MDIR_FAST)/V$(TOP).mk
-	+$(MAKE) -C $(MDIR_FAST) -f V$(TOP).mk V$(TOP) \
-	  OPT_FAST="$(OFAST)" LDFLAGS+="-pthread"
-	ln -f $(MDIR_FAST)/V$(TOP) $(OUT_FAST)
+# Verilator flags — fast X, no asserts/coverage, keep it lean
+VERI_FLAGS  := -cc --exe --build -O3 \
+               --Mdir $(MDIR) --top-module $(TOP) \
+               --x-assign fast --x-initial fast \
+               --noassert --no-coverage \
+               -Wno-TIMESCALEMOD -Wno-WIDTH -Wno-UNOPTFLAT
 
-# ---------- WAVES (VCD) ----------
-$(MDIR_WAVES)/V$(TOP).mk: $(VSRCS) v_sim.cpp
-	verilator -cc $(VSRCS) $(INCLUDES) $(VERILATOR_FLAGS_COMMON) \
-	  --trace \
-	  --Mdir $(MDIR_WAVES) \
-	  --exe v_sim.cpp \
-	  -CFLAGS "$(COPT) -DVSIM_TRACE=1" \
-	  -LDFLAGS "-flto -pthread"
+# Include path for your `include "icechips/..."` lines
+VERI_INC    := +incdir+$(ICECHIPS_DIR) -I$(ICECHIPS_DIR)
 
-$(OUT_WAVES): $(MDIR_WAVES)/V$(TOP).mk
-	+$(MAKE) -C $(MDIR_WAVES) -f V$(TOP).mk V$(TOP) \
-	  OPT_FAST="$(OFAST)" LDFLAGS+="-pthread"
-	ln -f $(MDIR_WAVES)/V$(TOP) $(OUT_WAVES)
+# Optional trace: make TRACE=1 to enable FST (kept off by default for speed)
+TRACE ?= 0
+ifeq ($(TRACE),1)
+VERI_FLAGS  += --trace-fst --trace-structs
+CXXFLAGS    += -DTRACE_FST
+endif
 
+# Default: build the simulator
+.PHONY: all
+all: $(BIN)
+
+# The one true build rule
+$(BIN): $(RTL_TOP) $(RTL_HELPERS) $(HARNESS)
+	@mkdir -p $(MDIR)
+
+	$(VERILATOR) $(VERI_FLAGS) $(VERI_INC) \
+	$(RTL_HELPERS) $(RTL_TOP) \
+	--exe $(HARNESS) \
+	-CFLAGS    "$(CXXFLAGS) $(LTO_OPTS)" \
+	-LDFLAGS   "$(LDFLAGS)"
+
+# Clean the abyss
+.PHONY: clean
 clean:
-	rm -rf $(MDIR_FAST) $(MDIR_WAVES) $(OUT_FAST) $(OUT_WAVES) *.vcd *.fst
+	rm -rf $(MDIR)
+
+# Nuclear option
+.PHONY: rebuild
+rebuild: clean all

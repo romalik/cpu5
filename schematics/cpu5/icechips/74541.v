@@ -21,6 +21,6 @@ module ttl_74541
 
   // 3-state outputs; when disabled, Y is Hi-Z.
   // Use pull-ups/downs externally if you need a defined idle level on the bus.
-  assign #(DELAY_RISE, DELAY_FALL) Y = enable ? A : {WIDTH{1'bz}};
+  assign Y = enable ? A : {WIDTH{1'bz}};
 
 endmodule
