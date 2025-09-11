@@ -11,6 +11,7 @@ module ttl_74138 #(
     input  [WIDTH_IN-1:0] A,
     output [WIDTH_OUT-1:0] Y
 );
+/*verilator inline_module*/
     reg [WIDTH_OUT-1:0] computed;
     integer i;
 

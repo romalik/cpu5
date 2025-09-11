@@ -118,8 +118,12 @@ void echo(int argc, char ** argv) {
     puts("\n");
 }
 
-void (*funcs[])() = {(void*)0, echo};
-char *cmds[] = {"exit", "echo"};
+void stats(int argc, char ** argv) {
+    do_syscall(3, 0);
+}
+
+void (*funcs[])() = {(void*)0, echo, stats};
+char *cmds[] = {"exit", "echo", "stats"};
 
 int get_cmd_idx(char *s)
 {

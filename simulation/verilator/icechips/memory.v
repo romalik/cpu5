@@ -8,6 +8,7 @@ module at28c64_rom #(
     input         nOE,
     input         nWE
 );
+/*verilator inline_module*/
   import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
   import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
     //reg [7:0] mem [0:8191];
@@ -38,6 +39,7 @@ module at28c256_rom #(
     input         nOE,
     input         nWE
 );
+/*verilator inline_module*/
     //reg [7:0] mem [0:32767];
   import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
   import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
@@ -67,7 +69,7 @@ module ram_512 #(
     input         nOE,
     input         nWE
 );
-
+/*verilator inline_module*/
   import "DPI-C" function byte verilator_mem_read (int addr, int mem_idx);
   import "DPI-C" function void verilator_mem_write (int addr, byte data, int mem_idx);
 

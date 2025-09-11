@@ -7,6 +7,7 @@ module ttl_7483 #(
     output [WIDTH-1:0] S,
     output C4
 );
+/*verilator inline_module*/
     wire [WIDTH:0] C0_wide = {{WIDTH{1'b0}}, C0};
     
     wire [WIDTH:0] tmp = {1'b0, A} + {1'b0, B} + C0_wide;

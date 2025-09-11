@@ -251,6 +251,14 @@ void main()
 
     puts("Kernel ready\n");
 
+    if(getc() != 'a') {
+            puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
+            exec_process(INIT_PROCESS, 1);
+            start_sched();
+            while(1) {} //spin a bit, never return after sched()
+    }
+
+
 #if 1
 
     int cmd_idx;

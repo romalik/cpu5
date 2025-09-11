@@ -12,7 +12,7 @@ module ttl_74193 #(
     output                  TCU_bar,  // Active-low carry (terminal COUNT UP)
     output                  TCD_bar   // Active-low borrow (terminal COUNT DOWN)
 );
-
+/*verilator inline_module*/
     // Internal state register
     // (Multiple always blocks drive q_r intentionally to model dual clocks + async controls.)
 // verilator lint_off MULTIDRIVEN

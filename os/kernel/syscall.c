@@ -1,6 +1,7 @@
 #include "klib.h"
 #include "syscall.h"
 #include "interrupts.h"
+#include "proc.h"
 
 /*
 void print_isr_ctx() {
@@ -29,12 +30,20 @@ unsigned char sys_getchar() {
     return 0;
 }
 
-#define NR_SYSCALL 3
+extern int tick_counter;
+unsigned char sys_stats() {
+    print_process_list();
+    puts("System is up for "); printhex(tick_counter); puts(" ticks.\n");
+    return 0;
+}
+
+#define NR_SYSCALL 4
 
 unsigned char (*sys_table[NR_SYSCALL])() = {
     sys_none, 
     sys_putchar,
-    sys_getchar
+    sys_getchar,
+    sys_stats
 };
 
 

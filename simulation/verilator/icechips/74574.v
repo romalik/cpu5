@@ -9,6 +9,7 @@ module ttl_74574 #(
     input  [WIDTH-1:0] D,
     output [WIDTH-1:0] Y
 );
+/*verilator inline_module*/
     reg [WIDTH-1:0] q;
     always @(posedge CLK) begin
         q <= D;

@@ -15,6 +15,7 @@ module ttl_74541
   input  wire             OE2_bar,  // output enable 2 (active-LOW)
   output wire [WIDTH-1:0] Y         // tri-stated outputs
 );
+/*verilator inline_module*/
 
   // Outputs enabled only when both enables are LOW.
   wire enable = (~OE1_bar) & (~OE2_bar);

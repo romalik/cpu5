@@ -1,7 +1,7 @@
 # =========[ VERILATOR + CLANG/LLD @ MAX NITRO ]=========
 # Top + sources
 TOP         := cpu5
-RTL_TOP     := cpu5.v
+RTL_TOP     := ../../schematics/cpu5/cpu5.v
 RTL_HELPERS := helper.v
 HARNESS     := v_sim.cpp
 
@@ -16,7 +16,7 @@ BIN         := v_sim
 VERILATOR   = verilator
 
 # Host compile/link flags — MAXIMUM AGRESSION
-COMMON_OPTS := -O3 -march=native -mtune=native -DNDEBUG -fno-exceptions -fno-rtti
+COMMON_OPTS := -O3 -march=native -mtune=native -DNDEBUG -fno-exceptions -fno-rtti -DVL_TWO_STATE=1 
 CXXSTD      := -std=c++17
 THREAD_OPTS := -pthread
 LTO_OPTS    := -fuse-ld=lld
@@ -32,7 +32,7 @@ OPT_SLOW    := CXXFLAGS
 VERI_FLAGS  := -cc --exe --build -O3 \
                --Mdir $(MDIR) --top-module $(TOP) \
                --x-assign fast --x-initial fast \
-               --noassert --no-coverage \
+               --noassert --no-coverage  \
                -Wno-TIMESCALEMOD -Wno-WIDTH -Wno-UNOPTFLAT
 
 # Include path for your `include "icechips/..."` lines

@@ -1,43 +1,4 @@
 
-// tb_like_verilator.cpp
-// Minimal C++ testbench using Verilator, mirroring a tb.v timeline and dumping VCD.
-//
-// Defaults:
-//  - Top module: cpu5  (change include/class below if different)
-//  - Ports: CLOCK (clock), RESET (reset, active-LOW by default)
-//  - Clock period: 10 ns
-//  - Sequence: RESET low 37 ns, run 5000 ns, RESET low 20 ns, run 3000 ns
-//
-// Build (A: one-shot):
-//   verilator -cc cpu5.v --exe /mnt/data/tb_like_verilator.cpp \
-//     --trace --timescale-override 1ns/1ps --build -o sim_tb_like
-//   ./sim_tb_like
-//
-// Build (B: many files / include dirs):
-//   verilator -cc /path/cpu5.v /path/helper.v -I$ICECHIPS_DIR \
-//     --exe /mnt/data/tb_like_verilator.cpp --trace \
-//     --timescale-override 1ns/1ps --build -o sim_tb_like
-//
-// Using the Makefile:
-//   make -f /mnt/data/Makefile.verilator_tb \
-//        TOP=cpu5 \
-//        VSRCS="/path/cpu5.v /path/helper.v" \
-//        INCLUDES="-I$(ICECHIPS_DIR)" \
-//        OUT=sim_tb_like
-//
-// VCD output: cpu5_tb_like.vcd (open with: gtkwave cpu5_tb_like.vcd)
-//
-// CLI options:
-//   --period-ns <float>
-//   --t1-reset-low-ns <float>  (default 37)
-//   --t2-run-ns <float>        (default 5000)
-//   --t3-reset-low-ns <float>  (default 20)
-//   --t4-run-ns <float>        (default 3000)
-//   --rst-active-low 0|1       (default 1)
-//   --vcd <path>
-//
-// NOTE: If your top module isn't 'cpu5', change the include ("Vcpu5.h") and class (Vcpu5) below.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -118,14 +79,14 @@ void verilator_mem_write(int addr, char data, int mem_idx) {
     MEMs[mem_idx][addr] = data;
 }
 
-void verilator_mem_init() {
+void verilator_mem_init(std::string fw_bin_path) {
     MEMs.resize(20);
     std::vector<std::string> files = {
-        "microcode_0.bin",
-        "microcode_1.bin",
-        "alu_low.bin",
-        "alu_high.bin",
-        "rom.bin"
+        fw_bin_path + "/microcode_0.bin",
+        fw_bin_path + "/microcode_1.bin",
+        fw_bin_path + "/alu_low.bin",
+        fw_bin_path + "/alu_high.bin",
+        fw_bin_path + "/rom.bin"
     };
 
     for(auto & mem : MEMs) {
@@ -384,6 +345,7 @@ void sigint_handler(int signum) {
 struct Args {
     std::string rom;
     std::string hdd;
+    std::string fw{"."};
 };
 
 Args parse_args(int argc, char* argv[]) {
@@ -394,6 +356,8 @@ Args parse_args(int argc, char* argv[]) {
             args.rom = argv[++i]; // eat next arg
         } else if ((key == "--hdd") && i + 1 < argc) {
             args.hdd = argv[++i];
+        } else if ((key == "--fw") && i + 1 < argc) {
+            args.fw = argv[++i];
         }
     }
     return args;
@@ -404,7 +368,6 @@ Args parse_args(int argc, char* argv[]) {
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
 
-    verilator_mem_init();
 
     signal(SIGINT, sigint_handler);
     SimCfg cfg;
@@ -429,6 +392,9 @@ int main(int argc, char** argv) {
 
     Args args = parse_args(argc,argv);
 
+
+
+    verilator_mem_init(args.fw);
 
 
     if(args.hdd.empty()) {

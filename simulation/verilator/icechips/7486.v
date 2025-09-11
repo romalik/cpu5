@@ -8,7 +8,7 @@ module ttl_7486 #(parameter BLOCKS = 4, WIDTH_IN = 2, DELAY_RISE = 0, DELAY_FALL
   input [BLOCKS*WIDTH_IN-1:0] A_2D,
   output [BLOCKS-1:0] Y
 );
-
+/*verilator inline_module*/
 //------------------------------------------------//
 wire [WIDTH_IN-1:0] A [0:BLOCKS-1];
 reg [BLOCKS-1:0] computed;

@@ -11,7 +11,7 @@ module ttl_74161 #(parameter WIDTH = 4, DELAY_RISE = 0, DELAY_FALL = 0)
   output RCO,
   output [WIDTH-1:0] Q
 );
-
+/*verilator inline_module*/
 //------------------------------------------------//
 wire RCO_current;
 reg [WIDTH-1:0] Q_current;

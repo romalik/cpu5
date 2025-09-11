@@ -2,6 +2,7 @@ module ttl_7474_bit(
     input  D, input Clk, input Preset_bar, input Clear_bar,
     output Q, output Q_bar
 );
+/*verilator inline_module*/
     reg q = 1'b0;
     always @(posedge Clk or negedge Clear_bar or negedge Preset_bar) begin
       if (!Clear_bar)       q <= 1'b0;
@@ -23,6 +24,7 @@ module ttl_7474 #(
     output [BLOCKS-1:0] Q,
     output [BLOCKS-1:0] Q_bar
 );
+/*verilator inline_module*/
     genvar i;
     generate
       for (i=0;i<BLOCKS;i=i+1) begin : g
