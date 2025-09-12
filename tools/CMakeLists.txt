@@ -18,10 +18,11 @@ install(TARGETS cpu5mkfs
               WORLD_READ WORLD_EXECUTE
 )
 
-# cpu5genfs is assumed to already exist (script or binary in this dir)
-install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/cpu5genfs
+
+install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/umake
   DESTINATION bin
 )
+
 
 # ===== Phony umbrella target =====
 # Lets other parts of the build depend on “tools”

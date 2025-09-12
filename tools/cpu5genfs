@@ -1,3 +1,0 @@
-#!/bin/sh
-cpu5mkfs $1 $2
-#objcopy --output-target=ihex --input-target=binary $2 $2.hex

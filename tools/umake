@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# umake — NOW WITH SPECTACULAR DETONATION
+set -Eeuo pipefail
+shopt -s inherit_errexit lastpipe
+
+# cute x-ray for -x
+PS4='+ [${BASH_SOURCE##*/}:${LINENO}] ${FUNCNAME[0]:-main}() '
+
+# GLOBAL ERR TRAP → stacktrace, path, line, exit code
+_umake_err() {
+  local st=$?
+  {
+    echo "!!! UMAKE EXPLODED !!! status=$st"
+    echo "where: ${BASH_SOURCE[1]}:${BASH_LINENO[0]} in ${FUNCNAME[1]:-main}"
+    echo "pwd:   $PWD"
+    echo "stack:"
+    local i
+    for ((i=${#FUNCNAME[@]}-1; i>=1; --i)); do
+      echo "  #$(( ${#FUNCNAME[@]}-1 - i )) ${FUNCNAME[i]}() @ ${BASH_SOURCE[i+1]}:${BASH_LINENO[i]}"
+    done
+  } >&2
+  exit "$st"
+}
+trap _umake_err ERR
+
+UMAKE_FILE="umake.mk"
+UROOT="${UROOT:-$(pwd)}"; export UROOT
+
+#declare -A __UMAKE_VISITED=()
+
+include_subdir() {
+  local sub="$1" dir
+  if [[ "$sub" = /* ]]; then dir="$sub"; else dir="$(pwd)/$sub"; fi
+  [[ -d "$dir" ]] || { echo "include_subdir: not a dir: $dir" >&2; return 2; }
+  [[ -f "$dir/$UMAKE_FILE" ]] || { echo "include_subdir: missing $UMAKE_FILE in $dir" >&2; return 2; }
+  _umake_run "$dir"   # if this fails → ERR trap detonates → exit whole script
+}
+
+_umake_run() {
+  local dir; dir="$(cd "$1" && pwd -P)"
+  #[[ -n "${__UMAKE_VISITED[$dir]:-}" ]] && { echo ">> skip (already built): $dir"; return 0; }
+  #__UMAKE_VISITED["$dir"]=1
+
+  local UDIR="$dir"; export UDIR
+  (
+    # Re-enable strict mode & trap INSIDE the subshell too (belt + suspenders).
+    set -Eeuo pipefail
+    shopt -s inherit_errexit
+    trap _umake_err ERR
+
+    cd "$dir"
+    echo ">>> UMAKE ENTER ${UDIR} (root: ${UROOT})"
+    export -f include_subdir _umake_run _umake_err
+    export UMAKE_FILE UROOT UDIR
+    # Optional: uncomment for command echo
+    # set -x
+
+    # shellcheck disable=SC1090
+    source "./$UMAKE_FILE"   # any failure inside here → ERR trap → BOOM
+  )
+}
+
+# Entry point
+_umake_run "${1:-$(pwd)}"
