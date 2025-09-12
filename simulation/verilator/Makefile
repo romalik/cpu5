@@ -1,4 +1,4 @@
-# =========[ VERILATOR + CLANG/LLD @ MAX NITRO ]=========
+
 # Top + sources
 TOP         := cpu5
 RTL_TOP     := ../../schematics/cpu5/cpu5.v
@@ -11,9 +11,6 @@ ICECHIPS_DIR := icechips
 # Build dir + final binary
 MDIR        := verilator_build
 BIN         := v_sim
-
-# Tools — LLVM stack only
-VERILATOR   = verilator
 
 # Host compile/link flags — MAXIMUM AGRESSION
 COMMON_OPTS := -O3 -march=native -mtune=native -DNDEBUG -fno-exceptions -fno-rtti -DVL_TWO_STATE=1 
@@ -53,7 +50,7 @@ all: $(BIN)
 $(BIN): $(RTL_TOP) $(RTL_HELPERS) $(HARNESS)
 	@mkdir -p $(MDIR)
 
-	$(VERILATOR) $(VERI_FLAGS) $(VERI_INC) \
+	verilator $(VERI_FLAGS) $(VERI_INC) \
 	$(RTL_HELPERS) $(RTL_TOP) \
 	--exe $(HARNESS) \
 	-CFLAGS    "$(CXXFLAGS) $(LTO_OPTS)" \
