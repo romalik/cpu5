@@ -17,11 +17,11 @@ void init_uart() {
 void __interrupt uart_isr() {
     ISR_PROLOG
     if(uart_buffer_size < 0xffU) {
-        uart_buffer[uart_buffer_wr_pos] = *(unsigned char *)(0x4803);
+        uart_buffer[uart_buffer_wr_pos] = *(unsigned char *)(0x4004);
         uart_buffer_wr_pos++;
         uart_buffer_size++;
     } else {
-        char dummy = *(unsigned char *)(0x4803);
+        char dummy = *(unsigned char *)(0x4004);
     }
     ISR_EPILOG
 }

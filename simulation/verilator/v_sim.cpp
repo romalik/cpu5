@@ -60,7 +60,7 @@ struct SimCfg {
 
 
 
-keyboard kb;
+Console kb;
 SimpleStorage storage;
 
 
@@ -69,8 +69,8 @@ int decode_mem(uint16_t addr) {
         return 0;
     }
     switch(addr) {
-        case 0x4803:
-        case 0x4804:
+        case 0x4003:
+        case 0x4004:
         case 0x4000:
         case 0x4001:
         case 0x4002:
@@ -82,7 +82,7 @@ int decode_mem(uint16_t addr) {
 }
 
 void mem_write(uint16_t addr, uint8_t val) {
-    if(addr == 0x4803) {
+    if(addr == 0x4004) {
         printf("%c", val);
         fflush(stdout);
     } else if (addr == 0x4000) {
@@ -91,8 +91,8 @@ void mem_write(uint16_t addr, uint8_t val) {
         storage.set_mid_addr(val);
     } else if (addr == 0x4002) {
         storage.set_high_addr(val);
-    } else if (addr == 0x4804) {
-        storage.write(val);
+    } else if (addr == 0x4003) {
+        storage.write_l(val);
     } else {
         printf("Decode error!\n");
 
@@ -101,7 +101,7 @@ void mem_write(uint16_t addr, uint8_t val) {
 
 
 uint8_t mem_read(uint16_t addr) {
-    if(addr == 0x4803) {
+    if(addr == 0x4004) {
         if(kb.has_data()) {
             uint8_t c = kb.pop();
             //printf(" --- read kb 0x%02x ---\n", c);
@@ -109,8 +109,8 @@ uint8_t mem_read(uint16_t addr) {
         } else {
             return 0;
         }
-    } else if (addr == 0x4804) {
-        return storage.read();
+    } else if (addr == 0x4003) {
+        return storage.read_l();
     } else {
         printf("Decode error!\n");
         return 0;
@@ -130,26 +130,6 @@ void sigint_handler(int signum) {
 }
 
 
-struct Args {
-    std::string rom;
-    std::string hdd;
-    std::string fw{"."};
-};
-
-Args parse_args(int argc, char* argv[]) {
-    Args args;
-    for (int i = 1; i < argc; ++i) {
-        std::string key = argv[i];
-        if ((key == "--rom") && i + 1 < argc) {
-            args.rom = argv[++i]; // eat next arg
-        } else if ((key == "--hdd") && i + 1 < argc) {
-            args.hdd = argv[++i];
-        } else if ((key == "--fw") && i + 1 < argc) {
-            args.fw = argv[++i];
-        }
-    }
-    return args;
-}
 
 
 

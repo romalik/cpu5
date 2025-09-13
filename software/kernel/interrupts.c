@@ -24,10 +24,10 @@ char isr_vec[] = {
 
 void __interrupt empty_isr() {
     ISR_PROLOG
-    *(unsigned char *)(0x4803) = 'E';
-    *(unsigned char *)(0x4803) = 'I';
-    *(unsigned char *)(0x4803) = 'N';
-    *(unsigned char *)(0x4803) = 'T';
+    *(unsigned char *)(0x4004) = 'E';
+    *(unsigned char *)(0x4004) = 'I';
+    *(unsigned char *)(0x4004) = 'N';
+    *(unsigned char *)(0x4004) = 'T';
     ISR_EPILOG
 }
 
@@ -49,11 +49,11 @@ void __interrupt tick_isr() {
 
 void __interrupt page_fault() {
     ISR_PROLOG
-    *(unsigned char *)(0x4803) = 'P';
-    *(unsigned char *)(0x4803) = 'F';
-    *(unsigned char *)(0x4803) = 'L';
-    *(unsigned char *)(0x4803) = 'T';
-    *(unsigned char *)(0x4803) = '\n';
+    *(unsigned char *)(0x4004) = 'P';
+    *(unsigned char *)(0x4004) = 'F';
+    *(unsigned char *)(0x4004) = 'L';
+    *(unsigned char *)(0x4004) = 'T';
+    *(unsigned char *)(0x4004) = '\n';
 
     unsigned char page_cause = MMU_FAULT_PAGE_CAUSE;
     unsigned char page = page_cause & 0x0f;

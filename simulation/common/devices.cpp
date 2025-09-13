@@ -3,9 +3,9 @@
 
 
 void read_file(const char *filename, std::vector<uint8_t> & data) {
-    printf("read_file(%s)\n", filename);
     FILE *f = fopen(filename, "rb");
     if (!f) {
+        printf("read_file(%s)\n", filename);
         perror("fopen");
     }
 
@@ -68,7 +68,7 @@ void verilator_mem_init(std::string fw_bin_path) {
 }
 
     
-int keyboard::pop() {
+int Console::pop() {
     std::lock_guard<std::mutex> lock(mtx);
     if(!q.empty()) {
         int c = q.front();
@@ -80,11 +80,11 @@ int keyboard::pop() {
     }
     return 0;
 }
-int keyboard::has_data() {
+int Console::has_data() {
     return has_data_atomic.load();
 }
         
-keyboard::keyboard(){
+Console::Console(){
     tcgetattr(0,&initial_settings);
     new_settings = initial_settings;
     new_settings.c_lflag &= ~ICANON;
@@ -94,16 +94,16 @@ keyboard::keyboard(){
     tcsetattr(0, TCSANOW, &new_settings);
     peek_character=-1;
     running = true;
-    thr = std::thread(&keyboard::runner, this);
+    thr = std::thread(&Console::runner, this);
 }
     
-keyboard::~keyboard(){
+Console::~Console(){
     tcsetattr(0, TCSANOW, &initial_settings);
     running = false;
     thr.join();
 }
 
-void keyboard::runner() {
+void Console::runner() {
     while(running) {
         if(kbhit()) {
             int c = getch();
@@ -111,19 +111,20 @@ void keyboard::runner() {
                 std::lock_guard<std::mutex> lock(mtx);
                 q.push(c);
                 has_data_atomic.store(true);
+                if(irq_cb) irq_cb();
             }
         }
         usleep(5*1000);
     }
 }
 
-int keyboard::kbhit(){
+int Console::kbhit(){
     unsigned char ch;
     int nread;
     if (peek_character != -1) return 1;
     new_settings.c_cc[VMIN]=0;
     tcsetattr(0, TCSANOW, &new_settings);
-    nread = read(0,&ch,1);
+    nread = ::read(0,&ch,1);
     new_settings.c_cc[VMIN]=1;
     tcsetattr(0, TCSANOW, &new_settings);
 
@@ -134,16 +135,31 @@ int keyboard::kbhit(){
     return 0;
 }
     
-int keyboard::getch(){
+int Console::getch(){
     char ch;
 
     if (peek_character != -1){
         ch = peek_character;
         peek_character = -1;
     }
-    else read(0,&ch,1);
+    else ::read(0,&ch,1);
     return ch;
 }
+
+void Console::write(uint16_t addr, uint8_t data) {
+    (void)addr;
+    printf("%c", data);
+    fflush(stdout);
+};
+uint8_t Console::read(uint16_t addr) {
+    (void)addr;
+    if(has_data()) {
+        return pop();
+    } else {
+        return 0;
+    }
+
+};
 
 
 
@@ -172,13 +188,13 @@ void SimpleStorage::set_low_addr(uint8_t addr) {
     c_low = addr;
     c_idx = 0;
 }
-uint8_t SimpleStorage::read() {
+uint8_t SimpleStorage::read_l() {
     uint8_t d = data[full_addr()];
     c_idx++;
     return d;
 }
 
-void SimpleStorage::write(uint8_t d) {
+void SimpleStorage::write_l(uint8_t d) {
     data[full_addr()] = d;
     c_idx++;
 }
@@ -187,5 +203,56 @@ size_t SimpleStorage::full_addr() {
     return c_idx | (c_mid << 8) | (c_high << 16);
 }
 
+void SimpleStorage::write(uint16_t addr, uint8_t data) {
+    if(addr == 0x00) {
+        set_low_addr(data);
+    } else if(addr == 0x01) {
+        set_mid_addr(data);
+    } else if(addr == 0x02) {
+        set_high_addr(data);
+    } else if(addr == 0x04) {
+        write_l(data);
+    }
+}
+
+uint8_t SimpleStorage::read(uint16_t addr) {
+    if(addr == 0x04) {
+        return read_l();
+    }
+}
 
 
+RamDevice::RamDevice(size_t size, bool ro) {
+    mem.resize(size);
+    readonly = ro;
+}
+
+void RamDevice::write(uint16_t addr, uint8_t data) {
+    if (addr < mem.size() && !readonly) {
+        mem[addr] = data;
+    }
+}
+
+uint8_t RamDevice::read(uint16_t addr) {
+    if (addr < mem.size()) return mem[addr];
+    return 0xFF;
+}
+
+void RamDevice::load(const std::string & filename) {
+    read_file(filename.c_str(), mem);
+}
+
+Args parse_args(int argc, char* argv[]) {
+    Args args;
+    for (int i = 1; i < argc; ++i) {
+        std::string key = argv[i];
+        if ((key == "--rom") && i + 1 < argc) {
+            args.rom = argv[++i]; // eat next arg
+        } else if ((key == "--hdd") && i + 1 < argc) {
+            args.hdd = argv[++i];
+        } else if ((key == "--fw") && i + 1 < argc) {
+            args.fw = argv[++i];
+        }
+    }
+    return args;
+}

@@ -225,6 +225,7 @@ extern char __bss_end;
 
 void main()
 {
+    *(unsigned char*)(0x4004) = 'A';
     char *cmd;
     int i = 0;
 

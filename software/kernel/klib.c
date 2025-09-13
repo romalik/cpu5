@@ -18,7 +18,7 @@ char getc() {
 
 void puts(char * s) {
     while(*s) {
-        *(unsigned char *)(0x4803) = *s;
+        *(unsigned char *)(0x4004) = *s;
         s++;
     }
 }
@@ -26,7 +26,7 @@ void puts(char * s) {
 
 
 int putc(char c) {
-    *(unsigned char *)(0x4803) = c;
+    *(unsigned char *)(0x4004) = c;
 }
 
 

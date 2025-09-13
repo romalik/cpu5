@@ -21,7 +21,7 @@ unsigned char sys_none() {
 }
 
 unsigned char sys_putchar() {
-    *(unsigned char *)(0x4803) = *ISR_CTX_B;
+    *(unsigned char *)(0x4004) = *ISR_CTX_B;
     return 0;
 }
 

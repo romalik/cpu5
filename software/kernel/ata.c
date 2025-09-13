@@ -3,7 +3,7 @@
 #define STORAGE_ADDR_LOW    0x4000
 #define STORAGE_ADDR_MID    0x4001
 #define STORAGE_ADDR_HIGH   0x4002
-#define STORAGE_DATA        0x4804
+#define STORAGE_DATA        0x4003
 
 void ataInit() {
     

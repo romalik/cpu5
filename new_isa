@@ -57,8 +57,8 @@ ISR STACK:  0xFFF0 - 0xFFFF
 ISR REGS :  0xFFBC - 0xFFBF
 
 0xFFBC
-0xFFBD  - SL
-0xFFBE  - SH
+0xFFBE  - SL
+0xFFBD  - SH
 0xFFBF  - A
 
 
@@ -93,27 +93,6 @@ TLB: 0x6000 - 0x7FFF
 
 1 tick = 50ns min
 20MHz
-
-Phases:
-0000 control word pull down
-0001 control word pull down
-0010 control word pull down + alu_latch
-0011 control word pull down + alu_latch
-
-0100 control word out + addr_out
-0101 control word out + addr_out
-0110 control word out + addr_out
-0111 control word out + addr_out
-
-1000 mem_read + addr_out
-1001 mem_read + addr_out
-1010 mem_read + addr_out
-1011 mem_read + addr_out
-
-1100 writes + addr_out + mem_read
-1101 writes + addr_out + mem_read
-1110 writes + addr_out + mem_read
-1111 seq_rst
 
 
 jumps:
