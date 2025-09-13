@@ -23,9 +23,9 @@ public:
     void dec();
     void il();
     void ih();
-    uint8_t ol();
-    uint8_t oh();
-    uint16_t a();
+    void ol();
+    void oh();
+    void a();
 
 };
 
@@ -114,7 +114,7 @@ enum ICode {
     ldd_s,
     ldd_m,
     ldd_x,
-    ldd_r_r,
+    ldd_r_i,
     mov_a_b,
     mov_a_sl,
     mov_a_sh,
@@ -182,6 +182,12 @@ public:
     } fault_bk;
 
     std::shared_ptr<VMem> vmem;
+
+    size_t tick_n{0};
+
+
+    uint8_t aluA{0};
+    uint8_t aluB{0};
 
     uint8_t dbus{0};
     uint16_t abus{0};

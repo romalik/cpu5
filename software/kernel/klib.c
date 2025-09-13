@@ -98,6 +98,7 @@ void printhex(int i) {
     n = i & 0x000f;
     if(n > 9) {
         *s = n + 'a' - 10;
+
     } else {
         *s = n + '0';
     }
@@ -136,6 +137,10 @@ void printhex(int i) {
 	*s = '0';
 	puts(s);
 }
+
+
+
+
 
 #define MAX_LENGTH 127
 

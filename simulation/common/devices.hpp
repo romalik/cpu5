@@ -111,8 +111,8 @@ public:
 class DummyDevice : public IDevice {
 public:
     DummyDevice() {};
-    void write(uint16_t addr, uint8_t data) override {printf("DummyDevice write @ 0x%04x\n", addr);}
-    uint8_t read(uint16_t addr) override {printf("DummyDevice read @ 0x%04x\n", addr); return 0;}
+    void write(uint16_t addr, uint8_t data) override {/*printf("DummyDevice write @ 0x%04x\n", addr);*/}
+    uint8_t read(uint16_t addr) override {/*printf("DummyDevice read @ 0x%04x\n", addr);*/ return 0;}
     void set_irq_callback(std::function<void(void)> fn) { (void)fn; };
 };
 

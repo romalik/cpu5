@@ -8,6 +8,9 @@
 #include <exception>
 #include <string>
 
+std::atomic<bool> running{true};
+
+
 
 Register::Register(CPU* c) :c(c) {}
 void Register::set_l(uint8_t val) {
@@ -40,13 +43,13 @@ void Register::il() {
 void Register::ih() {
     data = (static_cast<uint16_t>(c->dbus) << 8) | (data & 0x00ff); 
 }
-uint8_t Register::ol() {
+void Register::ol() {
     c->dbus = data & 0x00ff;
 }
-uint8_t Register::oh() {
+void Register::oh() {
     c->dbus = (data & 0xff00) >> 8;
 }
-uint16_t Register::a() {
+void Register::a() {
     c->abus = data;
 }
 
@@ -61,10 +64,25 @@ public:
     }
 };
 
+
+void print_reg(const char * name, std::shared_ptr<Register> r) {
+    printf("%s: 0x%04X\n", name, r->get16());
+}
+
+void print_state(CPU * c) {
+    print_reg("PC", c->PC);
+    print_reg("S ", c->S);
+    print_reg("X ", c->X);
+    print_reg("A ", c->A);
+    print_reg("B ", c->B);
+}
 std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
 
     { ICode::hlt, {
-        [](CPU* c) -> void { printf("HLT!\n"); }
+        [](CPU* c) -> void { 
+            print_state(c);
+            while(running.load()) {}
+        }
     } },
     { ICode::di, {
         [](CPU* c) -> void { c->iv_o(); },
@@ -252,7 +270,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
         [](CPU* c) -> void { c->A->ol(); c->X->ih(); },
         [](CPU* c) -> void { c->PC->inc(); }
     } },
-    { ICode::ldd_r_r, {
+    { ICode::ldd_r_i, {
         [](CPU* c) -> void { c->PC->inc(); },
         [](CPU* c) -> void { c->PC->a(); c->mr(); c->Off->il(); },
         [](CPU* c) -> void { c->PC->inc(); },
@@ -478,7 +496,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
     } }
 };
 
-int fetch(CPU* c) {
+void fetch(CPU* c) {
     if(c->FAULT || c->IRQ) {
         c->IR->set_l(0xff);
     } else {
@@ -500,19 +518,71 @@ void CPU::mw() {
 
 void CPU::iv_o() {
     // XXXX
+    not_impl();
 }
 
 void CPU::sela() {
+    not_impl();
     // XXXX
 }
 
 void CPU::ei() {
+    not_impl();
     // XXXX
 }
 
+std::string toBin(uint8_t v) {
+    std::string res;
+    for(int i = 7; i>=0; i--) {
+        if(v & (1<<i)) {
+            res = res + "1";
+        } else {
+            res = res + "0";
+        }
+    }
+    return res;
+}
+
 bool CPU::condition() {
-    // XXXX
-    return true;
+
+    uint8_t decoded_ir_con = ~(1U << (IR->get_l() & 0x07));
+
+    uint8_t f = F->get_l();
+    uint8_t FC = (f & (1<<0))? 1:0;
+    uint8_t FZ = (f & (1<<1))? 1:0;
+    uint8_t FS = (f & (1<<2))? 1:0;
+    uint8_t FO = (f & (1<<3))? 1:0;
+    
+
+    uint8_t decoded_flags = (FZ << 0) | (FC << 1) | ((FZ | (FS^FO)) << 2) | ((FZ | FC) << 3) | ((FS ^ FO) << 4);
+    
+    if(IR->get_l() & (1 << 3)) {
+        decoded_flags = ~decoded_flags;
+    }
+    
+    // 0x1f = b 0001 1111
+    uint8_t ored_flags = ((decoded_flags | decoded_ir_con) & 0x1f) | (decoded_ir_con & 0x80);
+/*
+    printf("VVVVV cmp VVVVV\n");
+    printf("IR   %s\n", toBin(IR->get_l()).c_str());
+    printf("F    %s\n", toBin(F->get_l()).c_str());
+    printf("DIC  %s\n", toBin(decoded_ir_con).c_str());
+    printf("DF   %s\n", toBin(decoded_flags).c_str());
+    printf("ORF  %s\n", toBin(ored_flags).c_str());
+*/
+    // b1001 1111 = 0x9f
+    bool cmp = false;
+    if( (ored_flags & 0x9f) != 0x9f) {
+        cmp = true;
+    } else {
+        cmp = false;
+    }
+/*
+    printf("RES %s\n", cmp?"TRUE":"FALSE");
+    printf("^^^^^ cmp ^^^^^\n");
+*/
+    return cmp;
+
 }
 
 void CPU::pp() {
@@ -522,13 +592,223 @@ void CPU::mfa() {
     abus = calc_mf_addr();
 }
 void CPU::alul() {
-    // XXXX
+    aluA = A->get_l();
+    aluB = B->get_l();
 }
+
+
+enum {
+/*0000*/  c_add  = 0,
+/*0001*/  c_adc  = 1,
+/*0010*/  c_sub  = 2,
+/*0011*/  c_sbc  = 3,
+/*0100*/  c_or   = 4,
+/*0101*/  c_orc  = 5,
+/*0110*/  c_xor  = 6,
+/*0111*/  c_xorc = 7,
+/*1000*/  c_and  = 8,
+/*1001*/  c_andc = 9,
+/*1010*/  c_neg  = 10,
+/*1011*/  c_not  = 11,
+/*1100*/  c_shl  = 12,
+/*1101*/  c_shlc = 13,
+/*1110*/  c_shr  = 14,
+/*1111*/  c_shrc = 15
+};
+
+void evaluate_alu(uint8_t cmd, uint8_t carry_in, uint8_t A, uint8_t B, uint8_t &R8, uint8_t &F) {
+    uint8_t CF = 0;
+    uint8_t ZF = 0;
+    uint8_t SF = 0;
+    uint8_t OF = 0;
+
+    uint16_t R = 0;
+
+
+    uint16_t A16 = A;
+    uint16_t B16 = B;
+
+    uint8_t ignore_carry = 1;
+    uint8_t tmp = 0;
+
+    switch(cmd) {
+        case c_adc:
+            ignore_carry = 0;
+            //fallthrough
+        case c_add:
+            R = A + B;
+            if(!ignore_carry) R += carry_in;
+
+            if( (A & 0x80U) == (B & 0x80U) ) {
+                if( (A & 0x80U) != (R & 0x80U) ) {
+                    OF = 1;
+                }
+            }
+
+        break;
+        case c_sbc:
+            ignore_carry = 0;
+            //fallthrough
+        case c_sub:
+            B16 = ~B16;
+            if(ignore_carry) {
+                B16 = B16 + 1u;
+            } else {
+                B16 = B16 + 1u - carry_in;                
+            }
+
+
+            R = A16 + B16;
+
+            if( (A16 & 0x80U) == (B16 & 0x80U) ) {
+                if( (A16 & 0x80U) != (R & 0x80U) ) {
+                    OF = 1;
+                }
+            }
+
+        break;
+        case c_neg:
+            R = ~A;
+            if(ignore_carry) {
+                R = R + 1;
+            } else {
+                R = R + carry_in;                
+            }
+            // flip bit 8 (borrow-carry)
+            R ^= (1<<8);
+        break;
+        /*
+        case c_inc:
+            if(ignore_carry) {
+                R = A + 1;
+            } else {
+                R = A + carry_in;
+            }
+            if( (A & 0x80) == 0 ) {
+                if( (R & 0x80) != 0 ) {
+                    OF = 1;
+                }
+            }
+        break;
+        */
+        case c_not:
+            R = ~A;
+        break;
+        case c_and:
+        case c_andc:
+            R = A & B;
+        break;
+        case c_or:
+        case c_orc:
+            R = A | B;
+        break;
+        case c_xor:
+        case c_xorc:
+            R = A ^ B;
+        break;
+
+        case c_shlc:
+            ignore_carry = 0;
+        case c_shl:
+            R = A<<1;
+            if(ignore_carry) {
+            } else {
+                R|=carry_in;
+            }
+        break;
+
+        case c_shrc:
+            ignore_carry = 0;
+        case c_shr:
+
+            if(A&0x01U) {
+                tmp = 1;
+            }
+            R = A>>1;
+            if(ignore_carry) {
+            } else {
+                R|=carry_in << 7;
+            }
+            if(tmp) {
+                R|=0x100;
+            }
+        break;
+
+/*
+        case c_test:
+            if(!low) {
+                if(A || carry_in) {
+                    R = 1;
+                } else {
+                    R = 0;
+                }
+            } else { 
+                if(A) {
+                    R = 0x10;
+                } else {
+                    R = 0;
+                }
+            }
+        break;
+*/
+        default:
+            return;
+
+    }
+//CF ZF SF OF
+
+
+    //TEMP HACK
+    //OF = 0;
+
+    //printf("R: 0x%04x\n", R);
+
+    if((R&0xffU) == 0) ZF = 1;
+    
+    if((R&0x100U) != 0) CF = 1;
+
+    SF = (R & 0x80U) ? 1 : 0;
+
+    F = ((CF << 0) | (ZF << 1) | (SF << 2) | (OF << 3));
+
+    R8 = R&0xffU;
+}
+
+
+
+
 void CPU::alud() {
-    // XXXX
+    uint8_t cmd = IR->get_l() & 0x0fu;
+    uint8_t carry_in = F->get_l() &0x01u;
+    uint8_t res;
+    uint8_t f;
+    evaluate_alu(cmd, carry_in, aluA, aluB, res, f);
+    
+    //printf("alud:  %d %d -> %d 0x%02x(cmd 0x%02x)\n", aluA, aluB, res, f, cmd);
+    dbus = res;
 }
 void CPU::alufd() {
-    // XXXX
+    uint8_t cmd = IR->get_l() & 0x0fu;
+    uint8_t carry_in = F->get_l() &0x01u;
+    uint8_t res;
+    uint8_t f;
+    evaluate_alu(cmd, carry_in, aluA, aluB, res, f);
+
+
+    uint8_t curr_FZ = (f & 0x02u) ? 1:0;
+    uint8_t prev_FZ = ( F->get_l() & 0x02u ) ? 1:0;
+    
+    uint8_t FZ = curr_FZ;
+    if(cmd & 0x01u) {
+        FZ = curr_FZ & prev_FZ;
+    }
+
+    f &= ~(0x02u);
+    f |= FZ << 1;
+    
+    //printf("alufd: %d %d -> %d 0x%02x(cmd 0x%02x)\n", aluA, aluB, res, f, cmd);
+
+    dbus = f;
 }
 
 void CPU::toggle_pc() {
@@ -544,18 +824,19 @@ void CPU::delay(int n_cycles) {
 uint16_t CPU::calc_mf_addr() {
     uint16_t addr = M->get16();
     uint8_t off = Off->get_l();
-    uint16_t off16 = (((off & 0x80) ? 0xff : 0x00) << 8) | (uint16_t)off;
-    return off16;
+    uint16_t off16 = ((((uint16_t)off & 0x80u) ? 0xffu : 0x00u) << 8) | (uint16_t)off;
+    return addr + off16;
 }
 
 void CPU::not_impl() {
     printf("Not implemented! IR 0x%02x\n", IR->get_l());
-    exit(1);
+    running.store(false);
 }
 
 void CPU::exec_instruction(size_t mpc) {
     if(mpc == 0) {
         fetch(this);
+        tick_n++;
         mpc++;
     }
     uint8_t code = IR->get_l();
@@ -564,7 +845,10 @@ void CPU::exec_instruction(size_t mpc) {
             const auto & mc_routine = microcode[in.icode];
             for(; mpc < mc_routine.size()+1; mpc++) {
                 //backup registers for fault
+                //printf("mpc: %zu\n", mpc);
+                //fflush(stdout);
                 mc_routine[mpc-1](this);
+                tick_n++;
                 delay(1);
             }
             return;
@@ -623,7 +907,7 @@ void CPU::init_decode() {
     instructions.push_back({0xdc, 0xff,  8, ICode::ldd_s       });
     instructions.push_back({0xdd, 0xff,  8, ICode::ldd_m       });
     instructions.push_back({0xde, 0xff,  8, ICode::ldd_x       });
-    instructions.push_back({0xdf, 0xff,  8, ICode::ldd_r_r     });
+    instructions.push_back({0xdf, 0xff,  8, ICode::ldd_r_i     });
     instructions.push_back({0xe0, 0xff,  3, ICode::mov_a_b     });
     instructions.push_back({0xe1, 0xff,  3, ICode::mov_a_sl    });
     instructions.push_back({0xe2, 0xff,  3, ICode::mov_a_sh    });
@@ -665,16 +949,15 @@ void CPU::fault() {
 }
 
 int CPU::cycle() {
-    uint8_t bus;
-    //check IRQ
-    
+
     //execute
     try {
+        alul();
         exec_instruction(0);
     } catch (const CPUFault &e) {
 
     }
-
+    return 0;
 }
 
 void CPU::set_vmem(std::shared_ptr<VMem> v) {
@@ -682,19 +965,57 @@ void CPU::set_vmem(std::shared_ptr<VMem> v) {
 }
 
 
-std::atomic<bool> running{true};
+
 void sigint_handler(int signum) {
     if (signum == SIGINT) {
         running.store(false, std::memory_order_relaxed);
     }
 }
 
+
+
+void test_alu(CPU & c) {
+
+    for(uint16_t a = 0x15; a < 0xffff; a++) {
+        for(uint16_t b = 0x13; b < 0xffff; b++) {
+            uint16_t r = 0;
+            uint8_t iflag = 0;
+            c.A->set_l(a&0xff);
+            c.B->set_l(b&0xff);
+            c.alul();
+            c.IR->set_l(0xc2); //sub
+            c.alud();
+            r = c.dbus;
+            c.alufd();
+            c.F->set_l(c.dbus);
+            iflag = c.dbus;
+            c.A->set_l((((uint16_t)a)&0xff00) >> 8);
+            c.B->set_l((((uint16_t)b)&0xff00) >> 8);
+            c.alul();
+            c.IR->set_l(0xc3); //sbc
+            c.alud();
+
+            r |= (((uint16_t)c.dbus) << 8);
+
+            if((uint16_t)(a - b) != r) {
+                printf("error! 0x%04X - 0x%04X = 0x%04X (exp 0x%04X)\n", a,b,r,(uint16_t)(a-b));
+                printf("iflag 0x%02X\n", iflag);
+                exit(1);
+            }
+
+        }
+    }
+
+}
+
+
 int main(int argc, char ** argv) {
     signal(SIGINT, sigint_handler);
     Args args = parse_args(argc,argv);
 
     CPU cpu;
-    
+    //test_alu(cpu);
+
     std::shared_ptr<RamDevice> rom = std::make_shared<RamDevice>(1024 * 16, true);
     rom->load(args.rom);
 
@@ -716,8 +1037,22 @@ int main(int argc, char ** argv) {
     cpu.set_vmem(vmem);
     cpu.reset();
 
+
+    auto calib_time_start = std::chrono::steady_clock::now();
+    bool timing_stat_done = false;
+
+
     while(running.load()) {
         cpu.cycle();
+
+        if((!timing_stat_done) && (cpu.tick_n > 100000)) {
+            timing_stat_done = true;
+            auto calib_time_end = std::chrono::steady_clock::now();
+            std::chrono::duration<double> diff = calib_time_end - calib_time_start;
+            double clock_estimation_mhz = (static_cast<double>(cpu.tick_n * 16) / diff.count()) / 1000000.0;
+            printf("\n\nMain clock freq %f MHz\n", clock_estimation_mhz);
+        }
+
     }
 
     printf("Exiting sim.\n");

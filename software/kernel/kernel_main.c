@@ -218,9 +218,6 @@ extern char __data_end;
 extern char __bss_end;
 
 
-
-
-
 #define INIT_PROCESS "sh.bin"
 
 void main()
@@ -228,6 +225,7 @@ void main()
     *(unsigned char*)(0x4004) = 'A';
     char *cmd;
     int i = 0;
+
 
     tick_counter = 0;
     puts("\n\nKernel init\n");
@@ -250,15 +248,18 @@ void main()
 */
 
 
+    puts("!!! OVERFLOW FLAG INCORRECT IN ALUGENERATOR (0x80 instead of 0x08) !!!\n");
+
     puts("Kernel ready\n");
 
+/*
     if(getc() != 'a') {
             puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
             exec_process(INIT_PROCESS, 1);
             start_sched();
             while(1) {} //spin a bit, never return after sched()
     }
-
+*/
 
 #if 1
 

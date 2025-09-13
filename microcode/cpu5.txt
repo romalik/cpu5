@@ -473,7 +473,10 @@ section code
 -       ----    ----    0100    s_a a_o mwrite
 -       ----    ----    0101    sl--
 
+##### XXX is this needed?
 -       ----    ----    0110    pc_a off_i mread
+#####
+
 -       ----    ----    0111    mf_a a_i mread
 -       ----    ----    1000    s_a a_o mwrite
 -       ----    ----    1001    sl--
