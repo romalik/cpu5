@@ -159,6 +159,18 @@ struct Instruction {
     ICode icode;
 };
 
+
+class IntCtl {
+    std::vector<bool> irqs;
+public:
+    IntCtl();
+
+    void set_int(int irqn);
+    bool irq_pending();
+    uint8_t get_iv();
+    void reset();
+
+};
 class CPU {
 public:
     std::shared_ptr<Register> A;
@@ -182,6 +194,7 @@ public:
     } fault_bk;
 
     std::shared_ptr<VMem> vmem;
+    std::shared_ptr<IntCtl> int_ctl;
 
     size_t tick_n{0};
 
@@ -194,7 +207,10 @@ public:
 
     bool FAULT{false};
     bool IRQ{false};
+    
     bool is_fault_recovery{false};
+
+    bool int_en{false};
 
     std::vector<Instruction> instructions;
 
@@ -233,4 +249,8 @@ public:
     int cycle();
 
     void set_vmem(std::shared_ptr<VMem> v);
+    void set_int_ctl(std::shared_ptr<IntCtl> ic);
 };
+
+
+

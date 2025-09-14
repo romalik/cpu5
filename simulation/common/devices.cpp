@@ -106,12 +106,15 @@ Console::~Console(){
 void Console::runner() {
     while(running) {
         if(kbhit()) {
+
             int c = getch();
             if(q.size() < max_q) {
                 std::lock_guard<std::mutex> lock(mtx);
                 q.push(c);
                 has_data_atomic.store(true);
-                if(irq_cb) irq_cb();
+                if(irq_cb) {
+                    irq_cb();
+                }
             }
         }
         usleep(5*1000);

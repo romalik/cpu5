@@ -51,7 +51,7 @@ public:
 
     void write(uint16_t addr, uint8_t data) override;
     uint8_t read(uint16_t addr) override;
-    void set_irq_callback(std::function<void(void)> fn) { (void)fn; };
+    void set_irq_callback(std::function<void(void)> fn) { irq_cb = fn; };
 
 private:
     std::function<void(void)> irq_cb;

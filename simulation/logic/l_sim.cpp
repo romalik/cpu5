@@ -7,6 +7,7 @@
 
 #include <exception>
 #include <string>
+#include <stdexcept>
 
 std::atomic<bool> running{true};
 
@@ -476,7 +477,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
         [](CPU* c) -> void { c->A->ol(); c->X->ih(); },
         [](CPU* c) -> void { c->pp(); }
     } },
-    { ICode::scall, {
+    { ICode::INT, {
         [](CPU* c) -> void { c->toggle_pc(); },
         [](CPU* c) -> void { c->sela(); c->abus=0xffbe; c->S->ol(); c->mw(); },
         [](CPU* c) -> void { c->sela(); c->abus=0xffbd; c->S->oh(); c->mw(); },
@@ -497,7 +498,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
 };
 
 void fetch(CPU* c) {
-    if(c->FAULT || c->IRQ) {
+    if(c->FAULT || c->int_ctl->irq_pending()) {
         c->IR->set_l(0xff);
     } else {
         c->PC->a();
@@ -517,18 +518,20 @@ void CPU::mw() {
 }
 
 void CPU::iv_o() {
-    // XXXX
-    not_impl();
+    int_en = false;
+    dbus = int_ctl->get_iv();
+    int_ctl->reset();
 }
 
 void CPU::sela() {
-    not_impl();
+    printf("SELa not impl!\n");
+    
+    //not_impl();
     // XXXX
 }
 
 void CPU::ei() {
-    not_impl();
-    // XXXX
+    int_en = true;
 }
 
 std::string toBin(uint8_t v) {
@@ -964,6 +967,10 @@ void CPU::set_vmem(std::shared_ptr<VMem> v) {
     vmem = v;
 }
 
+void CPU::set_int_ctl(std::shared_ptr<IntCtl> ic) {
+    int_ctl = ic;
+}
+
 
 
 void sigint_handler(int signum) {
@@ -972,6 +979,45 @@ void sigint_handler(int signum) {
     }
 }
 
+
+IntCtl::IntCtl() { irqs.resize(4, false); };
+
+void IntCtl::set_int(int irqn) {
+    if(irqn < irqs.size()) {
+        irqs[irqn] = true;
+    } else {
+        throw std::runtime_error("IRQ too big");
+    }
+}
+
+bool IntCtl::irq_pending() {
+    for(size_t i = 0; i<irqs.size(); i++) {
+        if(irqs[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void IntCtl::reset() {
+    for(size_t i = 0; i<irqs.size(); i++) {
+        irqs[i] = false;
+    }    
+}
+
+
+uint8_t IntCtl::get_iv() {
+    for(size_t i = 0; i<irqs.size(); i++) {
+        if(irqs[i]) {
+            uint8_t vec = (uint8_t)(i * 0x10);
+            irqs[i] = false;
+            return vec;
+        }
+    }
+    return 0x40;
+}
+    
 
 
 void test_alu(CPU & c) {
@@ -1014,7 +1060,9 @@ int main(int argc, char ** argv) {
     Args args = parse_args(argc,argv);
 
     CPU cpu;
-    //test_alu(cpu);
+
+    std::shared_ptr<IntCtl> int_ctl = std::make_shared<IntCtl>();
+
 
     std::shared_ptr<RamDevice> rom = std::make_shared<RamDevice>(1024 * 16, true);
     rom->load(args.rom);
@@ -1022,6 +1070,7 @@ int main(int argc, char ** argv) {
     std::shared_ptr<RamDevice> low_ram = std::make_shared<RamDevice>(1024 * 32, false);
 
     std::shared_ptr<Console> console  = std::make_shared<Console>();
+    console->set_irq_callback([&]() -> void { int_ctl->set_int(3); });
 
     std::shared_ptr<SimpleStorage> storage = std::make_shared<SimpleStorage>();
     storage->load(args.hdd);
@@ -1035,6 +1084,8 @@ int main(int argc, char ** argv) {
     vmem->add_vmem_entry(VMemEntry(0x04004, 0x04004, 0x00000, console));
 
     cpu.set_vmem(vmem);
+    cpu.set_int_ctl(int_ctl);
+
     cpu.reset();
 
 
