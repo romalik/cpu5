@@ -9887,12 +9887,6 @@
     (uuid ff7152e7-195a-4310-8214-8046cf2140e5)
   )
 
-  (text "Save OFF on FAULT!!!\n\nend_phase AND fault is incorrect!"
-    (at 468.63 67.31 0)
-    (effects (font (size 10 10) bold) (justify left bottom))
-    (uuid 2f138e8b-e4a1-4077-9030-7a937cf70956)
-  )
-
   (label "seq_reset" (at 386.08 180.34 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 3ebd836a-55db-4e5d-a65e-dff5a792a5e1)

@@ -529,6 +529,7 @@ void CPU::sela() {
 
 void CPU::ei() {
     int_en = true;
+    vmem->enable_pg();
 }
 
 std::string toBin(uint8_t v) {
@@ -1066,10 +1067,13 @@ void test_alu(CPU & c) {
 
 void TLBCtl::write(uint16_t addr, uint8_t data) {
     if(addr == 0x0000) { //RESET PAGING
+        printf("Disable paging\n");
         vmem->disable_pg();
     } else if(addr == 0x0001) { //SET_PAGING
+        printf("Enable paging\n");
         vmem->enable_pg();
     } else if(addr == 0x0002) { //TLB INDEX
+        //printf("Set tlb index 0x%02x\n", data);
         vmem->set_tlb_index(data);
     }
 }
@@ -1090,11 +1094,11 @@ void TLBCtl::set_irq_callback(std::function<void(void)> fn) {}
 std::pair<uint32_t, uint8_t> VMem::get_eaddr_flags(uint16_t addr) {
     std::pair<uint32_t, uint8_t> res;
 
-    uint16_t tlb_addr = ((addr & 0xF000) >> 12) | (tlb_index << 4);
+    uint16_t tlb_addr = ((addr & 0xF000) >> 12) | (((uint16_t)tlb_index) << 4);
     uint8_t tlb_data = tlb_memory->read(tlb_addr);
     uint8_t tlbf_data = tlb_memory->read((1u << 13) | tlb_addr);        
 
-    res.first = (addr & 0x0fff) | (tlb_data << 12);
+    res.first =((uint32_t)(addr & 0x0fff)) | (((uint32_t)tlb_data) << 12);
     res.second = tlbf_data;
 
     return res;
@@ -1111,9 +1115,17 @@ uint8_t VMem::read(uint16_t addr) {
             fault_page_cause = (addr >> 12) | (1 << 4);
             throw CPUFault("Read violation!");
         }
+
+        //if(tlb_index == 1) {
+            //printf("Read with tlb_index == 0x%02x\naddr = 0x%04x\neaddr = 0x%04x\n", tlb_index, addr, eaddr);
+        //}
+
     }
     // TLB here
     //printf("Read 0x%04x\n", addr);
+    //if(eaddr & 0x1ffff) {
+    //    printf("Read from eaddr %0x06X\n", eaddr);
+    //}
     auto d = decode(eaddr);
     uint8_t data = d.first->read(eaddr & d.second);
     return data;
@@ -1155,6 +1167,8 @@ int main(int argc, char ** argv) {
 
     std::shared_ptr<RamDevice> low_ram = std::make_shared<RamDevice>(1024 * 32, false);
 
+    std::shared_ptr<RamDevice> high_ram = std::make_shared<RamDevice>(1024 * 1024, false);
+
     std::shared_ptr<Console> console  = std::make_shared<Console>();
     console->set_irq_callback([&]() -> void { int_ctl->set_int(3); });
 
@@ -1172,6 +1186,7 @@ int main(int argc, char ** argv) {
 
     vmem->add_vmem_entry(VMemEntry(0x00000, 0x03fff, 0x03fff, rom));
     vmem->add_vmem_entry(VMemEntry(0x08000, 0x0ffff, 0x07fff, low_ram));
+    vmem->add_vmem_entry(VMemEntry(0x10000, 0xfffff, 0xfffff, high_ram));
     vmem->add_vmem_entry(VMemEntry(0x04000, 0x04003, 0x00003, storage));
     vmem->add_vmem_entry(VMemEntry(0x04004, 0x04004, 0x00000, console));
     vmem->add_vmem_entry(VMemEntry(0x06000, 0x07fff, 0x01fff, vmem->get_tlb_memory()));
