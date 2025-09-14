@@ -96,8 +96,8 @@ Console::Console(){
     running = true;
     thr = std::thread(&Console::runner, this);
 }
-    
-Console::~Console(){
+
+void Console::stop() {
     tcsetattr(0, TCSANOW, &initial_settings);
     running = false;
     thr.join();

@@ -45,11 +45,23 @@ struct VMemEntry {
 };
 
 
+class VMem;
+class TLBCtl : public IDevice {
+    std::shared_ptr<VMem> vmem;
+public:
+    TLBCtl(std::shared_ptr<VMem> vmem) : vmem(vmem) {};
+    void write(uint16_t addr, uint8_t data) override;
+    uint8_t read(uint16_t addr) override;
+    void set_irq_callback(std::function<void(void)> fn);
+};
 
 
 class VMem {
     std::shared_ptr<DummyDevice> dummy;
     std::vector<VMemEntry> decode_table;
+
+    std::shared_ptr<RamDevice> tlb_memory;
+    std::shared_ptr<TLBCtl> tlb_ctl;
 
     std::pair<std::shared_ptr<IDevice>, uint32_t> decode(uint32_t addr) {
         for(const auto & d : decode_table) {
@@ -60,29 +72,59 @@ class VMem {
         return std::make_pair(dummy, 0xffff);
     }
 
+    bool paging_enable{false};
+    uint8_t tlb_index{0};
+
+    uint8_t fault_idx{0};
+    uint8_t fault_page_cause{0};
+
 public:
     VMem() {
         dummy = std::make_shared<DummyDevice>();
     }
 
-    uint8_t read(uint16_t addr) {
-        uint32_t eaddr = addr;
-        // TLB here
-        //printf("Read 0x%04x\n", addr);
-        auto d = decode(eaddr);
-        uint8_t data = d.first->read(eaddr & d.second);
-        return data;
-    }
-    void write(uint16_t addr, uint8_t data) {
-        uint32_t eaddr = addr;
-        // TLB here
-        auto d = decode(eaddr);
-        d.first->write(eaddr & d.second, data);
+    void set_tlb_memory(std::shared_ptr<RamDevice> t) {
+        tlb_memory = t;
     }
 
-    void add_vmem_entry(VMemEntry en) {
-        decode_table.push_back(en);
+    void set_tlb_ctl(std::shared_ptr<TLBCtl> t) {
+        tlb_ctl = t;
     }
+
+    std::shared_ptr<TLBCtl> get_tlb_ctl() {
+        return tlb_ctl;
+    }
+
+    std::shared_ptr<RamDevice> get_tlb_memory() {
+        return tlb_memory;
+    }
+
+    void enable_pg() {
+        paging_enable = true;
+    }
+
+    void disable_pg() {
+        paging_enable = false;
+    }
+
+    void set_tlb_index(uint8_t idx) {
+        tlb_index = idx;
+    }
+
+    uint8_t get_fault_idx() {
+        return fault_idx;
+    }
+
+    uint8_t get_fault_page_cause() {
+        return fault_page_cause;
+    }
+
+    std::pair<uint32_t, uint8_t> get_eaddr_flags(uint16_t addr);
+
+    uint8_t read(uint16_t addr);
+    void write(uint16_t addr, uint8_t data);
+
+    void add_vmem_entry(VMemEntry en);
 
 };
 
@@ -158,6 +200,7 @@ struct Instruction {
     int delay{0};
     ICode icode;
 };
+
 
 
 class IntCtl {

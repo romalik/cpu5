@@ -388,7 +388,8 @@ int main(int argc, char** argv) {
     std::cout << "[verilator-tb] Wrote VCD to " << cfg.vcd_path << std::endl;
 #endif
     delete top;
-
+    
+    kb.stop();
     std::cout << "Exiting gracefully\n";
     return 0;
 }

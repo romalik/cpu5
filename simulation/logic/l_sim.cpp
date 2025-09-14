@@ -498,7 +498,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
 };
 
 void fetch(CPU* c) {
-    if(c->FAULT || c->int_ctl->irq_pending()) {
+    if((c->FAULT || c->int_ctl->irq_pending()) && c->int_en) {
         c->IR->set_l(0xff);
     } else {
         c->PC->a();
@@ -524,10 +524,7 @@ void CPU::iv_o() {
 }
 
 void CPU::sela() {
-    printf("SELa not impl!\n");
-    
-    //not_impl();
-    // XXXX
+    vmem->disable_pg();
 }
 
 void CPU::ei() {
@@ -847,9 +844,10 @@ void CPU::exec_instruction(size_t mpc) {
         if(in.code == (code & in.mask)) {
             const auto & mc_routine = microcode[in.icode];
             for(; mpc < mc_routine.size()+1; mpc++) {
-                //backup registers for fault
-                //printf("mpc: %zu\n", mpc);
-                //fflush(stdout);
+                fault_bk.mpc = mpc;
+                fault_bk.IR->set_l(IR->get_l());
+                fault_bk.Off->set_l(Off->get_l());
+                
                 mc_routine[mpc-1](this);
                 tick_n++;
                 delay(1);
@@ -955,9 +953,18 @@ int CPU::cycle() {
 
     //execute
     try {
+        uint8_t mpc = 0;
+        if(is_fault_recovery) {
+            mpc = fault_bk.mpc;
+            IR->set_l(fault_bk.IR->get_l());
+            Off->set_l(fault_bk.Off->get_l());
+        }
         alul();
-        exec_instruction(0);
+        exec_instruction(mpc);
     } catch (const CPUFault &e) {
+        printf("Fault! %s\n", e.what());
+        int_ctl->set_int(0);
+        vmem->disable_pg();
 
     }
     return 0;
@@ -1055,6 +1062,85 @@ void test_alu(CPU & c) {
 }
 
 
+
+
+void TLBCtl::write(uint16_t addr, uint8_t data) {
+    if(addr == 0x0000) { //RESET PAGING
+        vmem->disable_pg();
+    } else if(addr == 0x0001) { //SET_PAGING
+        vmem->enable_pg();
+    } else if(addr == 0x0002) { //TLB INDEX
+        vmem->set_tlb_index(data);
+    }
+}
+uint8_t TLBCtl::read(uint16_t addr) { 
+    if(addr == 0x0005) { //MMU_FAULT_IDX
+        return vmem->get_fault_idx();
+    } else if(addr == 0x0006) { //MMU_FAULT_PAGE_CAUSE
+        return vmem->get_fault_page_cause();
+    } else {
+        printf("Illegal TLB read (0x%04x)\n", addr);
+        return 0;
+    }
+}
+void TLBCtl::set_irq_callback(std::function<void(void)> fn) {}
+
+
+
+std::pair<uint32_t, uint8_t> VMem::get_eaddr_flags(uint16_t addr) {
+    std::pair<uint32_t, uint8_t> res;
+
+    uint16_t tlb_addr = ((addr & 0xF000) >> 12) | (tlb_index << 4);
+    uint8_t tlb_data = tlb_memory->read(tlb_addr);
+    uint8_t tlbf_data = tlb_memory->read((1u << 13) | tlb_addr);        
+
+    res.first = (addr & 0x0fff) | (tlb_data << 12);
+    res.second = tlbf_data;
+
+    return res;
+}
+
+uint8_t VMem::read(uint16_t addr) {
+    uint32_t eaddr = addr;
+    if(paging_enable) {
+        auto tlb_res = get_eaddr_flags(addr);
+        eaddr = tlb_res.first;
+        uint8_t flags = tlb_res.second;
+        if((flags & 0x01) == 0) {
+            fault_idx = tlb_index;
+            fault_page_cause = (addr >> 12) | (1 << 4);
+            throw CPUFault("Read violation!");
+        }
+    }
+    // TLB here
+    //printf("Read 0x%04x\n", addr);
+    auto d = decode(eaddr);
+    uint8_t data = d.first->read(eaddr & d.second);
+    return data;
+}
+void VMem::write(uint16_t addr, uint8_t data) {
+    uint32_t eaddr = addr;
+    if(paging_enable) {
+        auto tlb_res = get_eaddr_flags(addr);
+        eaddr = tlb_res.first;
+        uint8_t flags = tlb_res.second;
+        if((flags & 0x02) == 0) {
+            fault_idx = tlb_index;
+            fault_page_cause = (addr >> 12) | (1 << 5);
+            throw CPUFault("Write violation!");
+        }
+    }
+    auto d = decode(eaddr);
+    d.first->write(eaddr & d.second, data);
+}
+
+void VMem::add_vmem_entry(VMemEntry en) {
+    decode_table.push_back(en);
+}
+
+
+
+
 int main(int argc, char ** argv) {
     signal(SIGINT, sigint_handler);
     Args args = parse_args(argc,argv);
@@ -1075,13 +1161,21 @@ int main(int argc, char ** argv) {
     std::shared_ptr<SimpleStorage> storage = std::make_shared<SimpleStorage>();
     storage->load(args.hdd);
 
-
     std::shared_ptr<VMem> vmem = std::make_shared<VMem>();
+
+    std::shared_ptr<RamDevice> tlb_memory = std::make_shared<RamDevice>(0x2000, false);
+    std::shared_ptr<TLBCtl> tlb_ctl = std::make_shared<TLBCtl>(vmem);
+
+    vmem->set_tlb_ctl(tlb_ctl);
+    vmem->set_tlb_memory(tlb_memory);
+
 
     vmem->add_vmem_entry(VMemEntry(0x00000, 0x03fff, 0x03fff, rom));
     vmem->add_vmem_entry(VMemEntry(0x08000, 0x0ffff, 0x07fff, low_ram));
     vmem->add_vmem_entry(VMemEntry(0x04000, 0x04003, 0x00003, storage));
     vmem->add_vmem_entry(VMemEntry(0x04004, 0x04004, 0x00000, console));
+    vmem->add_vmem_entry(VMemEntry(0x06000, 0x07fff, 0x01fff, vmem->get_tlb_memory()));
+    vmem->add_vmem_entry(VMemEntry(0x04800, 0x04806, 0x00007, vmem->get_tlb_ctl()));
 
     cpu.set_vmem(vmem);
     cpu.set_int_ctl(int_ctl);
@@ -1093,8 +1187,15 @@ int main(int argc, char ** argv) {
     bool timing_stat_done = false;
 
 
+    size_t last_timer_tick_n = 0;
+
     while(running.load()) {
         cpu.cycle();
+
+        if(cpu.tick_n - last_timer_tick_n > 0x10000) {
+            int_ctl->set_int(1);
+            last_timer_tick_n = cpu.tick_n;
+        }
 
         if((!timing_stat_done) && (cpu.tick_n > 100000)) {
             timing_stat_done = true;

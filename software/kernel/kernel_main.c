@@ -247,8 +247,9 @@ void main()
     dump_blocks();
 */
 
-
+    puts("!!! ERRORS !!!\n");
     puts("!!! OVERFLOW FLAG INCORRECT IN ALUGENERATOR (0x80 instead of 0x08) !!!\n");
+    puts("!!! Backup ALU latched regs in case of fault (maybe) !!!\n");
 
     puts("Kernel ready\n");
 
