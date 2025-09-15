@@ -48,7 +48,7 @@ public:
     int pop();
     int has_data();
     void stop();
-    
+
     void write(uint16_t addr, uint8_t data) override;
     uint8_t read(uint16_t addr) override;
     void set_irq_callback(std::function<void(void)> fn) { irq_cb = fn; };
@@ -121,6 +121,7 @@ struct Args {
     std::string rom;
     std::string hdd;
     std::string fw{"."};
+    double mhz{0.0};
 };
 
 Args parse_args(int argc, char* argv[]);

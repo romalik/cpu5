@@ -25,7 +25,7 @@ void init_mmu() {
     puts(" + init mmu... ");
     for(char i = 0; i<0x10; i++) {
         write_tlb(0, i, i, 3);
-        write_tlb(1, i, 0x10 + i, 3);
+        write_tlb(1, i, 0x10 + i, 0);
     }
 
     *(unsigned char *)(TLB_INDEX) = 0;

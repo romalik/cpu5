@@ -255,6 +255,8 @@ Args parse_args(int argc, char* argv[]) {
             args.hdd = argv[++i];
         } else if ((key == "--fw") && i + 1 < argc) {
             args.fw = argv[++i];
+        } else if ((key == "--mhz") && i + 1 < argc) {
+            args.mhz = strtod(argv[++i], NULL);
         }
     }
     return args;

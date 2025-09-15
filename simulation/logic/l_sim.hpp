@@ -241,6 +241,7 @@ public:
 
     size_t tick_n{0};
 
+    size_t cycle_delay_ns{100};   
 
     uint8_t aluA{0};
     uint8_t aluB{0};
@@ -293,6 +294,9 @@ public:
 
     void set_vmem(std::shared_ptr<VMem> v);
     void set_int_ctl(std::shared_ptr<IntCtl> ic);
+
+    void set_calib_cycle_delay_ns(size_t ns);
+    size_t get_calib_cycle_delay_ns();
 };
 
 

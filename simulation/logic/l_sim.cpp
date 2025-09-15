@@ -818,8 +818,27 @@ void CPU::toggle_pc() {
     }
 }
 
+void delay_ns(long long ns) {
+    using clock = std::chrono::steady_clock; // monotonic, not wall time
+    const auto start = clock::now();
+    const auto end   = start + std::chrono::nanoseconds(ns);
+
+    // Optional: compiler barrier to stop clever reordering across the loop body
+    do {
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+    } while (clock::now() < end);
+}
+
 void CPU::delay(int n_cycles) {
-    // XXXX
+    delay_ns(cycle_delay_ns);
+}
+
+void CPU::set_calib_cycle_delay_ns(size_t ns) {
+    cycle_delay_ns = ns;
+}
+
+size_t CPU::get_calib_cycle_delay_ns() {
+    return cycle_delay_ns;
 }
 
 uint16_t CPU::calc_mf_addr() {
@@ -1067,10 +1086,10 @@ void test_alu(CPU & c) {
 
 void TLBCtl::write(uint16_t addr, uint8_t data) {
     if(addr == 0x0000) { //RESET PAGING
-        printf("Disable paging\n");
+        //printf("Disable paging\n");
         vmem->disable_pg();
     } else if(addr == 0x0001) { //SET_PAGING
-        printf("Enable paging\n");
+        //printf("Enable paging\n");
         vmem->enable_pg();
     } else if(addr == 0x0002) { //TLB INDEX
         //printf("Set tlb index 0x%02x\n", data);
@@ -1157,6 +1176,8 @@ int main(int argc, char ** argv) {
     signal(SIGINT, sigint_handler);
     Args args = parse_args(argc,argv);
 
+    size_t target_cycle_time_ns = (size_t)(  (32.0 * 1.0 / (1000000.0 * args.mhz)) * 1000000000.0  );
+
     CPU cpu;
 
     std::shared_ptr<IntCtl> int_ctl = std::make_shared<IntCtl>();
@@ -1199,8 +1220,7 @@ int main(int argc, char ** argv) {
 
 
     auto calib_time_start = std::chrono::steady_clock::now();
-    bool timing_stat_done = false;
-
+    size_t calib_start_tick = 0;
 
     size_t last_timer_tick_n = 0;
 
@@ -1212,16 +1232,28 @@ int main(int argc, char ** argv) {
             last_timer_tick_n = cpu.tick_n;
         }
 
-        if((!timing_stat_done) && (cpu.tick_n > 100000)) {
-            timing_stat_done = true;
+        if((cpu.tick_n - calib_start_tick > 10000)) {
             auto calib_time_end = std::chrono::steady_clock::now();
             std::chrono::duration<double> diff = calib_time_end - calib_time_start;
-            double clock_estimation_mhz = (static_cast<double>(cpu.tick_n * 16) / diff.count()) / 1000000.0;
-            printf("\n\nMain clock freq %f MHz\n", clock_estimation_mhz);
+            size_t cycle_time_ns = (diff.count() / (static_cast<double>(cpu.tick_n - calib_start_tick))) * 1000000000.0;
+
+            size_t calib_delay = 0;
+            if(target_cycle_time_ns > cycle_time_ns) {
+                calib_delay = target_cycle_time_ns - cycle_time_ns;
+            }
+            cpu.set_calib_cycle_delay_ns(target_cycle_time_ns - (cycle_time_ns - cpu.get_calib_cycle_delay_ns()));
+
+
+            double clock_estimation_mhz = (static_cast<double>((cpu.tick_n - calib_start_tick) * 32) / diff.count()) / 1000000.0;
+            //printf("\n\nCycle time %zu ns, target %zu. Requested main clock freq %f. Main clock freq %f MHz\n", cycle_time_ns, target_cycle_time_ns, args.mhz, clock_estimation_mhz);
+            calib_time_start = calib_time_end;
+            calib_start_tick = cpu.tick_n;
         }
 
     }
 
+    console->stop();
+    
     printf("Exiting sim.\n");
     return 0;
 }

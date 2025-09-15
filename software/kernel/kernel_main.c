@@ -147,28 +147,6 @@ void uptime(int argc, char ** argv) {
     puts("System is up for "); printhex(tick_counter); puts(" ticks.\n");
 }
 
-#define STORAGE_ADDR_LOW    0x4000
-#define STORAGE_ADDR_MID    0x4001
-#define STORAGE_ADDR_HIGH   0x4002
-#define STORAGE_DATA        0x4804
-/*
-void load_page() {
-    MMU_OFF();
-    write_tlb(0, 0x0A, 0x10, 0);
-    MMU_ON();
-
-    *(unsigned char *)(STORAGE_ADDR_MID)  = 0;
-    *(unsigned char *)(STORAGE_ADDR_HIGH) = 0;
-    for(int i = 0; i<0x100; i++) {
-        *(unsigned char *)(STORAGE_ADDR_LOW) = i;
-        *(unsigned char *)(0xA000 + i) = *(unsigned char *)(STORAGE_DATA);
-    }
-
-    puts("Load complete\n");
-    puts("0xA000: "); puts((char*)(0xA000)); puts("\n");
-
-}
-*/
 #define MAX_ARGS 10
 char * _argv[MAX_ARGS];
 char ** build_argv(char * str, int * argc) {
@@ -253,14 +231,14 @@ void main()
 
     puts("Kernel ready\n");
 
-/*
+
     if(getc() != 'a') {
             puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
             exec_process(INIT_PROCESS, 1);
             start_sched();
             while(1) {} //spin a bit, never return after sched()
     }
-*/
+
 
 #if 1
 

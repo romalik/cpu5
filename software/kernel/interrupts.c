@@ -73,11 +73,11 @@ void __interrupt page_fault() {
 
     if(page_cause & 0x10) {
         puts("BAD READ\nwrite 0x01\n");
-        write_tlb(MMU_FAULT_IDX, page, 0x20 + page, 1);
+        write_tlb(MMU_FAULT_IDX, page, 0x10 + page, 1);
     }
     if(page_cause & 0x20) {
         puts("BAD WRITE\nwrite 0x03\n");
-        write_tlb(MMU_FAULT_IDX, page, 0x20 + page, 3);
+        write_tlb(MMU_FAULT_IDX, page, 0x10 + page, 3);
     }
 
 
