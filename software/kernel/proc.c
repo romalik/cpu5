@@ -46,6 +46,8 @@ void init_proc() {
         p_list[i].start_page = (i) << 4;
 
         p_list[i].pid = i;
+
+        p_list[i].status = PROCESS_NONE;
     }
     puts("ok\n");
 }
@@ -134,7 +136,7 @@ void sched() {
 
                 write_tlb_index(p_list[current_proc].tlb_index);
 
-
+                //puts("sched switch\n");
                 return;
             }
         }

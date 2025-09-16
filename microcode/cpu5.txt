@@ -145,7 +145,7 @@ section code
 
 
                                                             #IRET       iret
--       ----    1111    0001    pc_switch   # (comparison overriden by 0x0f in instruction)
+-       ----    1111    0001    pc_switch sel_a  # (comparison overriden by 0x0f in instruction)
 -       ----    ----    0010    sl++
 -       ----    ----    0011    a_i s_a mread
 -       ----    ----    0100    a_o xl_i        # pop PC_L from 0xFFFE
@@ -162,7 +162,7 @@ section code
 ######################## 001 SYSCALL        ######################### opcode: 0x1X
 
                                                             #syscall
--       0001    1111    0001    pc_switch
+-       0001    1111    0001    pc_switch sel_a
 -       ----    ----    0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01) [0xFFBE] = SL (sel_a disable paging) !!!! MAYBE CROSSED!
 -       ----    ----    0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02) [0xFFBD] = SH                        !!!! MAYBE CROSSED!
 -       ----    ----    0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) [0xFFBF] = A  !!!!! WILL WRITE TO + 0x03 because of s_rst
@@ -182,7 +182,7 @@ section code
 ######################## 010 IRETF          ######################### opcode: 0x2X
 
                                                             #IRETf       iretf
--       0010    1111    0001    pc_switch   # (comparison overriden by 0x0f in instruction)
+-       0010    1111    0001    pc_switch sel_a  # (comparison overriden by 0x0f in instruction)
 -       ----    ----    0010    sl++
 -       ----    ----    0011    a_i s_a mread
 -       ----    ----    0100    a_o xl_i        # pop PC_L from 0xFFFE
@@ -526,7 +526,7 @@ section code
 ######################## INTERRUPTS        #########################
 
 -       1111    1111    0000    sel_a        !override    # disable paging, override fetch for 0xff
--       ----    ----    0001    pc_switch
+-       ----    ----    0001    pc_switch sel_a           # disable paging
 -       ----    ----    0010    sl_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x01) [0xFFBE] = SL (sel_a disable paging)
 -       ----    ----    0011    sh_o sel_a mwrite         # (sel_a will set addr to isr regs + 0x02) [0xFFBD] = SH
 -       ----    ----    0100    a_o  sel_a mwrite s_rst   # (sel_a will set addr to isr regs + 0x03) [0xFFBF] = A  !!!!! WILL WRITE TO + 0x03 because of s_rst

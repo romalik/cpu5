@@ -27,6 +27,7 @@ add_custom_command(
           --top-module ${VERI_TOP}
           --Mdir ${VERI_MDIR}
           --exe ${VERI_HARNESS}
+          --trace
           -CFLAGS "$<JOIN:${CPU5_HOST_OPTS}, > ${DEVICE_INC}"
           -LDFLAGS "$<TARGET_FILE:cpu5_common>"
           -o v_sim

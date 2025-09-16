@@ -66,7 +66,8 @@ void __interrupt page_fault() {
     /*
     puts("Write ALL\n");
     for(char i = 0; i<0x10; i++) {
-        write_tlb(2, i, 0x20 + i, 3);
+        //write_tlb(1, i, 0x10 + i, 3); //works
+        //write_tlb(1, page, 0x10 + page, 3); //does not work
     }
     */
 

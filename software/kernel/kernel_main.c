@@ -103,35 +103,6 @@ void cat(int argc, char ** argv) {
     }
 }
 
-void (*loaded_bin)(void) = 0xA000;
-
-void exec(int argc, char ** argv) {
-    if(argc < 2) {
-        return;
-    }
-    struct stat st;
-    if(stat(argv[1], &st)) {
-        puts("File not found\n");
-    } else {
-        //temporary map kernel page 0x0a to 0x1a to load app
-        MMU_OFF();
-        write_tlb(0, 0xa, 0x1a, 0xff);
-        MMU_ON();
-        read_file((unsigned char *)(0xA000), st.blk, 0, st.size);
-        MMU_OFF();
-        write_tlb(0, 0xa, 0xa, 0xff);
-        MMU_ON();
-
-        puts("File read\nset TLB idx and Jump..\n");
-        /*
-        asm("ldd X, 0xA000");
-        asm("jmp");
-        */
-        write_tlb_index(1);
-        loaded_bin();
-
-    }
-}
 
 void exec2(int argc, char ** argv) {
     /*
@@ -141,6 +112,13 @@ void exec2(int argc, char ** argv) {
     do_switch = 1;
     while(1) {} //spin a bit, never return after sched()
     */
+}
+
+void exec(int argc, char ** argv) {
+    puts("Exec ["); puts(argv[1]); puts("]...\n");
+    exec_process(argv[1], 1);
+    start_sched();
+    while(1) {} //spin a bit, never return after sched()
 }
 
 void uptime(int argc, char ** argv) {
@@ -228,11 +206,13 @@ void main()
     puts("!!! ERRORS !!!\n");
     puts("!!! OVERFLOW FLAG INCORRECT IN ALUGENERATOR (0x80 instead of 0x08) !!!\n");
     puts("!!! Backup ALU latched regs in case of fault (maybe) !!!\n");
+    
+    
 
     puts("Kernel ready\n");
 
 
-    if(getc() != 'a') {
+    if(0 && (getc() != 'a')) {
             puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
             exec_process(INIT_PROCESS, 1);
             start_sched();
@@ -252,12 +232,6 @@ void main()
         puts(" > ");
         cmd = getline();
 
-        if(!strcmp(cmd,"init")) {
-            puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
-            exec_process(INIT_PROCESS, 1);
-            start_sched();
-            while(1) {} //spin a bit, never return after sched()
-        }
 
         //puts("cmd: "); puts(cmd); puts("\n");
         argv = build_argv(cmd, &argc);

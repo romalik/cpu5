@@ -122,6 +122,7 @@ struct Args {
     std::string hdd;
     std::string fw{"."};
     double mhz{0.0};
+    bool trace{false};
 };
 
 Args parse_args(int argc, char* argv[]);

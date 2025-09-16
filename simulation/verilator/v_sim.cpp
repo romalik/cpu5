@@ -20,16 +20,13 @@
 #include <queue>
 #include "devices.hpp"
 
-#ifndef VSIM_TRACE
-#define VSIM_TRACE 0
-#endif
 
 
 #include "verilated.h"
 
-#if VSIM_TRACE
+
 #include "verilated_vcd_c.h"
-#endif
+
 
 // ---- CHANGE HERE if your top module isn't 'cpu5' ----
 #include "Vcpu5.h"
@@ -146,20 +143,17 @@ int main(int argc, char** argv) {
 
     Top* top = new Top;
 
-
-#if VSIM_TRACE
-    Verilated::traceEverOn(true);
-    VerilatedVcdC* tfp = new VerilatedVcdC;
-    top->trace(tfp, 99);
-    tfp->open(cfg.vcd_path.c_str());
-    printf("Tracing enabled\n");
-#endif
-
-
-    top->SIM_OE = 1;
-
     Args args = parse_args(argc,argv);
 
+    Verilated::traceEverOn(args.trace);
+    VerilatedVcdC* tfp = new VerilatedVcdC;
+    if(args.trace) {
+        top->trace(tfp, 99);
+        tfp->open(cfg.vcd_path.c_str());
+        printf("Tracing enabled\n");
+    }
+
+    top->SIM_OE = 1;
 
 
     verilator_mem_init(args.fw);
@@ -175,9 +169,9 @@ int main(int argc, char** argv) {
 
     auto eval_dump = [&](){
         top->eval();
-#if VSIM_TRACE        
-        tfp->dump(main_time_ps);
-#endif
+        if(args.trace) {
+            tfp->dump(main_time_ps);
+        }
     };
 
     auto set_data = [&](uint8_t v) {
@@ -382,11 +376,11 @@ int main(int argc, char** argv) {
     
     
     top->final();
-#if VSIM_TRACE      
-    tfp->close();
+    if(args.trace) {    
+        tfp->close();
+        std::cout << "\n[verilator] Wrote VCD to " << cfg.vcd_path << std::endl;    
+    }
     delete tfp;
-    std::cout << "[verilator-tb] Wrote VCD to " << cfg.vcd_path << std::endl;
-#endif
     delete top;
     
     kb.stop();

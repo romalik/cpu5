@@ -17828,6 +17828,9 @@
     (path "/f558077d-a1c7-4f56-87bc-c74ddd707915/6c0f0962-d797-47f4-bda2-33473c9d5e30"
       (reference "#PWR0318") (unit 1) (value "+5V") (footprint "")
     )
+    (path "/f715160f-995d-49b3-aa5d-1b9e3d537dee/a6bb3572-dc66-4de4-b907-700f698d9f29"
+      (reference "#PWR?") (unit 1) (value "+5V") (footprint "")
+    )
     (path "/068dcd52-3587-4c7a-ab0c-7ae753422c2d/8bc23f63-0439-4a3d-b4af-69894e4d31e7"
       (reference "ALU_DATA_BUS1") (unit 1) (value "Conn_01x08") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical")
     )
