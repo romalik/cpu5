@@ -76,6 +76,9 @@ void print_state(CPU * c) {
     print_reg("X ", c->X);
     print_reg("A ", c->A);
     print_reg("B ", c->B);
+    printf("TLB idx 0x%02x\n", c->vmem->get_tlb_index());
+    printf("Paging %s\n", c->vmem->get_paging_enabled() ? "ON":"OFF");
+    
 }
 std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
 
@@ -148,7 +151,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
         [](CPU* c) -> void { c->toggle_pc(); }
     } },
     { ICode::iretf, {
-        [](CPU* c) -> void { c->toggle_pc(); },
+        [](CPU* c) -> void { printf("microcode: IRETF\n"); c->toggle_pc(); },
         [](CPU* c) -> void { c->S->inc(); },
         [](CPU* c) -> void { c->S->a(); c->mr(); c->A->il(); },
         [](CPU* c) -> void { c->A->ol(); c->X->il(); },
@@ -498,7 +501,7 @@ std::map<ICode, std::vector<std::function<void(CPU*)>>> microcode = {
 };
 
 void fetch(CPU* c) {
-    if((c->FAULT || c->int_ctl->irq_pending()) && c->int_en) {
+    if((c->int_ctl->irq_pending()) && c->int_en) {
         c->IR->set_l(0xff);
     } else {
         c->PC->a();
@@ -853,8 +856,23 @@ void CPU::not_impl() {
     running.store(false);
 }
 
+static size_t __mpc = 0;
+static size_t __backup_cycle = 0;
+
 void CPU::exec_instruction(size_t mpc) {
     if(mpc == 0) {
+
+
+                if(  vmem->get_paging_enabled() 
+                     && !int_ctl->fault_pending()
+                     && IR->get_l() != 0x2f) { //no record when fault_load in IRET
+                    fault_bk.mpc = mpc;
+                    fault_bk.IR->set_l(IR->get_l());
+                    fault_bk.Off->set_l(Off->get_l());
+                    __backup_cycle = tick_n;
+                }     
+
+
         fetch(this);
         tick_n++;
         mpc++;
@@ -864,10 +882,16 @@ void CPU::exec_instruction(size_t mpc) {
         if(in.code == (code & in.mask)) {
             const auto & mc_routine = microcode[in.icode];
             for(; mpc < mc_routine.size()+1; mpc++) {
-                fault_bk.mpc = mpc;
-                fault_bk.IR->set_l(IR->get_l());
-                fault_bk.Off->set_l(Off->get_l());
-                
+                __mpc = mpc;
+
+                if(  vmem->get_paging_enabled() 
+                     && !int_ctl->fault_pending()
+                     && IR->get_l() != 0x2f) { //no record when fault_load in IRET
+                    fault_bk.mpc = mpc;
+                    fault_bk.IR->set_l(IR->get_l());
+                    fault_bk.Off->set_l(Off->get_l());
+                    __backup_cycle = tick_n;
+                }                
                 mc_routine[mpc-1](this);
                 tick_n++;
                 delay(1);
@@ -978,11 +1002,22 @@ int CPU::cycle() {
             mpc = fault_bk.mpc;
             IR->set_l(fault_bk.IR->get_l());
             Off->set_l(fault_bk.Off->get_l());
+
+            printf("Recovery with mpc = 0x%02x, IR = 0x%02x\n", mpc, IR->get_l());
+            is_fault_recovery = false;
         }
         alul();
         exec_instruction(mpc);
     } catch (const CPUFault &e) {
         printf("Fault! %s\n", e.what());
+        printf("fault_bk.IR = 0x%02x\n", fault_bk.IR->get_l());
+        printf("IR = 0x%02x\n", IR->get_l());
+        printf("fault_bk.mpc = 0x%02x\n", fault_bk.mpc);
+        printf("mpc = 0x%02x\n", __mpc);
+        printf("current_cycle = %zu\n", tick_n);
+        printf("backup_cycle = %zu\n", __backup_cycle);
+        
+        
         int_ctl->set_int(0);
         vmem->disable_pg();
 
@@ -1086,10 +1121,10 @@ void test_alu(CPU & c) {
 
 void TLBCtl::write(uint16_t addr, uint8_t data) {
     if(addr == 0x0000) { //RESET PAGING
-        //printf("Disable paging\n");
+        
         vmem->disable_pg();
     } else if(addr == 0x0001) { //SET_PAGING
-        //printf("Enable paging\n");
+        
         vmem->enable_pg();
     } else if(addr == 0x0002) { //TLB INDEX
         //printf("Set tlb index 0x%02x\n", data);
@@ -1115,7 +1150,7 @@ std::pair<uint32_t, uint8_t> VMem::get_eaddr_flags(uint16_t addr) {
 
     uint16_t tlb_addr = ((addr & 0xF000) >> 12) | (((uint16_t)tlb_index) << 4);
     uint8_t tlb_data = tlb_memory->read(tlb_addr);
-    uint8_t tlbf_data = tlb_memory->read((1u << 13) | tlb_addr);        
+    uint8_t tlbf_data = tlb_memory->read((1u << 12) | tlb_addr);        
 
     res.first =((uint32_t)(addr & 0x0fff)) | (((uint32_t)tlb_data) << 12);
     res.second = tlbf_data;
@@ -1135,11 +1170,25 @@ uint8_t VMem::read(uint16_t addr) {
             throw CPUFault("Read violation!");
         }
 
+/*
+        if(eaddr & 0x10000) {
+                printf("read from 0x10000\n");
+                printf("EAddr 0x%06X\n", eaddr);
+                printf("TLBFlags: 0x%02x\n", flags);
+
+                uint16_t tlb_addr = ((addr & 0xF000) >> 12) | (((uint16_t)tlb_index) << 4);
+                printf("TLB addr: 0x%04x\n", tlb_addr);
+                printf("TLBF addr: 0x%04x\n", (1u << 12) | tlb_addr);
+                running.store(false);
+
+        }
+        */
         //if(tlb_index == 1) {
             //printf("Read with tlb_index == 0x%02x\naddr = 0x%04x\neaddr = 0x%04x\n", tlb_index, addr, eaddr);
         //}
 
     }
+
     // TLB here
     //printf("Read 0x%04x\n", addr);
     //if(eaddr & 0x1ffff) {

@@ -212,7 +212,7 @@ void main()
     puts("Kernel ready\n");
 
 
-    if(0 && (getc() != 'a')) {
+    if(1 && (getc() != 'a')) {
             puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
             exec_process(INIT_PROCESS, 1);
             start_sched();

@@ -9,7 +9,7 @@
 class CPU;
 class Register;
 class Register {
-    uint16_t data;
+    uint16_t data{0};
     CPU *c;
 public:
     Register(CPU* c);
@@ -100,15 +100,25 @@ public:
     }
 
     void enable_pg() {
+
         paging_enable = true;
     }
 
     void disable_pg() {
+
         paging_enable = false;
     }
 
     void set_tlb_index(uint8_t idx) {
         tlb_index = idx;
+    }
+
+    uint8_t get_tlb_index() {
+        return tlb_index;
+    }
+
+    bool get_paging_enabled() {
+        return paging_enable;
     }
 
     uint8_t get_fault_idx() {
@@ -207,6 +217,10 @@ class IntCtl {
     std::vector<bool> irqs;
 public:
     IntCtl();
+
+    bool fault_pending() {
+        return irqs[0];
+    }
 
     void set_int(int irqn);
     bool irq_pending();
