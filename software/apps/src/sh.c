@@ -1,7 +1,11 @@
 #define NULL 0
 
-unsigned char do_syscall(unsigned char id, unsigned char arg) {
+unsigned char do_syscall(unsigned char id, unsigned char arg, void * arg_ptr) {
     unsigned char retval;
+    asm("mov A,a5");
+    asm("mov XH,A");
+    asm("mov A,a4");
+    asm("mov XL,A");
     asm("mov A,a2");
     asm("mov B,A");
     asm("mov A,a0");
@@ -12,12 +16,18 @@ unsigned char do_syscall(unsigned char id, unsigned char arg) {
 }
 
 void putc(char c) {
-    do_syscall(1, c);
+    do_syscall(1, c, 0);
 }
 
 char getc() {
-    return do_syscall(2, 0);
+    return do_syscall(2, 0, 0);
 }
+
+void exec(char * path) {
+    do_syscall(5, 0, path);
+}
+
+
 
 void puts(char * s) {
     while(*s) {
@@ -119,7 +129,7 @@ void echo(int argc, char ** argv) {
 }
 
 void stats(int argc, char ** argv) {
-    do_syscall(3, 0);
+    do_syscall(3, 0, 0);
 }
 
 void hlt(int argc, char ** argv) {
@@ -163,7 +173,10 @@ int main() {
 
         if (cmd_idx < 0)
         {
-            puts("unknown command\n");
+
+            exec(argv[0]);
+            // shouldn't return if correct
+            puts("Bad command or filename\n");
         } else if(cmd_idx == 0) {
             puts("Exiting.\n");
             break;

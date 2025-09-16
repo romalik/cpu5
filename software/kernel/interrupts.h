@@ -80,7 +80,7 @@ struct isr_ctx {
     unsigned char a;
     unsigned char b;
     unsigned char f;
-    unsigned char pad;
+
 };
 
 void save_isr_ctx_to  (struct isr_ctx * dest);

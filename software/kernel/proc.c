@@ -3,17 +3,16 @@
 #include "fs.h"
 #include "mmu.h"
 
+
+#define TICKS_TO_SWITCH 8
+
 extern int tick_counter;
 
 int do_switch;
-int current_proc;
+unsigned char current_proc_idx;
 
-enum PROCESS_STATE {
-    PROCESS_NONE = 0,
-    PROCESS_RUN,
-    PROCESS_WAIT,
-    PROCESS_DEAD
-};
+
+
 
 const char * p_state_str[] = {
     '0',
@@ -22,37 +21,48 @@ const char * p_state_str[] = {
     'D'
 };
 
-struct Process {
-    unsigned char status;
-    unsigned char pid;
-    unsigned char tlb_index;
-    unsigned char start_page;
-    struct isr_ctx ctx; //12b
-};
 
-#define N_PROC 3
-struct Process p_list[3];
+#define N_PROC 6
+struct Process p_list[N_PROC];
 
 
 
 void init_proc() {
     puts(" + init process list... ");
-    current_proc = 0;
+    current_proc_idx = 0xff;
     do_switch = 0;
     memset(p_list, 0, sizeof(struct Process) * N_PROC);
-    for(int i = 0; i<N_PROC; i++) {
-        //puts("fill "); printhex(i);
-        p_list[i].tlb_index = i; 
-        p_list[i].start_page = (i) << 4;
-
-        p_list[i].pid = i;
-
-        p_list[i].status = PROCESS_NONE;
-    }
     puts("ok\n");
 }
 
-void exec_process(const char * path, unsigned char p_idx) {
+unsigned char find_free_proc() {
+    for(unsigned char i = 0; i<N_PROC; i++) {
+        if(p_list[i].status == PROCESS_NONE) {
+            return i;
+        }
+    }
+    return 0xff;
+}
+
+unsigned char get_new_pid() {
+    unsigned char pid = 1;
+    while(1) {
+        unsigned char pid_found = 1;
+        for(char i = 0; i<N_PROC; i++) {
+            if((p_list[i].pid == pid) && (p_list[i].status != PROCESS_NONE)) {
+                pid_found = 0;
+                break;
+            }
+        }
+        if(pid_found) {
+            return pid;
+        }
+        pid++;
+    }
+}
+
+
+void load_process(const char * path, unsigned char proc_idx) {
     struct stat st;
     unsigned int left_to_read;
     unsigned int read_now = 0;
@@ -63,7 +73,7 @@ void exec_process(const char * path, unsigned char p_idx) {
     if(stat(path, &st)) {
         puts("File not found\n");
     } else {
-        
+        unsigned char target_page_idx = 0;
         left_to_read = st.size;
         while(left_to_read) {
             puts("Read "); printhex(already_read); puts("\n");
@@ -75,66 +85,82 @@ void exec_process(const char * path, unsigned char p_idx) {
             MMU_OFF();
             write_tlb(  0, 
                         0xa, 
-                        p_list[p_idx].start_page + (already_read >> 8),
+                        p_list[proc_idx].pages[target_page_idx],
                         0xff
                      );
             MMU_ON();
             read_file((unsigned char *)(0xA000), st.blk, already_read, read_now);
             already_read += read_now;
             left_to_read -= read_now;
+            target_page_idx++;
         }
 
         puts(path); puts(" loaded\n");
     }
-    p_list[p_idx].ctx.pc = 0x0000;
-    p_list[p_idx].status = PROCESS_RUN;
-
 }
 
 void print_process_list() {
-    puts("pid status tlb_idx pages ctx\n");
+    puts("pid    status tlb_idx\n");
     for(int i = 0; i<N_PROC; i++) {
-        printhex(i);
-        puts(" : @ ");
-        printhex(&p_list[i]);
-        puts(" pid = ");
         printhex(p_list[i].pid);
         puts(" ");
         putc(p_state_str[p_list[i].status]);
-        puts(" ");
+        puts("     ");
         printhex(p_list[i].tlb_index);
-        puts(" start_page(");
-        printhex(p_list[i].start_page);
-        puts(") ctx (");
+        puts(" ctx:\n");
         print_isr_ctx(&p_list[i].ctx);
-        puts(")\n");
+        puts("\npages:\n");
+        for(int j = 0; j<16; j++) {
+            puts("["); printhex(p_list[i].pages[j]); puts("]");
+        }
+        puts("\n");
         
     }
 }
 
 
+unsigned char ticks_to_next_switch;
 void start_sched() {
     do_switch = 1;
+    ticks_to_next_switch = TICKS_TO_SWITCH;
+}
+
+
+void force_sched() {
+    ticks_to_next_switch = 1;
+    sched();
+}
+
+void skip_next_proc_frame_save() {
+    current_proc_idx = 0xff;
 }
 
 void sched() {
     if(do_switch) {
-        if(tick_counter & 0x03) return;
+        //puts("Ticks to next switch "); printhex(ticks_to_next_switch); puts("\n");
+        ticks_to_next_switch--;
+        if(ticks_to_next_switch > 0) {
+            return;
+        }
 
-        //puts("\n#sw from "); printhex(current_proc);
-        save_isr_ctx_to(&p_list[current_proc].ctx);
+        ticks_to_next_switch = TICKS_TO_SWITCH;
+
+        //puts("\n#sw from "); printhex(current_proc_idx);
+        if(current_proc_idx != 0xff) { // first switch from kernel
+            save_isr_ctx_to(&p_list[current_proc_idx].ctx);
+        }
         while(1) {
-            current_proc++;
-            if(current_proc >= N_PROC) {
+            current_proc_idx++;
+            if(current_proc_idx >= N_PROC) {
                 //puts(" .ovf. ");
-                current_proc = 0;
+                current_proc_idx = 0;
             }
-            if(p_list[current_proc].status == PROCESS_RUN) {
-                //puts(" to "); printhex(current_proc); puts("\n");
+            if(p_list[current_proc_idx].status == PROCESS_RUN) {
+                //puts(" to "); printhex(current_proc_idx); puts("\n");
 
-                load_isr_ctx_from(&p_list[current_proc].ctx);
+                load_isr_ctx_from(&p_list[current_proc_idx].ctx);
 
-                write_tlb_index(p_list[current_proc].tlb_index);
+                write_tlb_index(p_list[current_proc_idx].tlb_index);
 
                 //puts("sched switch\n");
                 return;

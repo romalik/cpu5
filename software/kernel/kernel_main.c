@@ -28,56 +28,9 @@ unsigned int fxnMul(unsigned int a, unsigned int b) {
 int fxnMod() { return 0; }
 int fxnDiv() { return 0; }
 
-unsigned char do_syscall(unsigned char id, unsigned char arg) {
-    unsigned char retval;
-    asm("ldd X,0x1234");
-    asm("mov A,a2");
-    asm("mov B,A");
-    asm("mov A,a0");
-    asm("syscall");
-    asm("mov l-2,A");
-    return retval;
-}
-
-void puts_scall(char * s) {
-    while(*s) {
-        do_syscall(1, *s);
-        s++;        
-    }
-}
-
-void test_func(int argc, char ** argv)
-{
-    unsigned char retval = 0;
-    puts("scall 1 arg '!'\n");
-    retval = do_syscall(1, '!');
-    puts("return: "); printhex(retval); puts("\n");
-
-    puts("test puts_scall: ");
-    puts_scall("puts through scall\n");
-}
 
 
-void echo(int argc, char ** argv)
-{
-    char i = 0;
-    for(i = 1; i<argc; i++) {
-        puts(argv[i]); puts(" ");
-    }
-    puts("\n");
 /*
-    puts("echo:\n");
-    while (1)
-    {
-        char c = getc();
-        if (c)
-        {
-            putc(c);
-        }
-    }
-    */
-}
-
 #define CAT_BUFFER 100
 char cat_buf[CAT_BUFFER];
 void cat(int argc, char ** argv) {
@@ -102,23 +55,39 @@ void cat(int argc, char ** argv) {
         }
     }
 }
-
+*/
 
 void exec2(int argc, char ** argv) {
-    /*
-    exec_process("app1.bin", 1);
-    exec_process("app2.bin", 2);
-    current_proc = 0;
-    do_switch = 1;
-    while(1) {} //spin a bit, never return after sched()
-    */
+
 }
 
-void exec(int argc, char ** argv) {
-    puts("Exec ["); puts(argv[1]); puts("]...\n");
-    exec_process(argv[1], 1);
+
+void start_init(char * path) {
+    unsigned char proc_idx = find_free_proc();
+    p_list[proc_idx].pid = get_new_pid();
+    p_list[proc_idx].status = PROCESS_RUN;
+    p_list[proc_idx].tlb_index = get_free_tlb();
+    p_list[proc_idx].ctx.pc = 0x0000;
+    for(unsigned char i = 0; i<16; i++) {
+        p_list[proc_idx].pages[i] = find_free_page();
+        page_refcount_inc(p_list[proc_idx].pages[i]);
+    }
+
+
+    puts("init ["); puts(path); puts("] starting...\n");
+    load_process(path, proc_idx);
+    populate_tlb(proc_idx);
+    //print_process_list();
+    //asm("hlt");
     start_sched();
+    puts("Waiting for sched()\n");
     while(1) {} //spin a bit, never return after sched()
+}
+
+
+
+void exec(int argc, char ** argv) {
+    start_init(argv[1]);
 }
 
 void uptime(int argc, char ** argv) {
@@ -149,10 +118,10 @@ char ** build_argv(char * str, int * argc) {
 
 
 
-#define N_CMDS 8
+#define N_CMDS 4
 
-void (*funcs[])() = {test_func, print_process_list, echo, list_files, cat, exec, exec2, uptime};
-char *cmds[] = {"s", "ps", "echo", "ls", "cat", "exec", "exec2", "uptime"};
+void (*funcs[])() = {print_process_list, list_files, exec, uptime};
+char *cmds[] = {"ps", "ls",  "exec", "uptime"};
 
 int get_cmd_idx(char *s)
 {
@@ -190,6 +159,7 @@ void main()
     puts("\nbss end : "); printhex(&__bss_end);
     puts("\n");
 
+
     init_uart();
     init_proc();
     init_mmu();
@@ -206,17 +176,14 @@ void main()
     puts("!!! ERRORS !!!\n");
     puts("!!! OVERFLOW FLAG INCORRECT IN ALUGENERATOR (0x80 instead of 0x08) !!!\n");
     puts("!!! Backup ALU latched regs in case of fault (maybe) !!!\n");
-    
+    puts("!!! Compiler : 'c_proc = &p_list[current_proc_idx];' seemingly does not work!!!\n");
     
 
     puts("Kernel ready\n");
 
 
     if(1 && (getc() != 'a')) {
-            puts("Exec init ["); puts(INIT_PROCESS); puts("]...\n");
-            exec_process(INIT_PROCESS, 1);
-            start_sched();
-            while(1) {} //spin a bit, never return after sched()
+        start_init(INIT_PROCESS);
     }
 
 
