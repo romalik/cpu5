@@ -18,6 +18,10 @@
 #include <time.h>
 #include <unistd.h>
 
+#define CODEGEN_CPU5
+
+
+
 #define MAX(x, y) ((x) < (y) ? (y) : (x))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 

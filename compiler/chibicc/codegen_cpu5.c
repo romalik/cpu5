@@ -1,4 +1,5 @@
 #include "chibicc.h"
+#ifdef CODEGEN_CPU5
 
 #define GP_MAX 6
 #define FP_MAX 8
@@ -1584,7 +1585,7 @@ static void emit_text(Obj *prog) {
 
 void codegen(Obj *prog, FILE *out) {
 
-  ast_dump_program(prog, stdout);
+  //ast_dump_program(prog, stdout);
 
   output_file = out;
 
@@ -1596,3 +1597,4 @@ void codegen(Obj *prog, FILE *out) {
   emit_data(prog);
   emit_text(prog);
 }
+#endif
